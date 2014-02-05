@@ -15,6 +15,7 @@ namespace base
 
 		math::Ray3f                 generateRay( const math::V2f &rsP ) const;
 		void                        setRaster( int width, int height, float aspect );
+		void                        setPlaneDistances( float znear, float zfar );
 		void                        setViewToWorld( math::M44f &viewToWorld );
 		void                        setProjection( math::M44f &viewToNDC );
 

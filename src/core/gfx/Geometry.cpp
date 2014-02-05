@@ -150,6 +150,17 @@ namespace base
 		return newIndex;
 	}
 
+	void Geometry::transform( const math::M44f& tm )
+	{
+		AttributePtr pAttr = getAttr("P");
+		int numElements = pAttr->numElements();
+		for( int i=0; i<numElements; ++i )
+		{
+			math::Vec3f v = math::transform( pAttr->get<math::Vec3f>(i), tm);
+			pAttr->set<math::Vec3f>( (unsigned int)i, v );
+		}
+	}
+
 
 	//
 	// removes all attributes and primitives

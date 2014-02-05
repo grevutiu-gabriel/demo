@@ -20,6 +20,7 @@ namespace base
 		m_distance = 0.5f;
 
 		m_camera = std::make_shared<Camera>();
+		m_camera->setPlaneDistances(0.01f, 10000.0f);
 
 		update();
 	}

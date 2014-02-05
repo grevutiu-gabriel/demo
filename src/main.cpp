@@ -133,7 +133,7 @@ void render( base::Context::Ptr context, base::Camera::Ptr cam )
 
 	//g_fbo->begin();
 	//context->setCamera( cam );
-	//context->render(g_geo, g_shader);
+	context->render(g_geo, g_shader);
 	//g_fbo->end();
 
 	g_volume->render(context, cam);
@@ -165,10 +165,12 @@ void init( base::Context::Ptr context )
 {
 	std::cout << "init...\n";
 
-	//g_geo = base::Geometry::createGrid(10, 10, base::Geometry::LINE);
-/*
+	g_geo = base::Geometry::createGrid(10, 10, base::Geometry::LINE);
+	g_geo->transform( math::M44f::ScaleMatrix(16.0f, 1.0f, 16.0f) );
+///*
 	// load houdini file ================
-	std::string filename = "c:\\projects\\demo\\git\\bin\\data\\test.bgeo";
+	//std::string filename = "c:\\projects\\demo\\git\\bin\\data\\test.bgeo";
+	std::string filename = "c:\\projects\\demo\\git\\bin\\data\\manix_bound.bgeo";
 	std::ifstream in( filename.c_str(), std::ios_base::in | std::ios_base::binary );
 	houdini::HouGeo::Ptr hgeo = houdini::HouGeoIO::import( &in );
 	if( hgeo )
@@ -176,34 +178,29 @@ void init( base::Context::Ptr context )
 		int primIndex = 0;
 		houdini::HouGeo::Primitive::Ptr prim = hgeo->getPrimitive(primIndex);
 
-//		//Volume
-//		if(std::dynamic_pointer_cast<houdini::HouGeo::HouVolume>(prim) )
-//		{
-//			houdini::HouGeo::HouVolume::Ptr volprim = std::dynamic_pointer_cast<houdini::HouGeo::HouVolume>(prim);
-//			getSocket( "output" )->setData(volprim->field);
-//		}
 		//geo
-		if(std::dynamic_pointer_cast<houdini::HouGeo::HouPoly>(prim) )
-			g_geo = houdini::HouGeoIO::convertToGeometry(hgeo, primIndex);
+		//if(std::dynamic_pointer_cast<houdini::HouGeo::HouPoly>(prim) )
+		//	g_geo = houdini::HouGeoIO::convertToGeometry(hgeo, primIndex);
 	}
 
-	g_shader = base::Shader::load( "c:\\projects\\demo\\git\\src\\core\\glsl\\genericShader" );
-	g_shader->setUniform("l", math::V3f(1.0f).normalized());
-	g_shader->setUniform("ka", 0.2f);
-	g_shader->setUniform("ambient", math::V3f(1.0f));
-	g_shader->setUniform("kd", 1.0f);
-	g_shader->setUniform("diffuse", math::V3f(.5f));
+	//g_shader = base::Shader::load( "c:\\projects\\demo\\git\\src\\core\\glsl\\genericShader" );
+	//g_shader->setUniform("l", math::V3f(1.0f).normalized());
+	//g_shader->setUniform("ka", 0.2f);
+	//g_shader->setUniform("ambient", math::V3f(1.0f));
+	//g_shader->setUniform("kd", 1.0f);
+	//g_shader->setUniform("diffuse", math::V3f(.5f));
 	//g_shader = base::Shader::load( "c:\\projects\\demo\\git\\src\\core\\glsl\\simpleColor" );
 	//g_shader = base::Shader::load( "c:\\projects\\demo\\git\\src\\core\\glsl\\simpleTexture" );
 	//g_shader->setUniform("texture", base::Context::getCurrentContext()->getTexture2d("c:\\projects\\demo\\git\\bin\\data\\uvref.png")->getUniform());
 
-	base::Texture2d::Ptr target = base::Texture2d::createRGBAFloat32(512, 512);
-	context->addTexture2d("target", target);
-	g_fbo = base::FBO::create().width(512).height(512).attach(target);
-*/
+	//base::Texture2d::Ptr target = base::Texture2d::createRGBAFloat32(512, 512);
+	//context->addTexture2d("target", target);
+	//g_fbo = base::FBO::create().width(512).height(512).attach(target);
+//*/
+	g_shader = base::Shader::load( "c:\\projects\\demo\\git\\src\\core\\glsl\\genericShader" );
 
 	g_volume = Volume::create();
-	g_volume->load( "c:\\projects\\demo\\git\\bin\\data\\manix.bgeo" );
+	g_volume->load( "c:\\projects\\demo\\git\\bin\\data\\manix2.bgeo" );
 }
 
 

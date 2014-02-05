@@ -39,6 +39,7 @@ namespace base
 		//
 		void                                                        reverse(); // reverses the order of vertices for each primitive (CW polys become CCW)
 		unsigned int                                                duplicatePoint( unsigned int index ); // duplicates point and returns index of duplicate (all attributes are copied etc.)
+		void                                                        transform( const math::M44f& tm );
 
 
 

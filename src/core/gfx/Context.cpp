@@ -146,11 +146,11 @@ namespace base
 
 	void Context::render( Geometry::Ptr geo, Shader::Ptr shader, const math::Matrix44f &xform )
 	{
-		//TransformState ts;
-		//getTransformState(ts);
-		//setModelMatrix(xform);
+		TransformState ts;
+		getTransformState(ts);
+		setModelMatrix(xform);
 		render( geo, shader );
-		//setTransformState(ts);
+		setTransformState(ts);
 	}
 
 	void Context::renderScreen( Shader::Ptr shader )
@@ -360,7 +360,7 @@ namespace base
 
 
 
-/*
+
 	void Context::setModelMatrix( const math::Matrix44f &modelMatrix )
 	{
 		m_currentTransformState.modelMatrix = modelMatrix;
@@ -390,7 +390,7 @@ namespace base
 		m_currentTransformState.modelViewInverseTranspose.ma[7] = m.m[2][1];
 		m_currentTransformState.modelViewInverseTranspose.ma[8] = m.m[2][2];
 
-		m_mvminvtAttr->set( 0,m_currentTransformState. modelViewInverseTranspose );
+		m_mvminvtAttr->set( 0,m_currentTransformState.modelViewInverseTranspose );
 	}
 
 	void Context::setViewMatrix( const math::Matrix44f &viewMatrix )
@@ -424,18 +424,18 @@ namespace base
 
 		m_mvminvtAttr->set( 0,m_currentTransformState. modelViewInverseTranspose );
 	}
-
+/*
 	math::Vec3f Context::worldToView( const math::Vec3f &worldPos )
 	{
 		return math::transform( worldPos, m_currentTransformState.modelViewMatrix );
 	}
-
+	*/
 	math::Matrix44f Context::getModelViewMatrix()
 	{
 		return m_currentTransformState.modelViewMatrix;
 	}
-	*/
-	math::Matrix44f Context::getModelViewInverse()
+
+	math::Matrix44f Context::getModelViewInverseMatrix()
 	{
 		return m_currentTransformState.modelViewInverse;
 	}
@@ -446,7 +446,7 @@ namespace base
 		return m_currentTransformState.viewInverseMatrix;
 	}
 
-
+*/
 
 	void Context::getTransformState( TransformState &ts ) const
 	{
@@ -480,7 +480,7 @@ namespace base
 
 
 
-
+/*
 
 	void Context::renderScreenVFip( Texture2dPtr texture )
 	{

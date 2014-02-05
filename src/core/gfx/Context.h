@@ -57,22 +57,21 @@ namespace base
 		void                                                      setCamera( Camera::Ptr camera );
 
 		void                                                      setView( const math::M44f &view, const math::M44f &viewInv, const math::M44f &proj ); // convinience function for updating transformState from view matrices
-/*
-		void                                                setModelMatrix( const math::Matrix44f &modelMatrix );
-		void                                                  setViewMatrix( const math::Matrix44f &viewMatrix );
-		void                                                                               setProjectionMatrix();
-		math::Vec3f                                                   worldToView( const math::Vec3f &worldPos );
 
-		math::Matrix44f                                                                     getModelViewMatrix();
-		*/
-		math::Matrix44f                                           getModelViewInverse();
+		void                                                      setModelMatrix( const math::Matrix44f &modelMatrix );
+		void                                                      setViewMatrix( const math::Matrix44f &viewMatrix );
+		//void                                                                               setProjectionMatrix();
+		//math::Vec3f                                               worldToView( const math::Vec3f &worldPos );
+
+		math::Matrix44f                                           getModelViewMatrix();
+		math::Matrix44f                                           getModelViewInverseMatrix();
 		/*
-		math::Matrix44f                                                                         getViewInverse();
-
-		void                                                       getTransformState( TransformState &ts ) const;
-		void                                                       setTransformState( const TransformState &ts );
+		math::Matrix44f                                                                         getViewInverseMatrix();
 
 		*/
+		void                                    getTransformState( TransformState &ts ) const;
+		void                                    setTransformState( const TransformState &ts );
+
 		void                                    pushViewport( int width, int height, FBO* fbo = 0 ); // used by fbos
 		ViewportState                           popViewport();
 		int                                     getViewportWidth()const;

@@ -94,6 +94,13 @@ namespace base
 		m_rasterToView = m_rasterToNDC*m_NDCToView;
 	}
 
+	void Camera::setPlaneDistances( float znear, float zfar )
+	{
+		m_znear = znear;
+		m_zfar = zfar;
+		setProjection( math::projectionMatrix( m_fov, m_aspect, m_znear, m_zfar ) );
+	}
+
 
 	void Camera::setViewToWorld( math::M44f &viewToWorld )
 	{

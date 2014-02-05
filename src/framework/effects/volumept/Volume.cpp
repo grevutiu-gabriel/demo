@@ -192,9 +192,9 @@ void Volume::initialize()
 	//std::cout << "densityMax " << densityMax << std::endl;
 
 
-	m_density = base::Texture3d::createFloat32();
-	m_density->uploadFloat32( density->m_resolution.x, density->m_resolution.y, density->m_resolution.z, density->getRawPointer() );
-	volumeShader->setUniform( "density", m_density->getUniform() );
+	m_densityTexture = base::Texture3d::createFloat32();
+	m_densityTexture->uploadFloat32( density->m_resolution.x, density->m_resolution.y, density->m_resolution.z, density->getRawPointer() );
+	volumeShader->setUniform( "density", m_densityTexture->getUniform() );
 	// TODO: once transfer function is introduced, use max of transferfunction
 	volumeShader->setUniform( "st_max", densityMax );
 
@@ -245,7 +245,9 @@ void Volume::initialize()
 void Volume::load( const std::string& filename )
 {
 
-	base::ScalarField::Ptr density;
+	//base::ScalarField::Ptr density;
+	m_density = base::ScalarField::Ptr();
+
 	// load houdini file ================
 	std::ifstream in( filename.c_str(), std::ios_base::in | std::ios_base::binary );
 	houdini::HouGeo::Ptr hgeo = houdini::HouGeoIO::import( &in );
@@ -258,27 +260,27 @@ void Volume::load( const std::string& filename )
 		if(std::dynamic_pointer_cast<houdini::HouGeo::HouVolume>(prim) )
 		{
 			houdini::HouGeo::HouVolume::Ptr volprim = std::dynamic_pointer_cast<houdini::HouGeo::HouVolume>(prim);
-			density = volprim->field;
+			m_density = volprim->field;
 		}
 	}
 
-	if(!density)
+	if(!m_density)
 		std::cerr << "unable to load " << filename << std::endl;
 
 
 	// create default density field ---
 	float densityMax=-std::numeric_limits<float>::infinity();
-	for( int k = 0; k<density->m_resolution.z;++k )
-		for( int j = 0; j<density->m_resolution.y;++j )
-			for( int i = 0; i<density->m_resolution.x;++i )
+	for( int k = 0; k<m_density->m_resolution.z;++k )
+		for( int j = 0; j<m_density->m_resolution.y;++j )
+			for( int i = 0; i<m_density->m_resolution.x;++i )
 			{
-				float value = density->lvalue(i,j,k);
+				float value = m_density->lvalue(i,j,k);
 				value = math::mapValueToRange(-1000.0f, 3095.0f, 0.0f, 1.0f, value)*10.0f;
 				densityMax = std::max(densityMax, value );
 			}
 	std::cout << "Volume::load: densityMax " << densityMax << std::endl;
-	m_density->uploadFloat32( density->m_resolution.x, density->m_resolution.y, density->m_resolution.z, density->getRawPointer() );
-	volumeShader->setUniform( "density", m_density->getUniform() );
+	m_densityTexture->uploadFloat32( m_density->m_resolution.x, m_density->m_resolution.y, m_density->m_resolution.z, m_density->getRawPointer() );
+	volumeShader->setUniform( "density", m_densityTexture->getUniform() );
 	// TODO: once transfer function is introduced, use max of transferfunction
 	volumeShader->setUniform( "st_max", densityMax );
 }
@@ -367,18 +369,18 @@ void Volume::render( base::Context::Ptr context, base::Camera::Ptr cam )
 	// render back faces
 	volumeBackFBO->begin();
 	glFrontFace( GL_CW );
-	context->render( m_proxy, volumeGeoShader );
+	context->render( m_proxy, volumeGeoShader, m_density->m_localToWorld );
 	volumeBackFBO->end();
 
 	// render front faces
 	volumeFrontFBO->begin();
 	glFrontFace( GL_CCW );
-	context->render( m_proxy, volumeGeoShader );
+	context->render( m_proxy, volumeGeoShader, m_density->m_localToWorld );
 
 	// computer polygon from intersection of near clipping plane with bounding box
 	// calculate the near clip plane in local space of the model
 	const float clipEpsilon = 0.001f;
-	math::Matrix44f modelViewInverse = context->getModelViewInverse();
+	math::Matrix44f modelViewInverse = context->getModelViewInverseMatrix();
     math::Vec3f nearClipPlaneN;
 	float nearClipPlaneDist;
     {

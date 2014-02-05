@@ -11,6 +11,7 @@
 #include <gfx/Image.h>
 #include <gfx/Context.h>
 #include <gfx/FBO.h>
+#include <gfx/Field.h>
 
 
 
@@ -95,7 +96,8 @@ struct Volume
 	//base::Texture2dArrayPtr            dctMap0;
 
 	Light                         m_light0Info;
-	base::Texture3dPtr        m_density;
+	base::Texture3dPtr            m_densityTexture;
+	base::ScalarField::Ptr        m_density;
 	base::Texture2dPtr        m_debug;
 	base::FBO::Ptr            m_debugFBO;
 };

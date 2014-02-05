@@ -1,6 +1,6 @@
 #version 330
 
-#define LAMBERT
+//#define LAMBERT
 in vec3      pw; // position in worldspace
 in vec3      pv; // position in eyespace
 in vec3       n; // normal in eyespace
@@ -27,7 +27,7 @@ layout(location = 0) out vec4 frag_color;
 void main()
 {
 	vec4 result = vec4(0.0, 0.0, 0.0, 1.0);
-	vec3 color = vec3(1.0, 1.0, 1.0);
+	vec3 color = vec3(0.5, 0.5, 0.5);
 
 	#ifdef TEXTURE
 	color = texture2D( texture, uv ).xyz;
