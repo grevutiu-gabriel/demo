@@ -255,7 +255,14 @@ namespace houdini
 	}
 
 
-
+	// convinience funcion for quickly saving volume to bgeo
+	bool HouGeoIO::xport( const std::string& filename, base::ScalarField::Ptr volume )
+	{
+		std::ofstream out( filename.c_str(), std::ios_base::out | std::ios_base::binary );
+		houdini::HouGeo::Ptr houGeo = std::make_shared<HouGeo>();
+		houGeo->addPrimitive(volume);
+		return houdini::HouGeoIO::xport( &out, houGeo );
+	}
 
 
 

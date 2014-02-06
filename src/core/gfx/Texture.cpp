@@ -40,7 +40,7 @@ namespace base
 
 	Texture1dPtr Texture1d::createRGBAFloat32( int xres )
 	{
-		return Texture1d::create( GL_RGBA_FLOAT32_ATI, xres );
+		return Texture1d::create( GL_RGBA32F, xres );
 	}
 
 	Texture1dPtr Texture1d::createFloat32( int xres )

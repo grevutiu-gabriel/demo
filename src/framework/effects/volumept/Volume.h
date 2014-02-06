@@ -13,6 +13,8 @@
 #include <gfx/FBO.h>
 #include <gfx/Field.h>
 
+#include "TransferFunction.h"
+
 
 
 
@@ -51,8 +53,7 @@ struct Volume
 	math::Vec3f                 getAbsorptionColor( void );
 	void                        setScatteringColor( math::Vec3f scatteringColor );
 	math::Vec3f                 getScatteringColor( void );
-	Light                       getLight( int index );
-	void                        setLight( int index, Light light );
+
 
 	Volume();
 
@@ -69,35 +70,28 @@ struct Volume
 	math::Vec3f              m_absorptionColor;
 	math::Vec3f              m_scatteringColor;
 
-	base::Texture2dPtr              volumeBack;
-	base::Texture2dPtr             volumeFront;
+	base::Texture2dPtr          volumeBack;
+	base::Texture2dPtr          volumeFront;
 	base::FBOPtr                volumeFrontFBO;
-	base::FBOPtr                 volumeBackFBO;
+	base::FBOPtr                volumeBackFBO;
 
-	base::ShaderPtr            volumeGeoShader;
+	base::ShaderPtr             volumeGeoShader;
+	base::ShaderPtr             volumeShader;
 
-	//base::Texture2dPtr                   noise; // TODO: potentially static
+	base::AttributePtr          localToWorldAttr;
+	base::AttributePtr          worldToLocalAttr;
 
-	base::ShaderPtr               volumeShader;
+	base::GeometryPtr           m_proxy; // proxy geometry
+	base::GeometryPtr           nearClipGeo;
+	base::AttributePtr          nearClipP;
+	base::AttributePtr          nearClipUVW;
 
-	base::AttributePtr        localToWorldAttr;
-	base::AttributePtr        worldToLocalAttr;
 
-	base::GeometryPtr                  m_proxy; // proxy geometry
-	base::GeometryPtr              nearClipGeo;
-	base::AttributePtr               nearClipP;
-	base::AttributePtr             nearClipUVW;
+	base::Texture3dPtr          m_densityTexture;
+	base::ScalarField::Ptr      m_density;
 
-	//base::ShaderPtr                 dctCompute;
+	TransferFunction::Ptr       m_transferFunction;
 
-	// light0
-	base::Camera::Ptr                   light0;
-	//base::FBOPtr                    dctMap0FBO;
-	//base::Texture2dArrayPtr            dctMap0;
-
-	Light                         m_light0Info;
-	base::Texture3dPtr            m_densityTexture;
-	base::ScalarField::Ptr        m_density;
 	base::Texture2dPtr        m_debug;
 	base::FBO::Ptr            m_debugFBO;
 };

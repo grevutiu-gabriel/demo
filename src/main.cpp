@@ -200,7 +200,11 @@ void init( base::Context::Ptr context )
 	g_shader = base::Shader::load( "c:\\projects\\demo\\git\\src\\core\\glsl\\genericShader" );
 
 	g_volume = Volume::create();
-	g_volume->load( "c:\\projects\\demo\\git\\bin\\data\\manix2.bgeo" );
+	//g_volume->load( "c:\\projects\\demo\\git\\bin\\data\\manix2.bgeo" );
+	g_volume->load( "c:\\projects\\demo\\git\\bin\\data\\artifix.bgeo" );
+
+	// temp for conversion
+	//houdini::HouGeoIO::xport("c:\\projects\\demo\\git\\bin\\data\\artifix.bgeo", base::ScalarField::load("c:\\projects\\demo\\temp\\ConvertFile-build\\Debug\\artifix_small.field"));
 }
 
 

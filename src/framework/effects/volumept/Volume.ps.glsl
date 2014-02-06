@@ -21,6 +21,7 @@ uniform sampler2D volumeBack;
 
 // volume parameters
 uniform sampler3D density;
+uniform sampler1D transferFunction;
 uniform mat4 localToWorld;
 uniform mat4 worldToLocal;
 uniform float st_max;
@@ -236,6 +237,8 @@ float sampleDistance( in Ray ray, in float tmax, inout float d, out float st )
 		st = texture(density,localP).r;
 
 		// TODO: transfer function
+		st = texture(transferFunction, st).a;
+
 		//st = mapValueToRange( -1000.0f, 3095.0f, 0.0f, 1.0f, st );
 		if( randomFloat() < st/st_max )
 		{
@@ -290,14 +293,15 @@ void main()
 	vec3 boxmax = vec3(1.0f);
 
 
-	int numSamples = 1;
-
-	///*
+	int numSamples = 10;
 	vec4 sum = vec4(0.0f);
+
+	/*
+	// path tracing ---
 	for(int i=0;i<numSamples;++i)
 	{
 		Ray ray;
-		ray.o = wsStart.xyz + wsRayDir*0.001;
+		ray.o = wsStart.xyz + wsRayDir*0.0;
 		ray.d = wsRayDir;
 		float tmax = wsTotalDistance;
 
@@ -305,14 +309,14 @@ void main()
 		float st;
 		if( sampleDistance(ray, tmax, d, st) == 0.0f )
 		{
-			// direct light ---
-			ray.o = ray.o + ray.d*d;
-			ray.d = lightDir;
-			// TODO: transform ray into local space and tmax backwards into worldspace
-			tmax = intersectBox(ray, boxmin, boxmax);
-			d = 0.0f;
-			float st2;
-			sum.rgb += lightIntensity*sampleDistance(ray, tmax, d, st2)*(1.0f/(4.0f*M_PI))*albedo; // /pdf==st*T
+//			// direct light ---
+//			ray.o = ray.o + ray.d*d;
+//			ray.d = lightDir;
+//			// TODO: transform ray into local space and tmax backwards into worldspace
+//			tmax = intersectBox(ray, boxmin, boxmax);
+//			d = 0.0f;
+//			float st2;
+//			sum.rgb += lightIntensity*sampleDistance(ray, tmax, d, st2)*(1.0f/(4.0f*M_PI))*albedo; // /pdf==st*T
 		}else
 		{
 			// no scattering event (add transmittance sample)
@@ -321,13 +325,35 @@ void main()
 
 	}
 
-
-
 	sum /= numSamples;
+	*/
+
+	///*
+	numSamples = 100;
+	// raymarching test ---
+	float opticalDepth = 0.0f;
+	Ray ray;
+	ray.o = wsStart.xyz + wsRayDir*0.0f;
+	ray.d = wsRayDir;
+	float stepsize = wsTotalDistance/float(numSamples);
+	for(int i=0;i<numSamples;++i)
+	{
+		vec3 localP = (worldToLocal*vec4(ray.o+ray.d*(float(i)*stepsize), 1)).xyz;
+		float st = texture(density,localP).r;
+		st = texture(transferFunction, st).a;
+		//float st = texture(density,vec3(0.5f, 0.5f, 0.5f)).r;
+		//float st = 1.0f;
+
+		opticalDepth += st;
+	}
+	sum.a = exp(-opticalDepth*stepsize);
+	//*/
+
+
 	frag_color = vec4(sum.rgb, 1.0f-sum.a);
 
-	float alpha = 1.0f-sum.a;
-	vec3 backlight = vec3(1.0f);
+	//float alpha = 1.0f-sum.a;
+	//vec3 backlight = vec3(1.0f);
 	//frag_color = vec4(sum.rgb*alpha+backlight*(1.0f-alpha), 1.0f);
 	//frag_color = vec4(sum.rgb, 1.0f);
 	//frag_color = vec4(1.0f, 2.0f, 3.0f, 1.0f);

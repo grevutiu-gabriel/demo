@@ -10,6 +10,8 @@ namespace base
 
 	struct Texture1d
 	{
+		typedef std::shared_ptr<Texture1d> Ptr;
+
 		Texture1d();
 		~Texture1d();
 

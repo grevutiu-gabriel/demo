@@ -15,6 +15,8 @@ namespace houdini
 
 		static base::Geometry::Ptr              convertToGeometry( HouGeo::Ptr houGeo, int prim ); // converts primitive with the given index to geometry
 
+		static bool                             xport( const std::string& filename, base::ScalarField::Ptr volume ); // convinience funcion for quickly saving volume to bgeo
+
 	private:
 		static bool                             exportAttribute( HouGeoAdapter::Attribute::Ptr attr );
 		static bool                             exportTopology( HouGeoAdapter::Topology::Ptr topo );
