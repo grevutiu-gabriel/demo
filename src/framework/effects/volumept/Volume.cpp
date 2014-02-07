@@ -174,44 +174,46 @@ void Volume::initialize()
 
 	// create default density field ---
 	float densityMax=-std::numeric_limits<float>::infinity();
-	base::ScalarField::Ptr density=base::ScalarField::create();
-	for( int k = 0; k<density->m_resolution.z;++k )
-		for( int j = 0; j<density->m_resolution.y;++j )
-			for( int i = 0; i<density->m_resolution.x;++i )
+	m_density=base::ScalarField::create(math::V3i(10), math::Box3f(math::V3f(-4.0f), math::V3f(-1.0f)));
+
+	for( int k = 0; k<m_density->m_resolution.z;++k )
+		for( int j = 0; j<m_density->m_resolution.y;++j )
+			for( int i = 0; i<m_density->m_resolution.x;++i )
 			{
 				//float t = ((float)i/(float)density->m_resolution.x);
-				float t = ((float)j/(float)density->m_resolution.y);
+				float t = ((float)j/(float)m_density->m_resolution.y);
 				//float t = ((float)k/(float)density->m_resolution.z);
 				//float value = t;
 				//float value = 1.0f-t;
 				float value = 5.0f;
 				//value*=20.0f;
-				density->lvalue(i,j,k) = value;
+				m_density->lvalue(i,j,k) = value;
 				densityMax = std::max(densityMax, value);
 			}
 	//std::cout << "densityMax " << densityMax << std::endl;
 
 
 	m_densityTexture = base::Texture3d::createFloat32();
-	m_densityTexture->uploadFloat32( density->m_resolution.x, density->m_resolution.y, density->m_resolution.z, density->getRawPointer() );
+	m_densityTexture->uploadFloat32( m_density->m_resolution.x, m_density->m_resolution.y, m_density->m_resolution.z, m_density->getRawPointer() );
 	volumeShader->setUniform( "density", m_densityTexture->getUniform() );
 	// TODO: once transfer function is introduced, use max of transferfunction
 	volumeShader->setUniform( "st_max", densityMax );
 
 	math::Matrix44f localToWorld = math::M44f();
 	localToWorldAttr = base::Attribute::createM44f();
-	//localToWorldAttr->appendElement( density->m_localToWorld );
-	localToWorldAttr->appendElement( localToWorld );
+	localToWorldAttr->appendElement( m_density->m_localToWorld );
+	//localToWorldAttr->appendElement( localToWorld );
 	volumeShader->setUniform( "localToWorld", localToWorldAttr );
 
 	worldToLocalAttr = base::Attribute::createM44f();
-	worldToLocalAttr->appendElement( density->m_worldToLocal );
+	worldToLocalAttr->appendElement( m_density->m_worldToLocal );
 	volumeShader->setUniform( "worldToLocal", worldToLocalAttr );
 
 	// transfer function ---
 	m_transferFunction = std::make_shared<TransferFunction>();
 
-	float scale = 1000.0f;
+	float scale = 100.0f;
+	//float scale = 1.0f;
 
 //	// manix tf
 //	TransferFunction::PLF plf_manix;
@@ -222,15 +224,16 @@ void Volume::initialize()
 	// artifix tf
 	TransferFunction::PLF plf_artifix;
 	///*
-	//plf_artifix.addSample( -1024.0f, math::V4f(0.0f, 0.0f, 0.0f, 0.0f*scale) );
-	//plf_artifix.addSample( 67.46f, math::V4f(0.0f, 0.0f, 0.0f, 0.0f*scale) );
-	//plf_artifix.addSample( 245.88f, math::V4f(0.0f, 0.0f, 0.0f, 0.059f*scale) );
-	//plf_artifix.addSample( 831.27f, math::V4f(0.0f, 0.0f, 0.0f, 0.0f*scale) );
-	//plf_artifix.addSample( 3071.0f, math::V4f(0.0f, 0.0f, 0.0f, 1.0f*scale) );
-	//*/
 	plf_artifix.addSample( -1024.0f, math::V4f(0.0f, 0.0f, 0.0f, 0.0f*scale) );
-	plf_artifix.addSample( 262.0f, math::V4f(0.0f, 0.0f, 0.0f, 0.0f*scale) );
+	plf_artifix.addSample( 67.46f, math::V4f(0.0f, 0.0f, 0.0f, 0.0f*scale) );
+	plf_artifix.addSample( 245.88f, math::V4f(0.0f, 0.0f, 0.0f, 0.059f*scale) );
+	plf_artifix.addSample( 831.27f, math::V4f(0.0f, 0.0f, 0.0f, 1.0f*scale) );
 	plf_artifix.addSample( 3071.0f, math::V4f(0.0f, 0.0f, 0.0f, 1.0f*scale) );
+	//*/
+
+	//plf_artifix.addSample( -1024.0f, math::V4f(0.0f, 0.0f, 0.0f, 0.0f*scale) );
+	//plf_artifix.addSample( 262.0f, math::V4f(0.0f, 0.0f, 0.0f, 0.0f*scale) );
+	//plf_artifix.addSample( 3071.0f, math::V4f(0.0f, 0.0f, 0.0f, 1.0f*scale) );
 
 
 	//plf_artifix.addSample( -1024.0f, math::V4f(0.0f, 0.0f, 0.0f, 0.0f*scale) );
@@ -330,6 +333,10 @@ void Volume::load( const std::string& filename )
 	m_densityTexture->uploadFloat32( m_density->m_resolution.x, m_density->m_resolution.y, m_density->m_resolution.z, m_density->getRawPointer() );
 	volumeShader->setUniform( "density", m_densityTexture->getUniform() );
 	//volumeShader->setUniform( "st_max", densityMax );
+
+
+	localToWorldAttr->set<math::M44f>( 0, m_density->m_localToWorld );
+	worldToLocalAttr->set<math::M44f>( 0, m_density->m_worldToLocal );
 }
 
 
@@ -413,16 +420,22 @@ void Volume::render( base::Context::Ptr context, base::Camera::Ptr cam )
 	// render primary pass =========================================================
 	context->setView( cam->m_worldToView, cam->m_viewToWorld, cam->m_viewToNDC );
 
+	base::Context::TransformState ts;
+	context->getTransformState(ts);
+	context->setModelMatrix(m_density->m_localToWorld);
+
 	// render back faces
 	volumeBackFBO->begin();
 	glFrontFace( GL_CW );
-	context->render( m_proxy, volumeGeoShader, m_density->m_localToWorld );
+	//context->render( m_proxy, volumeGeoShader, m_density->m_localToWorld );
+	context->render( m_proxy, volumeGeoShader );
 	volumeBackFBO->end();
 
 	// render front faces
 	volumeFrontFBO->begin();
 	glFrontFace( GL_CCW );
-	context->render( m_proxy, volumeGeoShader, m_density->m_localToWorld );
+	//context->render( m_proxy, volumeGeoShader, m_density->m_localToWorld );
+	context->render( m_proxy, volumeGeoShader );
 
 	// computer polygon from intersection of near clipping plane with bounding box
 	// calculate the near clip plane in local space of the model
@@ -451,6 +464,8 @@ void Volume::render( base::Context::Ptr context, base::Camera::Ptr cam )
 
 
 	volumeFrontFBO->end();
+
+	context->setTransformState(ts);
 
 	// render volume ====================
 
