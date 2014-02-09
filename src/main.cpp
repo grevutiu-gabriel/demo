@@ -248,7 +248,7 @@ int main(int argc, char ** argv)
 
 	base::Application app;
 	glviewer = new base::GLViewer( 512, 512, "app", init, render, shutdown );
-	glviewer->getOrbitNavigator().m_distance = 1.0f;
+	glviewer->getOrbitNavigator().m_distance = 20.0f;
 	glviewer->getOrbitNavigator().m_elevation = 45.0f;
 	glviewer->getOrbitNavigator().update();
 	//glviewer->setMouseMoveCallback( onMouseMove );

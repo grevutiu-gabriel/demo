@@ -174,7 +174,8 @@ void Volume::initialize()
 
 	// create default density field ---
 	float densityMax=-std::numeric_limits<float>::infinity();
-	m_density=base::ScalarField::create(math::V3i(10), math::Box3f(math::V3f(-4.0f), math::V3f(-1.0f)));
+	//m_density=base::ScalarField::create(math::V3i(50), math::Box3f(math::V3f(-4.0f), math::V3f(-1.0f)));
+	m_density=base::ScalarField::create(math::V3i(50), math::Box3f(math::V3f(0.0f), math::V3f(1.0f)));
 
 	for( int k = 0; k<m_density->m_resolution.z;++k )
 		for( int j = 0; j<m_density->m_resolution.y;++j )
@@ -185,7 +186,10 @@ void Volume::initialize()
 				//float t = ((float)k/(float)density->m_resolution.z);
 				//float value = t;
 				//float value = 1.0f-t;
-				float value = 5.0f;
+				float value = 0.5f;
+				math::V3f lsP = m_density->voxelToLocal( math::V3f(float(i)+0.5f, float(j)+0.5f, float(k)+0.5f) );
+				if( (lsP-math::V3f(0.5f)).getLength() > 0.2f )
+					value = 0.0f;
 				//value*=20.0f;
 				m_density->lvalue(i,j,k) = value;
 				densityMax = std::max(densityMax, value);
@@ -223,22 +227,27 @@ void Volume::initialize()
 
 	// artifix tf
 	TransferFunction::PLF plf_artifix;
-	///*
-	plf_artifix.addSample( -1024.0f, math::V4f(0.0f, 0.0f, 0.0f, 0.0f*scale) );
-	plf_artifix.addSample( 67.46f, math::V4f(0.0f, 0.0f, 0.0f, 0.0f*scale) );
-	plf_artifix.addSample( 245.88f, math::V4f(0.0f, 0.0f, 0.0f, 0.059f*scale) );
-	plf_artifix.addSample( 831.27f, math::V4f(0.0f, 0.0f, 0.0f, 1.0f*scale) );
-	plf_artifix.addSample( 3071.0f, math::V4f(0.0f, 0.0f, 0.0f, 1.0f*scale) );
-	//*/
+	plf_artifix.addSample( -1024.0f, math::V4f(160.0f/255.0f, 160.0f/255.0f, 164.0f/255.0f, 0.0f*scale) );
+	plf_artifix.addSample( 67.46f, math::V4f(68.0f/255.0f, 0.0f/255.0f, 0.0f/255.0f, 0.0f*scale) );
+	plf_artifix.addSample( 245.88f, math::V4f(143.0f/255.0f, 104.0f/255.0f, 54.0f/255.0f, 0.059f*scale) );
+	plf_artifix.addSample( 831.27f, math::V4f(18.0f/255.0f, 9.0f/255.0f, 0.0f/255.0f, 1.0f*scale) );
+	plf_artifix.addSample( 3071.0f, math::V4f(160.0f/255.0f, 160.0f/255.0f, 64.0f/255.0f, 1.0f*scale) );
 
 	//plf_artifix.addSample( -1024.0f, math::V4f(0.0f, 0.0f, 0.0f, 0.0f*scale) );
 	//plf_artifix.addSample( 262.0f, math::V4f(0.0f, 0.0f, 0.0f, 0.0f*scale) );
 	//plf_artifix.addSample( 3071.0f, math::V4f(0.0f, 0.0f, 0.0f, 1.0f*scale) );
 
 
-	//plf_artifix.addSample( -1024.0f, math::V4f(0.0f, 0.0f, 0.0f, 0.0f*scale) );
-	//plf_artifix.addSample( 3071.0f, math::V4f(0.0f, 0.0f, 0.0f, 1.0f*scale) );
+//	plf_artifix.addSample( -1024.0f, math::V4f(1.0f, 1.0f, 1.0f, 0.0f*scale) );
+//	plf_artifix.addSample( 3071.0f, math::V4f(1.0f, 1.0f, 1.0f, 1.0f*scale) );
 	m_transferFunction->setPLF(plf_artifix);
+
+
+	// default tf
+//	TransferFunction::PLF plf_default;
+//	plf_default.addSample( 0.0f, math::V4f(0.0f, 0.0f, 0.0f, 0.0f*scale) );
+//	plf_default.addSample( 1.0f, math::V4f(0.0f, 0.0f, 0.0f, 1.0f*scale) );
+//	m_transferFunction->setPLF(plf_default);
 
 	volumeShader->setUniform( "transferFunction", m_transferFunction->m_texture->getUniform() );
 	volumeShader->setUniform( "st_max", m_transferFunction->m_st_max );
@@ -299,6 +308,7 @@ void Volume::load( const std::string& filename )
 	if(!m_density)
 		std::cerr << "unable to load " << filename << std::endl;
 
+	//m_density->setLocalToWorld(math::M44f());
 
 	// find density value range ---
 	float densityMin=std::numeric_limits<float>::infinity();

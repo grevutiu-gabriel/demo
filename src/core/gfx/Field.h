@@ -41,6 +41,7 @@ namespace base
 		math::V3f                               localToWorld( const math::V3f &lsP )const; // converts given localspace position to worldspace
 		math::V3f                               worldToVoxel( const math::V3f &wsP )const; // converts given worldspace position to voxelspace
 		math::V3f                               voxelToWorld( const math::V3f &vsP )const; // converts given voxelspace position to worldspace
+		math::V3f                               localToVoxel( const math::V3f &lsP )const; // converts given localspace position to voxelspace
 		math::V3f                               voxelToLocal( const math::V3f &vsP )const; // converts given voxelspace position to localspace
 
 		T                                                                *getRawPointer();
@@ -297,6 +298,7 @@ namespace base
 		return vsP * m_voxelToWorld;
 	}
 
+
 	// converts given worldspace position to localspace
 	template<typename T>
 	math::V3f Field<T>::worldToLocal( const math::V3f &wsP )const
@@ -317,6 +319,14 @@ namespace base
 	{
 		return vsP * math::M44f::ScaleMatrix( 1.0f/float(m_resolution.x), 1.0f/float(m_resolution.y), 1.0f/float(m_resolution.z) );
 	}
+
+	// converts given localspace position to voxelspace
+	template<typename T>
+	math::V3f Field<T>::localToVoxel( const math::V3f &lsP )const
+	{
+		return lsP * math::M44f::ScaleMatrix( float(m_resolution.x), float(m_resolution.y), float(m_resolution.z) );
+	}
+
 
 	// returns bounding box in worldspace
 	template<typename T>
