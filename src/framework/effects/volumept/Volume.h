@@ -87,8 +87,8 @@ struct Volume
 	base::AttributePtr          nearClipUVW;
 
 
-	base::Texture3dPtr          m_densityTexture;
-	base::ScalarField::Ptr      m_density;
+	base::Texture3dPtr          m_normalizedDensityTexture;
+	base::ScalarField::Ptr      m_normalizedDensity;
 
 	TransferFunction::Ptr       m_transferFunction;
 

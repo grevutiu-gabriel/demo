@@ -20,13 +20,12 @@ uniform sampler2D volumeFront;
 uniform sampler2D volumeBack;
 
 // volume parameters
-uniform sampler3D density;
+uniform sampler3D normalizedDensity;
 uniform sampler1D transferFunction;
 uniform mat4 localToWorld;
 uniform mat4 worldToLocal;
 uniform float st_max;
 float st_val=2.0f;
-float albedo = 1.0f;
 
 
 
@@ -203,6 +202,12 @@ struct Ray
 	vec3 d;
 };
 
+struct ScatterEvent
+{
+	vec3  p;
+	vec3  albedo;
+	float sigma_t;
+};
 
 
 // Intersects ray with box ( special case: ray origin is in a box )
@@ -234,7 +239,7 @@ float sampleDistance( in Ray ray, in float tmax, inout float d, out float st )
 			return 1.0f;
 		//cumath::Vec3<T> vsP = cumath::transform( ray.getPosition(l), kt_field->m_worldToVoxel );
 		vec3 localP = (worldToLocal*vec4(ray.o+ray.d*d, 1)).xyz;
-		st = texture(density,localP).r;
+		st = texture(normalizedDensity,localP).r;
 
 		// TODO: transfer function
 		st = texture(transferFunction, st).a;
@@ -248,25 +253,47 @@ float sampleDistance( in Ray ray, in float tmax, inout float d, out float st )
 	return 1.0f;
 }
 
-// returns true(0.0f) if scattering event happended, false(1.0f) if not
-// d = (initial) distance travelled
-// st = sigma_t (extinction) at scattering event
+// returns true if scattering event happended, false if not
 // optimization: factor *stepsize out of the loop
-float sampleDistance2( in Ray ray, in float stepsize, in float tmax, inout float d, out vec4 volumeSample )
+bool sampleDistance2( in Ray ray, in float stepsize, in float tmax, out ScatterEvent se )
 {
 	float odmax = -log(randomFloat())/st_max;
 	//float odmax = -log(randomFloat());
 	float od = 0.0f;
+	float d = randomFloat()*stepsize;
 	while( od < odmax )
 	{
 		if( d > tmax )
-			return 1.0f;
-		vec3 localP = (worldToLocal*vec4(ray.o+ray.d*d, 1)).xyz;
-		volumeSample = texture(transferFunction, texture(density,localP).r);
-		od += volumeSample.a*stepsize;
+			return false;
+		se.p = ray.o+ray.d*d;
+		vec3 localP = (worldToLocal*vec4(se.p, 1)).xyz;
+		vec4 volumeSample = texture(transferFunction, texture(normalizedDensity,localP).r);
+		se.albedo = volumeSample.rgb;
+		se.sigma_t = volumeSample.a;
+		od += se.sigma_t*stepsize;
 		d += stepsize;
 	}
-	return 0.0f;
+	return true;
+}
+
+// returns true if scattering event happended, false if not
+// optimization: factor *stepsize out of the loop
+bool sampleDistance2( in Ray ray, in float stepsize, in float tmax )
+{
+	float odmax = -log(randomFloat())/st_max;
+	//float odmax = -log(randomFloat());
+	float od = 0.0f;
+	float d = randomFloat()*stepsize;
+	while( od < odmax )
+	{
+		if( d > tmax )
+			return false;
+		vec3 localP = (worldToLocal*vec4(ray.o+ray.d*d, 1)).xyz;
+		float sigma_t = texture(transferFunction, texture(normalizedDensity,localP).r).a;
+		od += sigma_t*stepsize;
+		d += stepsize;
+	}
+	return true;
 }
 
 
@@ -306,7 +333,7 @@ void main()
 
 
 	vec3 lightDir = vec3(-1.0f, 0.0f, 0.0f);
-	vec3 lightIntensity = vec3(1.0f, 1.0f, 1.0f)*100.0f;
+	vec3 lightIntensity = vec3(1.0f, 1.0f, 1.0f)*2.0f;
 
 	//vec3 boxmin = localtoWorld*vec3(0.0f);
 	//vec3 boxmax = localtoWorld*vec3(1.0f);
@@ -362,7 +389,7 @@ void main()
 	{
 		vec3 wsP = ray.o+ray.d*(float(i)*stepsize);
 		vec3 localP = (worldToLocal*vec4(wsP, 1)).xyz;
-		vec4 st = texture(transferFunction, texture(density,localP).r);
+		vec4 st = texture(transferFunction, texture(normalizedDensity,localP).r);
 		float voldensity = st.a*stepsize;
 
 		// cast secondary rays towards light
@@ -378,7 +405,7 @@ void main()
 		{
 			vec3 wsP2 = lightray.o+lightray.d*(float(j)*stepsize2);
 			vec3 localP2 = (worldToLocal*vec4(wsP2, 1)).xyz;
-			vec4 st2 = texture(transferFunction, texture(density,localP2).r);
+			vec4 st2 = texture(transferFunction, texture(normalizedDensity,localP2).r);
 			od2 += st2.a;
 		}
 		float Tlight=exp(-od2*stepsize2);
@@ -392,8 +419,8 @@ void main()
 
 	///*
 	// stochastic raymarching test ---
-	float stepsize = 0.1f;
-	float stepsize2 = 0.1f;
+	float stepsize = 0.0117188f;
+	float stepsize2 = 0.0117188f;
 	numSamples = 1;
 	for(int i=0;i<numSamples;++i)
 	{
@@ -403,17 +430,37 @@ void main()
 		float tmax = wsTotalDistance;
 
 		float d=randomFloat()*stepsize;
-		vec4 volumeSample;
-		if( sampleDistance2(ray, stepsize, tmax, d, volumeSample) == 0.0f )
+		ScatterEvent se;
+		if( sampleDistance2(ray, stepsize, tmax, se) )
 		{
-			// direct light ---
-			ray.o = ray.o + ray.d*d;
-			ray.d = lightDir;
-			// TODO: transform ray into local space and tmax backwards into worldspace
-			tmax = intersectBox(ray, boxmin, boxmax);
-			d = randomFloat()*stepsize2;
-			vec4 volumeSample2;
-			sum.rgb += lightIntensity*sampleDistance2(ray, stepsize2, tmax, d, volumeSample2)*(1.0f/(4.0f*M_PI))*volumeSample.rgb; // /pdf==st*T
+//			// direct light ---
+//			ray.o = ray.o + ray.d*d;
+//			ray.d = lightDir;
+//			// TODO: transform ray into local space and tmax backwards into worldspace
+//			tmax = intersectBox(ray, boxmin, boxmax);
+//			d = randomFloat()*stepsize2;
+//			vec4 volumeSample2;
+//			sum.rgb += lightIntensity*sampleDistance2(ray, stepsize2, tmax, d, volumeSample2)*(1.0f/(4.0f*M_PI))*volumeSample.rgb; // /pdf==st*T
+
+			// estimate direct light ----
+			Ray rayl;
+			rayl.o = se.p;
+			rayl.d = lightDir;
+
+			if(!sampleDistance2(rayl, stepsize2, 1.0f))
+			{
+				//sum.rgb += lightIntensity*(1.0f/(4.0f*M_PI)); // /pdf==st*T
+				sum.rgb += lightIntensity*se.albedo/M_PI; // /pdf==st*T
+				//sum.rgb += lightIntensity/M_PI; // /pdf==st*T
+				//sum.rgb += lightIntensity; // /pdf==st*T
+			}
+
+			//L		= Le(Vec2f(0.0f));
+			//Pdf		= 1.0f;
+			//Rl.m_MinT	= 0.0f;
+			//Rl.m_MaxT	= 1.0f;
+
+
 		}else
 		{
 			// no scattering event (add transmittance sample)

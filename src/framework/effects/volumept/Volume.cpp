@@ -8,6 +8,7 @@
 #include <util/tuple.h>
 #include <gfx/Field.h>
 #include <framework/houdini/HouGeoIO.h>
+#include <math/Matrix44Algo.h>
 
 
 
@@ -175,42 +176,43 @@ void Volume::initialize()
 	// create default density field ---
 	float densityMax=-std::numeric_limits<float>::infinity();
 	//m_density=base::ScalarField::create(math::V3i(50), math::Box3f(math::V3f(-4.0f), math::V3f(-1.0f)));
-	m_density=base::ScalarField::create(math::V3i(50), math::Box3f(math::V3f(0.0f), math::V3f(1.0f)));
+	m_normalizedDensity=base::ScalarField::create(math::V3i(50), math::Box3f(math::V3f(0.0f), math::V3f(1.0f)));
 
-	for( int k = 0; k<m_density->m_resolution.z;++k )
-		for( int j = 0; j<m_density->m_resolution.y;++j )
-			for( int i = 0; i<m_density->m_resolution.x;++i )
+	// initialize default density
+	for( int k = 0; k<m_normalizedDensity->m_resolution.z;++k )
+		for( int j = 0; j<m_normalizedDensity->m_resolution.y;++j )
+			for( int i = 0; i<m_normalizedDensity->m_resolution.x;++i )
 			{
 				//float t = ((float)i/(float)density->m_resolution.x);
-				float t = ((float)j/(float)m_density->m_resolution.y);
+				float t = ((float)j/(float)m_normalizedDensity->m_resolution.y);
 				//float t = ((float)k/(float)density->m_resolution.z);
 				//float value = t;
 				//float value = 1.0f-t;
 				float value = 0.5f;
-				math::V3f lsP = m_density->voxelToLocal( math::V3f(float(i)+0.5f, float(j)+0.5f, float(k)+0.5f) );
+				math::V3f lsP = m_normalizedDensity->voxelToLocal( math::V3f(float(i)+0.5f, float(j)+0.5f, float(k)+0.5f) );
 				if( (lsP-math::V3f(0.5f)).getLength() > 0.2f )
 					value = 0.0f;
 				//value*=20.0f;
-				m_density->lvalue(i,j,k) = value;
+				m_normalizedDensity->lvalue(i,j,k) = value;
 				densityMax = std::max(densityMax, value);
 			}
 	//std::cout << "densityMax " << densityMax << std::endl;
 
 
-	m_densityTexture = base::Texture3d::createFloat32();
-	m_densityTexture->uploadFloat32( m_density->m_resolution.x, m_density->m_resolution.y, m_density->m_resolution.z, m_density->getRawPointer() );
-	volumeShader->setUniform( "density", m_densityTexture->getUniform() );
+	m_normalizedDensityTexture = base::Texture3d::createFloat32();
+	m_normalizedDensityTexture->uploadFloat32( m_normalizedDensity->m_resolution.x, m_normalizedDensity->m_resolution.y, m_normalizedDensity->m_resolution.z, m_normalizedDensity->getRawPointer() );
+	volumeShader->setUniform( "normalizedDensity", m_normalizedDensityTexture->getUniform() );
 	// TODO: once transfer function is introduced, use max of transferfunction
 	volumeShader->setUniform( "st_max", densityMax );
 
 	math::Matrix44f localToWorld = math::M44f();
 	localToWorldAttr = base::Attribute::createM44f();
-	localToWorldAttr->appendElement( m_density->m_localToWorld );
+	localToWorldAttr->appendElement( m_normalizedDensity->m_localToWorld );
 	//localToWorldAttr->appendElement( localToWorld );
 	volumeShader->setUniform( "localToWorld", localToWorldAttr );
 
 	worldToLocalAttr = base::Attribute::createM44f();
-	worldToLocalAttr->appendElement( m_density->m_worldToLocal );
+	worldToLocalAttr->appendElement( m_normalizedDensity->m_worldToLocal );
 	volumeShader->setUniform( "worldToLocal", worldToLocalAttr );
 
 	// transfer function ---
@@ -251,6 +253,7 @@ void Volume::initialize()
 
 	volumeShader->setUniform( "transferFunction", m_transferFunction->m_texture->getUniform() );
 	volumeShader->setUniform( "st_max", m_transferFunction->m_st_max );
+	std::cout << "st_max " << m_transferFunction->m_st_max << std::endl;
 
 
 
@@ -287,7 +290,7 @@ void Volume::load( const std::string& filename )
 {
 
 	//base::ScalarField::Ptr density;
-	m_density = base::ScalarField::Ptr();
+	m_normalizedDensity = base::ScalarField::Ptr();
 
 	// load houdini file ================
 	std::ifstream in( filename.c_str(), std::ios_base::in | std::ios_base::binary );
@@ -301,11 +304,11 @@ void Volume::load( const std::string& filename )
 		if(std::dynamic_pointer_cast<houdini::HouGeo::HouVolume>(prim) )
 		{
 			houdini::HouGeo::HouVolume::Ptr volprim = std::dynamic_pointer_cast<houdini::HouGeo::HouVolume>(prim);
-			m_density = volprim->field;
+			m_normalizedDensity = volprim->field;
 		}
 	}
 
-	if(!m_density)
+	if(!m_normalizedDensity)
 		std::cerr << "unable to load " << filename << std::endl;
 
 	//m_density->setLocalToWorld(math::M44f());
@@ -313,40 +316,37 @@ void Volume::load( const std::string& filename )
 	// find density value range ---
 	float densityMin=std::numeric_limits<float>::infinity();
 	float densityMax=-std::numeric_limits<float>::infinity();
-	for( int k = 0; k<m_density->m_resolution.z;++k )
-		for( int j = 0; j<m_density->m_resolution.y;++j )
-			for( int i = 0; i<m_density->m_resolution.x;++i )
+	for( int k = 0; k<m_normalizedDensity->m_resolution.z;++k )
+		for( int j = 0; j<m_normalizedDensity->m_resolution.y;++j )
+			for( int i = 0; i<m_normalizedDensity->m_resolution.x;++i )
 			{
-				float value = m_density->lvalue(i,j,k);
+				float value = m_normalizedDensity->lvalue(i,j,k);
 				densityMax = std::max(densityMax, value );
 				densityMin = std::min(densityMin, value );
 			}
 
-	// remap density values into local uv space (required for transfer function texture lookup)
-	for( int k = 0; k<m_density->m_resolution.z;++k )
-		for( int j = 0; j<m_density->m_resolution.y;++j )
-			for( int i = 0; i<m_density->m_resolution.x;++i )
+	// normalize density ---
+	for( int k = 0; k<m_normalizedDensity->m_resolution.z;++k )
+		for( int j = 0; j<m_normalizedDensity->m_resolution.y;++j )
+			for( int i = 0; i<m_normalizedDensity->m_resolution.x;++i )
 			{
-				float value = m_density->lvalue(i,j,k);
-				value = math::mapValueTo0_1(densityMin, densityMax, value);
-
-				//value = math::mapValueToRange(-1024.0f, 3071.0f, 0.0f, 1.0f, value)*1.0f;
-				//value = math::mapValueToRange2(-1024.0f, -990.0f, 0.0f, 1.0f, value)*50.0f;
-				//value = mapValueToRange2(-990.0f, 3071.0f, 0.0f, 1.0f, value)*200.0f;
-				//value = mapValueToRange2(262.0f, 3071.0f, 0.0f, 1.0f, value)*1000.0f;
-				//value = 1.0f;
-
-				m_density->lvalue(i,j,k) = value;
+				float value = math::mapValueTo0_1(densityMin, densityMax, m_normalizedDensity->lvalue(i,j,k));
+				m_normalizedDensity->lvalue(i,j,k) = value;
 			}
 
 	std::cout << "Volume::load: densityMax " << densityMax << std::endl;
-	m_densityTexture->uploadFloat32( m_density->m_resolution.x, m_density->m_resolution.y, m_density->m_resolution.z, m_density->getRawPointer() );
-	volumeShader->setUniform( "density", m_densityTexture->getUniform() );
+	m_normalizedDensityTexture->uploadFloat32( m_normalizedDensity->m_resolution.x, m_normalizedDensity->m_resolution.y, m_normalizedDensity->m_resolution.z, m_normalizedDensity->getRawPointer() );
+	volumeShader->setUniform( "normalizedDensity", m_normalizedDensityTexture->getUniform() );
 	//volumeShader->setUniform( "st_max", densityMax );
 
 
-	localToWorldAttr->set<math::M44f>( 0, m_density->m_localToWorld );
-	worldToLocalAttr->set<math::M44f>( 0, m_density->m_worldToLocal );
+	localToWorldAttr->set<math::M44f>( 0, m_normalizedDensity->m_localToWorld );
+	worldToLocalAttr->set<math::M44f>( 0, m_normalizedDensity->m_worldToLocal );
+
+	math::V3f bmin = math::transform( math::V3f(0.0f, 0.0f, 0.0f), m_normalizedDensity->m_localToWorld );
+	std::cout << "bmin " << bmin.x << " " << bmin.y << " " << bmin.z << " " << std::endl;
+	math::V3f bmax = math::transform( math::V3f(1.0f, 1.0f, 1.0f), m_normalizedDensity->m_localToWorld );
+	std::cout << "bmax " << bmax.x << " " << bmax.y << " " << bmax.z << " " << std::endl;
 }
 
 
@@ -432,7 +432,7 @@ void Volume::render( base::Context::Ptr context, base::Camera::Ptr cam )
 
 	base::Context::TransformState ts;
 	context->getTransformState(ts);
-	context->setModelMatrix(m_density->m_localToWorld);
+	context->setModelMatrix(m_normalizedDensity->m_localToWorld);
 
 	// render back faces
 	volumeBackFBO->begin();
