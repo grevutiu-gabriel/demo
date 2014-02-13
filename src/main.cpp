@@ -247,7 +247,7 @@ int main(int argc, char ** argv)
 #ifdef STANDALONE
 
 	base::Application app;
-	glviewer = new base::GLViewer( 512, 512, "app", init, render, shutdown );
+	glviewer = new base::GLViewer( 800, 800, "app", init, render, shutdown );
 	glviewer->getOrbitNavigator().m_distance = 20.0f;
 	glviewer->getOrbitNavigator().m_elevation = 45.0f;
 	glviewer->getOrbitNavigator().update();

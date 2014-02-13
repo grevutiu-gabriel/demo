@@ -43,16 +43,7 @@ struct Volume
 
 
 	void                        reload(); // reloads the shaders (for development)
-	void                        setUniform( const std::string &name, base::AttributePtr uniform ); // to allow external code to communicate with glsldatasource module
 
-	void                        setTotalCrossSection( float totalCrossSection );
-	float                       getTotalCrossSection( void );
-	void                        setAlbedo( float albedo );
-	float                       getAlbedo( void );
-	void                        setAbsorptionColor( math::Vec3f absorptionColor );
-	math::Vec3f                 getAbsorptionColor( void );
-	void                        setScatteringColor( math::Vec3f scatteringColor );
-	math::Vec3f                 getScatteringColor( void );
 
 
 	Volume();
@@ -64,16 +55,13 @@ struct Volume
 	void                        updateCrossSectionValues();
 
 
-	// local (cached) variables
-	float                  m_totalCrossSection;
-	float                             m_albedo;
-	math::Vec3f              m_absorptionColor;
-	math::Vec3f              m_scatteringColor;
 
 	base::Texture2dPtr          volumeBack;
 	base::Texture2dPtr          volumeFront;
+	base::Texture2dPtr          estimate;
 	base::FBOPtr                volumeFrontFBO;
 	base::FBOPtr                volumeBackFBO;
+	base::FBOPtr                estimateFBO;
 
 	base::ShaderPtr             volumeGeoShader;
 	base::ShaderPtr             volumeShader;

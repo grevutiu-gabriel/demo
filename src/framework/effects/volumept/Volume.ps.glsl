@@ -1,8 +1,6 @@
 #version 330
-//#extension GL_EXT_texture_array : enable
-//#extension GL_EXT_gpu_shader4 : enable
 
-#define M_PI 3.1415926535897932384626433832795
+
 
 // TODO:
 //-investigate banding we get for many rng's
@@ -10,8 +8,6 @@
 
 
 in vec2 uv;
-
-
 layout(location = 0) out vec4 frag_color;
 
 
@@ -22,117 +18,32 @@ uniform sampler2D volumeBack;
 // volume parameters
 uniform sampler3D normalizedDensity;
 uniform sampler1D transferFunction;
-uniform mat4 localToWorld;
-uniform mat4 worldToLocal;
-uniform float st_max;
-float st_val=2.0f;
+uniform mat4      localToWorld;
+uniform mat4      worldToLocal;
+uniform vec3      aabb_min; // worldspace
+uniform vec3      aabb_max;
+uniform float     sigma_t_max;
 
 
+// ------------------------ MATH --------------------------------
+#define M_PI 3.1415926535897932384626433832795
 
-
-float wsStepSize = 0.1;
-vec3 totalCrossSection=vec3(1.0f);
-vec3 scatteringCrossSection=vec3(0.5f);
-/*
-uniform vec3 wsLightPos;
-uniform vec3 lightColor;
-uniform mat4 worldToLightProj;
-// temp (uniforms)
-vec3 emissionCrossSection = vec3( 0.0, 0.0, 0.0 );
-*/
-//#define PI 3.141593
-
-
-
-
-
-
-
-
-//
-// random number generator =================================
-// see GPU gems 3 for details
-//
-/*
-unsigned int z1, z2, z3, z4;
-
-void initRNG()
+float mapValueToRange( float sourceRangeMin, float sourceRangeMax, float targetRangeMin, float targetRangeMax, float value )
 {
-	z1 = 128U + uint(gl_FragCoord.x);
-	z2 = 128U + uint(gl_FragCoord.y);
-	z3 = 128U + uint(gl_FragCoord.x + gl_FragCoord.y);
-	z4 = 128U + uint(gl_FragCoord.x * gl_FragCoord.y);
-}
-
-// S1, S2, S3, and M are all constants, and z is part of the
-// private per-thread generator state.
-unsigned int TausStep(inout unsigned int z, int S1, int S2, int S3,
-					  unsigned int M)
-{
-	unsigned int b=(((z << uint(S1)) ^ z) >> uint(S2));
-	return z = (((z & M) << uint(S3)) ^ b);
-}
-
-// A and C are constants
-unsigned int LCGStep(inout unsigned int z, unsigned int A, unsigned int C)
-{
-	return z=(A*z+C);
-}
-
-//float HybridTaus()
-float randomFloat()
-{
-	// Combined period is lcm(p1,p2,p3,p4)~ 2^121
-	return 2.3283064365387e-10
-	* float(         // Periods
-			TausStep(z1, 13, 19, 12, 4294967294) ^  // p1=2^31-1
-			TausStep(z2, 2, 25, 4, 4294967288) ^    // p2=2^30-1
-			TausStep(z3, 3, 11, 17, 4294967280) ^   // p3=2^28-1
-			LCGStep(z4, 1664525U, 1013904223U)        // p4=2^32
-					 );
-}
-
-uint simple_lcg(inout uint seed)
-{
-	uint new_seed = seed*uint(214013) + uint(2531011);
-	seed = new_seed;
-	return uint((new_seed >> 16) & uint(0x7fff));
-}
-
-float uniform_01(inout uint seed)
-{
-	float r = float(simple_lcg(seed));
-	return r/32767.0f;
-}
-
-uint rng_state;
-
-uint rand_lcg()
-{
-	// LCG values from Numerical Recipes
-	rng_state = uint(1664525) * rng_state + uint(1013904223);
-	return rng_state;
+	return (value-sourceRangeMin) / (sourceRangeMax - sourceRangeMin) * (targetRangeMax - targetRangeMin) + targetRangeMin;
 }
 
 
-uint rand_xorshift()
-{
-	// Xorshift algorithm from George Marsaglia's paper
-	rng_state ^= (rng_state << 13);
-	rng_state ^= (rng_state >> 17);
-	rng_state ^= (rng_state << 5);
-	return rng_state;
-}
-*/
 
+// ------------------------ RANDOM NUMBER GENERATOR ------------------------------
 
 
 //http://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
-vec3 rng_state;
+vec3 gRNGState;
 
 void initRNG()
 {
-	rng_state = vec3(gl_FragCoord.xy, 123.5f);
+	gRNGState = vec3(gl_FragCoord.xy, 123.5f);
 }
 
 // A single iteration of Bob Jenkins' One-At-A-Time hashing algorithm.
@@ -172,11 +83,13 @@ float random( vec4  v ) { return floatConstruct(hash(floatBitsToUint(v))); }
 
 float randomFloat()
 {
-	rng_state.z+=1.0;
-	return random(rng_state);
+	gRNGState.z+=1.0;
+	return random(gRNGState);
 }
 
-// ------------------------
+
+// ------------------------ SAMLING FUNCTIONS ------------------------------
+
 
 // uniformly sample sphere
 vec3 sampleSphere()
@@ -195,11 +108,12 @@ vec3 sampleSphere()
 }
 
 
-//-----------------------------------------------------------------------------
+//----------------------------- RAYTRACING -------------------------------------
 struct Ray
 {
 	vec3 o;
 	vec3 d;
+	float tmax;
 };
 
 struct ScatterEvent
@@ -221,49 +135,20 @@ float intersectBox( in Ray ray /* ray origin and direction */,
 	return min ( MAX.x, min ( MAX.y, MAX.z ) );
 }
 
-float mapValueToRange( float sourceRangeMin, float sourceRangeMax, float targetRangeMin, float targetRangeMax, float value )
-{
-	return (value-sourceRangeMin) / (sourceRangeMax - sourceRangeMin) * (targetRangeMax - targetRangeMin) + targetRangeMin;
-}
 
-// returns true(0.0f) if scattering event happended, false(1.0f) if not
-// d = (initial) distance travelled
-// st = sigma_t (extinction) at scattering event
-float sampleDistance( in Ray ray, in float tmax, inout float d, out float st )
-{
-	while( true )
-	{
-		float dl = -log(randomFloat())/st_max;
-		d += dl;
-		if( d > tmax )
-			return 1.0f;
-		//cumath::Vec3<T> vsP = cumath::transform( ray.getPosition(l), kt_field->m_worldToVoxel );
-		vec3 localP = (worldToLocal*vec4(ray.o+ray.d*d, 1)).xyz;
-		st = texture(normalizedDensity,localP).r;
 
-		// TODO: transfer function
-		st = texture(transferFunction, st).a;
-
-		//st = mapValueToRange( -1000.0f, 3095.0f, 0.0f, 1.0f, st );
-		if( randomFloat() < st/st_max )
-		{
-			return 0.0f;
-		}
-	}
-	return 1.0f;
-}
 
 // returns true if scattering event happended, false if not
 // optimization: factor *stepsize out of the loop
-bool sampleDistance2( in Ray ray, in float stepsize, in float tmax, out ScatterEvent se )
+bool sampleDistance( in Ray ray, in float stepsize, out ScatterEvent se )
 {
-	float odmax = -log(randomFloat())/st_max;
+	float odmax = -log(randomFloat())/sigma_t_max;
 	//float odmax = -log(randomFloat());
 	float od = 0.0f;
 	float d = randomFloat()*stepsize;
 	while( od < odmax )
 	{
-		if( d > tmax )
+		if( d > ray.tmax )
 			return false;
 		se.p = ray.o+ray.d*d;
 		vec3 localP = (worldToLocal*vec4(se.p, 1)).xyz;
@@ -278,15 +163,15 @@ bool sampleDistance2( in Ray ray, in float stepsize, in float tmax, out ScatterE
 
 // returns true if scattering event happended, false if not
 // optimization: factor *stepsize out of the loop
-bool sampleDistance2( in Ray ray, in float stepsize, in float tmax )
+bool sampleDistance( in Ray ray, in float stepsize)
 {
-	float odmax = -log(randomFloat())/st_max;
+	float odmax = -log(randomFloat())/sigma_t_max;
 	//float odmax = -log(randomFloat());
 	float od = 0.0f;
 	float d = randomFloat()*stepsize;
 	while( od < odmax )
 	{
-		if( d > tmax )
+		if( d > ray.tmax )
 			return false;
 		vec3 localP = (worldToLocal*vec4(ray.o+ray.d*d, 1)).xyz;
 		float sigma_t = texture(transferFunction, texture(normalizedDensity,localP).r).a;
@@ -297,6 +182,60 @@ bool sampleDistance2( in Ray ray, in float stepsize, in float tmax )
 }
 
 
+// ---------------------------- LIGHT SAMPLING -------------------------------
+
+// directional light -------------
+/*
+vec3 lightDir = vec3(-1.0f, 0.0f, 0.0f);
+vec3 lightIntensity = vec3(1.0f, 1.0f, 1.0f)*10.0f;
+
+void sampleLight( inout Ray ray, out float pdf, out vec3 Li )
+{
+	ray.d = lightDir;
+	ray.tmax = intersectBox(ray, aabb_min, aabb_max);
+	Li = lightIntensity;
+	pdf = 1.0f;
+}
+*/
+
+// point light ------------
+/*
+vec3 lightPos = vec3(0.3f, 0.5f, 0.5f);
+vec3 lightIntensity = vec3(1.0f, 1.0f, 1.0f)*10.0f;
+
+void sampleLight( inout Ray ray, out float pdf, out vec3 Li )
+{
+	ray.d = lightPos-ray.o;
+	ray.tmax = length(ray.d);
+	ray.d = normalize(ray.d);
+	Li = lightIntensity/(4.0f*M_PI*ray.tmax*ray.tmax);
+	pdf = 1.0f;
+}
+*/
+
+// area light -------------
+float width=1.0f;
+float height=3.0f;
+
+vec3 lightIntensity = vec3(1.0f, 1.0f, 1.0f)*500.0f;
+uniform mat4      areaLightTransform;
+
+void sampleLight( inout Ray ray, out float pdf, out vec3 Li )
+{
+	float area = width*height;
+	vec3 lightPos = areaLightTransform[0].xyz*(randomFloat()-0.5f)*width + areaLightTransform[1].xyz*(randomFloat()-0.5f)*height + vec3(areaLightTransform[3].x, areaLightTransform[3].y, areaLightTransform[3].z);
+	ray.d = lightPos-ray.o;
+	ray.tmax = length(ray.d);
+	ray.d = normalize(ray.d);
+	Li = lightIntensity/(4.0f*M_PI*ray.tmax*ray.tmax*area);
+	pdf = 1.0f/area;
+}
+
+// environment light -----------
+
+
+
+
 void main()
 {
 	initRNG();
@@ -304,13 +243,9 @@ void main()
 	vec4 front = texture2D( volumeFront, uv );
 	vec4 back = texture2D( volumeBack, uv );
 
-	// fetch noise value for current pixel
-	vec2 viewportSize = vec2( 800, 600 );
 	float frontDepth = front.w;
 	float backDepth = back.w;
-
 	float totalDistance = backDepth-frontDepth;
-
 
 	if( totalDistance < 0.01f )
 		discard;
@@ -318,7 +253,6 @@ void main()
 	//
 	vec3 vsStart = front.xyz;
 	vec3 vsEnd = back.xyz;
-
 	vec3 vsCurrent = vsStart;
 	vec3 vsRayDir = normalize(vsEnd - vsStart);
 	float vsTotalDistance = length(vsEnd - vsStart);
@@ -328,53 +262,11 @@ void main()
 	vec4 wsCurrent = wsStart;
 	vec3 wsRayDir = normalize( wsEnd.xyz - wsStart.xyz );
 
-
 	float wsTotalDistance = length( wsEnd - wsStart );
 
 
-	vec3 lightDir = vec3(-1.0f, 0.0f, 0.0f);
-	vec3 lightIntensity = vec3(1.0f, 1.0f, 1.0f)*2.0f;
-
-	//vec3 boxmin = localtoWorld*vec3(0.0f);
-	//vec3 boxmax = localtoWorld*vec3(1.0f);
-	vec3 boxmin = (localToWorld*vec4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
-	vec3 boxmax = (localToWorld*vec4(1.0f)).xyz;
 
 
-	int numSamples = 10;
-	vec4 sum = vec4(0.0f);
-
-	/*
-	// path tracing ---
-	for(int i=0;i<numSamples;++i)
-	{
-		Ray ray;
-		ray.o = wsStart.xyz + wsRayDir*0.0;
-		ray.d = wsRayDir;
-		float tmax = wsTotalDistance;
-
-		float d=0.0f;
-		float st;
-		if( sampleDistance(ray, tmax, d, st) == 0.0f )
-		{
-//			// direct light ---
-//			ray.o = ray.o + ray.d*d;
-//			ray.d = lightDir;
-//			// TODO: transform ray into local space and tmax backwards into worldspace
-//			tmax = intersectBox(ray, boxmin, boxmax);
-//			d = 0.0f;
-//			float st2;
-//			sum.rgb += lightIntensity*sampleDistance(ray, tmax, d, st2)*(1.0f/(4.0f*M_PI))*albedo; // /pdf==st*T
-		}else
-		{
-			// no scattering event (add transmittance sample)
-			sum.a += 1.0f;
-		}
-
-	}
-
-	sum /= numSamples;
-	*/
 
 	/*
 	// raymarching test ---
@@ -417,50 +309,36 @@ void main()
 	sum.a = Tray;
 	*/
 
-	///*
-	// stochastic raymarching test ---
+	// stochastic raymarching ER style ---
 	float stepsize = 0.0117188f;
 	float stepsize2 = 0.0117188f;
-	numSamples = 1;
+	int numSamples = 10;
+	vec4 sum = vec4(0.0f);
 	for(int i=0;i<numSamples;++i)
 	{
 		Ray ray;
 		ray.o = wsStart.xyz + wsRayDir*0.0;
 		ray.d = wsRayDir;
-		float tmax = wsTotalDistance;
+		ray.tmax = wsTotalDistance;
 
 		float d=randomFloat()*stepsize;
 		ScatterEvent se;
-		if( sampleDistance2(ray, stepsize, tmax, se) )
+		if( sampleDistance(ray, stepsize, se) )
 		{
-//			// direct light ---
-//			ray.o = ray.o + ray.d*d;
-//			ray.d = lightDir;
-//			// TODO: transform ray into local space and tmax backwards into worldspace
-//			tmax = intersectBox(ray, boxmin, boxmax);
-//			d = randomFloat()*stepsize2;
-//			vec4 volumeSample2;
-//			sum.rgb += lightIntensity*sampleDistance2(ray, stepsize2, tmax, d, volumeSample2)*(1.0f/(4.0f*M_PI))*volumeSample.rgb; // /pdf==st*T
-
 			// estimate direct light ----
 			Ray rayl;
 			rayl.o = se.p;
-			rayl.d = lightDir;
+			//rayl.d = lightDir;
+			//rayl.tmax = intersectBox(ray, aabb_min, aabb_max);
+			float pdf;
+			vec3 Li;
+			sampleLight( rayl, pdf, Li );
 
-			if(!sampleDistance2(rayl, stepsize2, 1.0f))
+			if(!sampleDistance(rayl, stepsize2))
 			{
-				//sum.rgb += lightIntensity*(1.0f/(4.0f*M_PI)); // /pdf==st*T
-				sum.rgb += lightIntensity*se.albedo/M_PI; // /pdf==st*T
-				//sum.rgb += lightIntensity/M_PI; // /pdf==st*T
-				//sum.rgb += lightIntensity; // /pdf==st*T
+				// TODO: fix to use correct phase function
+				sum.rgb += (Li*se.albedo/M_PI)/pdf; // ER st
 			}
-
-			//L		= Le(Vec2f(0.0f));
-			//Pdf		= 1.0f;
-			//Rl.m_MinT	= 0.0f;
-			//Rl.m_MaxT	= 1.0f;
-
-
 		}else
 		{
 			// no scattering event (add transmittance sample)
@@ -469,16 +347,7 @@ void main()
 
 	}
 	sum /= numSamples;
-	//*/
 
 
 	frag_color = vec4(sum.rgb, 1.0f-sum.a);
-
-	//float alpha = 1.0f-sum.a;
-	//vec3 backlight = vec3(1.0f);
-	//frag_color = vec4(sum.rgb*alpha+backlight*(1.0f-alpha), 1.0f);
-	//frag_color = vec4(sum.rgb, 1.0f);
-	//frag_color = vec4(1.0f, 2.0f, 3.0f, 1.0f);
-	//frag_color = vec4(front.rgb, 1.0f);
-
 }

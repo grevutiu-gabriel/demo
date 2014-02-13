@@ -57,6 +57,15 @@ namespace base
 		return *this;
 	}
 
+	FBO::FBOSetup& FBO::FBOSetup::clearColor( float r, float g, float b, float a )
+	{
+		m_clearColor[0] = r;
+		m_clearColor[1] = g;
+		m_clearColor[2] = b;
+		m_clearColor[3] = a;
+		return *this;
+	}
+
 	FBO::FBOSetup &FBO::FBOSetup::multisample( bool enabled )
 	{
 		m_multisampled = enabled;

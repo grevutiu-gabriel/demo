@@ -160,10 +160,12 @@ void Volume::initialize()
 
 	volumeBack = base::Texture2d::createRGBAFloat16( 512, 512 );
 	volumeFront = base::Texture2d::createRGBAFloat16( 512, 512 );
+	estimate = base::Texture2d::createRGBAFloat32( 512, 512 );
 
 	// setup offscreen render pass --
 	volumeFrontFBO = base::FBO::create().width(512).height(512).attach(volumeFront);
 	volumeBackFBO = base::FBO::create().width(512).height(512).attach(volumeBack);
+	estimateFBO = base::FBO::create().width(512).height(512).clearColor(0.0f, 0.0f, 0.0f, 0.0f).attach(estimate);
 
 
 	std::string basePath = "c:\\projects\\demo\\git\\src\\framework\\effects\\volumept\\";
@@ -229,11 +231,11 @@ void Volume::initialize()
 
 	// artifix tf
 	TransferFunction::PLF plf_artifix;
-	plf_artifix.addSample( -1024.0f, math::V4f(160.0f/255.0f, 160.0f/255.0f, 164.0f/255.0f, 0.0f*scale) );
-	plf_artifix.addSample( 67.46f, math::V4f(68.0f/255.0f, 0.0f/255.0f, 0.0f/255.0f, 0.0f*scale) );
-	plf_artifix.addSample( 245.88f, math::V4f(143.0f/255.0f, 104.0f/255.0f, 54.0f/255.0f, 0.059f*scale) );
-	plf_artifix.addSample( 831.27f, math::V4f(18.0f/255.0f, 9.0f/255.0f, 0.0f/255.0f, 1.0f*scale) );
-	plf_artifix.addSample( 3071.0f, math::V4f(160.0f/255.0f, 160.0f/255.0f, 64.0f/255.0f, 1.0f*scale) );
+	plf_artifix.addSample( -1024.0f, math::V4f(math::sRGBToLinear(160.0f/255.0f), math::sRGBToLinear(160.0f/255.0f), math::sRGBToLinear(164.0f/255.0f), 0.0f*scale) );
+	plf_artifix.addSample( 67.46f, math::V4f(math::sRGBToLinear(68.0f/255.0f), math::sRGBToLinear(0.0f/255.0f), math::sRGBToLinear(0.0f/255.0f), 0.0f*scale) );
+	plf_artifix.addSample( 245.88f, math::V4f(math::sRGBToLinear(143.0f/255.0f), math::sRGBToLinear(104.0f/255.0f), math::sRGBToLinear(54.0f/255.0f), 0.059f*scale) );
+	plf_artifix.addSample( 831.27f, math::V4f(math::sRGBToLinear(18.0f/255.0f), math::sRGBToLinear(9.0f/255.0f), math::sRGBToLinear(0.0f/255.0f), 1.0f*scale) );
+	plf_artifix.addSample( 3071.0f, math::V4f(math::sRGBToLinear(160.0f/255.0f), math::sRGBToLinear(160.0f/255.0f), math::sRGBToLinear(64.0f/255.0f), 1.0f*scale) );
 
 	//plf_artifix.addSample( -1024.0f, math::V4f(0.0f, 0.0f, 0.0f, 0.0f*scale) );
 	//plf_artifix.addSample( 262.0f, math::V4f(0.0f, 0.0f, 0.0f, 0.0f*scale) );
@@ -252,16 +254,9 @@ void Volume::initialize()
 //	m_transferFunction->setPLF(plf_default);
 
 	volumeShader->setUniform( "transferFunction", m_transferFunction->m_texture->getUniform() );
-	volumeShader->setUniform( "st_max", m_transferFunction->m_st_max );
-	std::cout << "st_max " << m_transferFunction->m_st_max << std::endl;
+	volumeShader->setUniform( "sigma_t_max", m_transferFunction->m_st_max );
+	std::cout << "sigma_t_max " << m_transferFunction->m_st_max << std::endl;
 
-
-
-	// set defaults
-	setTotalCrossSection( 20.0f );
-	setAlbedo( 1.0f );
-	setAbsorptionColor( math::Vec3f(0.5f,0.5f, 0.5f) );
-	setScatteringColor(math::Vec3f(0.5f, 0.5f, 0.5f));
 
 
 
@@ -283,6 +278,15 @@ void Volume::initialize()
 	std::cout << "density test: " << densityTest[j*10+i+0] << " " << densityTest[j*10+i+1] << " " << densityTest[j*10+i+2] << " " << densityTest[j*10+i+3] << std::endl;
 	free(densityTest);
 */
+
+
+	// setup lighting --------
+	math::M44f areaLightTransform = math::M44f::Identity();
+	//areaLightTransform = math::M44f::TranslationMatrix(0.0f, 1.0f, 0.0f)*math::M44f::RotationMatrixX( MATH_PI*0.5 );
+	//areaLightTransform = math::M44f::TranslationMatrix(0.0f, 0.0f, 1.0f)*math::M44f::RotationMatrixX( MATH_PI*0.5 );
+	areaLightTransform = math::M44f::RotationMatrixX( -MATH_PI*0.5 )*math::M44f::TranslationMatrix(0.0f, 1.3f, 0.0f);
+	volumeShader->setUniform( "areaLightTransform", areaLightTransform );
+
 }
 
 
@@ -337,7 +341,7 @@ void Volume::load( const std::string& filename )
 	std::cout << "Volume::load: densityMax " << densityMax << std::endl;
 	m_normalizedDensityTexture->uploadFloat32( m_normalizedDensity->m_resolution.x, m_normalizedDensity->m_resolution.y, m_normalizedDensity->m_resolution.z, m_normalizedDensity->getRawPointer() );
 	volumeShader->setUniform( "normalizedDensity", m_normalizedDensityTexture->getUniform() );
-	//volumeShader->setUniform( "st_max", densityMax );
+	//volumeShader->setUniform( "sigma_t_max", densityMax );
 
 
 	localToWorldAttr->set<math::M44f>( 0, m_normalizedDensity->m_localToWorld );
@@ -347,6 +351,18 @@ void Volume::load( const std::string& filename )
 	std::cout << "bmin " << bmin.x << " " << bmin.y << " " << bmin.z << " " << std::endl;
 	math::V3f bmax = math::transform( math::V3f(1.0f, 1.0f, 1.0f), m_normalizedDensity->m_localToWorld );
 	std::cout << "bmax " << bmax.x << " " << bmax.y << " " << bmax.z << " " << std::endl;
+
+	// get aabb from transformed (and therefore potentially non-axis aligned) bounding box
+	math::V3f aabb_min;
+	math::V3f aabb_max;
+	aabb_min.x = std::min( bmin.x, bmax.x );
+	aabb_min.y = std::min( bmin.y, bmax.y );
+	aabb_min.z = std::min( bmin.z, bmax.z );
+	aabb_max.x = std::max( bmin.x, bmax.x );
+	aabb_max.y = std::max( bmin.y, bmax.y );
+	aabb_max.z = std::max( bmin.z, bmax.z );
+	volumeShader->setUniform( "aabb_min", aabb_min );
+	volumeShader->setUniform( "aabb_max", aabb_max );
 }
 
 
@@ -479,8 +495,8 @@ void Volume::render( base::Context::Ptr context, base::Camera::Ptr cam )
 
 	// render volume ====================
 
-	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	estimateFBO->begin();
+	//glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 	//m_debugFBO->begin();
 	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -489,11 +505,12 @@ void Volume::render( base::Context::Ptr context, base::Camera::Ptr cam )
 	//m_debugFBO->end();
 	//context->renderScreen(m_debug);
 
+	estimateFBO->end();
 
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	context->renderScreen( estimate );
 	glDisable( GL_BLEND );
-
-
-
 
 
 	/*
@@ -524,63 +541,3 @@ void Volume::reload()
 	//volumeShader->reload();
 	//dctCompute->reload();
 }
-
-// to allow external code to communicate with glsldatasource module
-void Volume::setUniform( const std::string &name, base::AttributePtr uniform )
-{
-	//volumeShader->setUniform(name, uniform);
-	//dctCompute->setUniform(name, uniform);
-}
-
-void Volume::updateCrossSectionValues()
-{
-	// update absorption and scattering crosssections accordingly
-	float scatteringCrossSection = m_albedo*m_totalCrossSection;
-	float absorptionCrossSection = (1.0f-m_albedo)*m_totalCrossSection;
-	math::Vec3f finalTotalCrossSection = scatteringCrossSection*(m_scatteringColor) + absorptionCrossSection*(1.0f - m_absorptionColor);
-	//volumeShader->setUniform( "totalCrossSection", finalTotalCrossSection );
-	//dctCompute->setUniform( "totalCrossSection", m_totalCrossSection );
-	//volumeShader->setUniform( "scatteringCrossSection", scatteringCrossSection*(m_scatteringColor) );
-}
-
-void Volume::setTotalCrossSection( float totalCrossSection )
-{
-	m_totalCrossSection = totalCrossSection;
-	updateCrossSectionValues();
-}
-
-float Volume::getTotalCrossSection( void )
-{
-	return m_totalCrossSection;
-}
-
-void Volume::setAlbedo( float albedo )
-{
-	m_albedo = albedo;
-	updateCrossSectionValues();
-}
-float Volume::getAlbedo( void )
-{
-	return m_albedo;
-}
-
-void Volume::setAbsorptionColor( math::Vec3f absorptionColor )
-{
-	m_absorptionColor = absorptionColor;
-	updateCrossSectionValues();
-}
-math::Vec3f Volume::getAbsorptionColor( void )
-{
-	return m_absorptionColor;
-}
-
-void Volume::setScatteringColor( math::Vec3f scatteringColor )
-{
-	m_scatteringColor = scatteringColor;
-	updateCrossSectionValues();
-}
-math::Vec3f Volume::getScatteringColor( void )
-{
-	return m_scatteringColor;
-}
-

@@ -29,6 +29,7 @@ namespace base
 
 			FBOSetup                              &width( int width );
 			FBOSetup                            &height( int height );
+			FBOSetup&                     clearColor( float r, float g, float b, float a );
 			FBOSetup                     &multisample( bool enabled );
 			FBOSetup                    &numSamples( int numSamples );
 			FBOSetup                   &attach( Texture2dPtr output );
