@@ -136,10 +136,6 @@ size_t computeAABBPlaneIntersectionGeometry( const math::Vec3f& bbMin, const mat
 
 Volume::Volume()
 {
-}
-
-void Volume::initialize()
-{
 	// bound geometry --
 	m_proxy = createProxyGeometry();
 
@@ -168,10 +164,10 @@ void Volume::initialize()
 	estimateFBO = base::FBO::create().width(512).height(512).clearColor(0.0f, 0.0f, 0.0f, 0.0f).attach(estimate);
 
 
-	std::string basePath = "c:\\projects\\demo\\git\\src\\framework\\effects\\volumept\\";
-	volumeGeoShader = base::Shader::load( basePath + "Volume.geo");
+	std::string basePath = "c:\\projects\\demo\\git\\src\\framework\\elements\\volumept\\";
+	volumeGeoShader = base::Shader::loadFromFile( basePath + "Volume.geo");
 
-	volumeShader = base::Shader::load( basePath + "Volume" );
+	volumeShader = base::Shader::loadFromFile( basePath + "Volume" );
 	volumeShader->setUniform( "volumeFront", volumeFront->getUniform() );
 	volumeShader->setUniform( "volumeBack", volumeBack->getUniform() );
 
@@ -530,7 +526,6 @@ void Volume::render( base::Context::Ptr context, base::Camera::Ptr cam )
 VolumePtr Volume::create()
 {
 	VolumePtr v = std::make_shared<Volume>();
-	v->initialize();
 	return v;
 }
 

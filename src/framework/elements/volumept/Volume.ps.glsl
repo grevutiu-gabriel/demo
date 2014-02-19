@@ -92,7 +92,7 @@ float randomFloat()
 
 
 // uniformly sample sphere
-vec3 sampleSphere()
+vec3 sampleSphere( out float pdf )
 {
 	vec3 wi;
 	float u1 = randomFloat();
@@ -103,10 +103,24 @@ vec3 sampleSphere()
 	wi.x = r * cos(phi);
 	wi.y = r * sin(phi);
 
-	//*pdf = 1.0f / (4.0f * M_PI);
+	pdf = 1.0f / (4.0f * M_PI);
 	return wi;
 }
 
+// uniformly sample hemisphere
+vec3 sampleHemisphere( out float pdf )
+{
+	vec3 wi;
+	float u1 = randomFloat();
+	float u2 = randomFloat();
+	wi.z = 1.0f - 2.0f * u1;
+	float r = sqrt(max(0.0f, 1.0f - wi.z*wi.z));
+	float phi = 2.0f * M_PI * u2;
+	wi.x = r * cos(phi);
+	wi.y = abs(r * sin(phi));
+	pdf = 1.0f / (2.0f * M_PI);
+	return wi;
+}
 
 //----------------------------- RAYTRACING -------------------------------------
 struct Ray
@@ -185,18 +199,18 @@ bool sampleDistance( in Ray ray, in float stepsize)
 // ---------------------------- LIGHT SAMPLING -------------------------------
 
 // directional light -------------
-/*
-vec3 lightDir = vec3(-1.0f, 0.0f, 0.0f);
-vec3 lightIntensity = vec3(1.0f, 1.0f, 1.0f)*10.0f;
 
-void sampleLight( inout Ray ray, out float pdf, out vec3 Li )
+vec3 lightDir = vec3(-1.0f, 0.0f, 0.0f);
+vec4 lightIntensityDirectional = vec4(1.0f, 1.0f, 1.0f, 100.0f);
+
+void sampleLightDirectional( inout Ray ray, out float pdf, out vec3 Li )
 {
 	ray.d = lightDir;
 	ray.tmax = intersectBox(ray, aabb_min, aabb_max);
-	Li = lightIntensity;
+	Li = lightIntensityDirectional.rgb*lightIntensityDirectional.a;
 	pdf = 1.0f;
 }
-*/
+
 
 // point light ------------
 /*
@@ -214,6 +228,7 @@ void sampleLight( inout Ray ray, out float pdf, out vec3 Li )
 */
 
 // area light -------------
+/*
 float width=1.0f;
 float height=3.0f;
 
@@ -230,11 +245,35 @@ void sampleLight( inout Ray ray, out float pdf, out vec3 Li )
 	Li = lightIntensity/(4.0f*M_PI*ray.tmax*ray.tmax*area);
 	pdf = 1.0f/area;
 }
+*/
 
 // environment light -----------
+vec4 lightIntensityEnvironment = vec4(1.0f, 1.0f, 1.0f, 5.0f);
+
+void sampleLightEnvironment( inout Ray ray, out float pdf, out vec3 Li )
+{
+	ray.d = sampleHemisphere( pdf );
+	ray.tmax = intersectBox(ray, aabb_min, aabb_max);
+	Li = lightIntensityEnvironment.rgb*lightIntensityEnvironment.a;
+}
+
+// combined light ------------
+void sampleLightCombined( inout Ray ray, out float pdf, out vec3 Li )
+{
+	float ratio = lightIntensityDirectional.a/(lightIntensityDirectional.a+(lightIntensityEnvironment.a*2.0f*M_PI));
+	float lightSample = randomFloat();
+	if( lightSample < ratio )
+		sampleLightDirectional( ray, pdf, Li );
+	else
+		sampleLightEnvironment( ray, pdf, Li );
+	pdf *= ratio;
+}
 
 
+// gg
 
+#define sampleLight sampleLightDirectional
+//#define sampleLight sampleLightCombined
 
 void main()
 {
@@ -312,7 +351,7 @@ void main()
 	// stochastic raymarching ER style ---
 	float stepsize = 0.0117188f;
 	float stepsize2 = 0.0117188f;
-	int numSamples = 10;
+	int numSamples = 1;
 	vec4 sum = vec4(0.0f);
 	for(int i=0;i<numSamples;++i)
 	{
@@ -328,8 +367,6 @@ void main()
 			// estimate direct light ----
 			Ray rayl;
 			rayl.o = se.p;
-			//rayl.d = lightDir;
-			//rayl.tmax = intersectBox(ray, aabb_min, aabb_max);
 			float pdf;
 			vec3 Li;
 			sampleLight( rayl, pdf, Li );
@@ -337,7 +374,8 @@ void main()
 			if(!sampleDistance(rayl, stepsize2))
 			{
 				// TODO: fix to use correct phase function
-				sum.rgb += (Li*se.albedo/M_PI)/pdf; // ER st
+				//sum.rgb += (Li*se.albedo/M_PI)/pdf; // ER st
+				sum.rgb += Li*stepsize;
 			}
 		}else
 		{
@@ -350,4 +388,5 @@ void main()
 
 
 	frag_color = vec4(sum.rgb, 1.0f-sum.a);
+	//frag_color = vec4(100.0f, 100.0f, 100.0f, 1.0f);
 }

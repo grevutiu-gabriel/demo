@@ -49,7 +49,6 @@ struct Volume
 	Volume();
 
 //private:
-	void                        initialize();
 	base::GeometryPtr           createProxyGeometry();
 
 	void                        updateCrossSectionValues();
@@ -63,8 +62,8 @@ struct Volume
 	base::FBOPtr                volumeBackFBO;
 	base::FBOPtr                estimateFBO;
 
-	base::ShaderPtr             volumeGeoShader;
-	base::ShaderPtr             volumeShader;
+	base::Shader::Ptr           volumeGeoShader;
+	base::Shader::Ptr           volumeShader;
 
 	base::AttributePtr          localToWorldAttr;
 	base::AttributePtr          worldToLocalAttr;

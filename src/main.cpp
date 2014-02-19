@@ -28,7 +28,8 @@
 
 
 #include <framework/houdini/HouGeoIO.h>
-#include <framework/effects/volumept/Volume.h>
+#include <framework/elements/volumept/Volume.h>
+#include <framework/elements/postprocess/PostProcess.h>
 
 
 
@@ -51,6 +52,7 @@ base::Geometry::Ptr g_geo;
 base::Shader::Ptr g_shader;
 base::FBO::Ptr g_fbo;
 Volume::Ptr g_volume;
+PostProcess::Ptr g_post;
 
 float timerMax=-std::numeric_limits<float>::infinity();
 float timerAvg=0.0f;
@@ -122,22 +124,22 @@ composer::widgets::CategoryList *editor;
 
 void render( base::Context::Ptr context, base::Camera::Ptr cam )
 {
-	glFinish();
-	timer.reset();
-	timer.start();
-	// put rendering code here
-	//glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	//glFinish();
+	//timer.reset();
+	//timer.start();
+
+
+
+	g_post->begin();
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	//glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_DEPTH_TEST);
-
-	//g_fbo->begin();
-	//context->setCamera( cam );
-	context->render(g_geo, g_shader);
-	//g_fbo->end();
-
+	//glEnable(GL_DEPTH_TEST);
+	//context->render(g_geo, g_shader);
 	g_volume->render(context, cam);
-    //context->renderScreen(g_volume->volumeBack);
+	g_post->end(context);
+	//g_post->render(context);
+	//context->renderScreen( g_volume->estimate );
 
 
 	//context->renderScreen(context->getTexture2d("c:\\projects\\demo\\git\\bin\\data\\uvref.png"));
@@ -147,7 +149,7 @@ void render( base::Context::Ptr context, base::Camera::Ptr cam )
 	//std::cout << timer.elapsedSeconds() << std::endl;
 	//context->setTime( timer.elapsedSeconds()*24.0f );
 #endif
-
+/*
 	glFinish();
 	timer.stop();
 	float elapsed = timer.elapsedSeconds();
@@ -155,6 +157,7 @@ void render( base::Context::Ptr context, base::Camera::Ptr cam )
 	timerMin = std::min(timerMin, elapsed);
 	timerAvg += elapsed;
 	++numFrames;
+*/
 }
 
 
@@ -197,7 +200,7 @@ void init( base::Context::Ptr context )
 	//context->addTexture2d("target", target);
 	//g_fbo = base::FBO::create().width(512).height(512).attach(target);
 //*/
-	g_shader = base::Shader::load( "c:\\projects\\demo\\git\\src\\core\\glsl\\genericShader" );
+	g_shader = base::Shader::loadFromFile( "c:\\projects\\demo\\git\\src\\core\\glsl\\genericShader" );
 
 	g_volume = Volume::create();
 	//g_volume->load( "c:\\projects\\demo\\git\\bin\\data\\manix2.bgeo" );
@@ -205,6 +208,14 @@ void init( base::Context::Ptr context )
 
 	// temp for conversion
 	//houdini::HouGeoIO::xport("c:\\projects\\demo\\git\\bin\\data\\artifix.bgeo", base::ScalarField::load("c:\\projects\\demo\\temp\\ConvertFile-build\\Debug\\artifix_small.field"));
+
+	// init post process -----------
+	g_post = PostProcess::create();
+	g_post->setHDREnabled(true);
+	//g_post->setGlareEnabled(true);
+	//g_post->setGlareBlurIterations(2);
+	//g_post->setGlareAmount(0.5f);
+	//g_post->setInput(g_volume->estimate);
 }
 
 
@@ -243,11 +254,13 @@ void onMouseMove( base::MouseState state )
 
 int main(int argc, char ** argv)
 {
+	int xres = 512;
+	int yres = 512;
 
 #ifdef STANDALONE
 
 	base::Application app;
-	glviewer = new base::GLViewer( 800, 800, "app", init, render, shutdown );
+	glviewer = new base::GLViewer( xres, yres, "app", init, render, shutdown );
 	glviewer->getOrbitNavigator().m_distance = 20.0f;
 	glviewer->getOrbitNavigator().m_elevation = 45.0f;
 	glviewer->getOrbitNavigator().update();

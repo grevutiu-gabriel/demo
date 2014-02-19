@@ -1,21 +1,20 @@
-
 #include "Shader.h"
-#include <util/fs.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
-//#include "Texture.h"
 
-
+#include "Context.h"
+#include <util/fs.h>
 
 
 
 
 namespace base
 {
+
 	// ShaderLoader ===============================================================
 
-	Shader::ShaderLoader::ShaderLoader( ShaderPtr shader ) : m_shader(shader)
+	Shader::ShaderLoader::ShaderLoader( Shader::Ptr shader ) : m_shader(shader)
 	{
 	}
 
@@ -42,19 +41,19 @@ namespace base
 		return attach( shaderType, ShaderSource::create( src ) );
 	}
 
-	Shader::ShaderLoader Shader::ShaderLoader::attach( int shaderType, Path srcFile )
+	Shader::ShaderLoader Shader::ShaderLoader::attachFromFile( int shaderType, const std::string &srcFile )
 	{
-		return attach( shaderType, ShaderSource::create(srcFile) );
+		return attach( shaderType, ShaderSource::createFromFile(srcFile) );
 	}
 
-	Shader::ShaderLoader Shader::ShaderLoader::attachPS( Path src )
+	Shader::ShaderLoader Shader::ShaderLoader::attachPSFromFile( const std::string & srcFile )
 	{
-		return attach( GL_FRAGMENT_SHADER_ARB, src );
+		return attachFromFile( GL_FRAGMENT_SHADER_ARB, srcFile );
 	}
 
-	Shader::ShaderLoader Shader::ShaderLoader::attachVS( Path src )
+	Shader::ShaderLoader Shader::ShaderLoader::attachVSFromFile( const std::string & srcFile )
 	{
-		return attach( GL_VERTEX_SHADER_ARB, src );
+		return attachFromFile( GL_VERTEX_SHADER_ARB, srcFile );
 	}
 
 	Shader::ShaderLoader Shader::ShaderLoader::attachPS( const std::string &src )
@@ -79,7 +78,7 @@ namespace base
 		return attach( GL_VERTEX_SHADER_ARB, vs_src );
 	}
 
-	Shader::ShaderLoader::operator ShaderPtr()
+	Shader::ShaderLoader::operator Shader::Ptr()
 	{
 		// if shader has no id yet, create one from shader sources
 		if( m_shader->m_shaderIdentifier == "" )
@@ -111,7 +110,7 @@ namespace base
 		if( m_shader->isOk() )
 			return m_shader;
 
-		return ShaderPtr();
+		return Shader::Ptr();
 	}
 
 
@@ -135,7 +134,7 @@ namespace base
 		return ss;
 	}
 
-	Shader::ShaderSourcePtr Shader::ShaderSource::create( Path &f )
+	Shader::ShaderSourcePtr Shader::ShaderSource::createFromFile( const std::string &f )
 	{
 		ShaderSourcePtr ss = std::make_shared<Shader::ShaderSource>();
 		ss->file( f );
@@ -143,9 +142,9 @@ namespace base
 
 	}
 
-	void Shader::ShaderSource::file( Path srcFile )
+	void Shader::ShaderSource::file( const std::string &srcFile )
 	{
-		m_inputs.push_back( std::make_pair(1, srcFile.str()) );
+		m_inputs.push_back( std::make_pair(1, srcFile) );
 	}
 
 	void Shader::ShaderSource::verbatim( const std::string &src )
@@ -194,7 +193,7 @@ namespace base
 	{
 		m_id = glCreateShader(m_shaderType);
 	}
-
+	
 	bool Shader::ShaderObject::compile()
 	{
 		std::vector<std::string> src;
@@ -233,21 +232,22 @@ namespace base
 		finalize();
 	}
 
-	Shader::ShaderLoader Shader::load( Path vertexShaderPath, Path pixelShaderPath, const std::string &id )
+	Shader::ShaderLoader Shader::loadFromFile( const std::string &vertexShaderPath, const std::string &pixelShaderPath, const std::string &id )
 	{
-		return Shader::create( id ).attach( GL_VERTEX_SHADER_ARB, vertexShaderPath ).attach( GL_FRAGMENT_SHADER_ARB, pixelShaderPath );
+		return Shader::create( id ).attachFromFile( GL_VERTEX_SHADER_ARB, vertexShaderPath ).attachFromFile( GL_FRAGMENT_SHADER_ARB, pixelShaderPath );
 	}
 
 	// this method will append .ps.glsl and .vs.glsl  to find vertex and pixelshader
-	Shader::ShaderLoader Shader::load( Path shaderBasePath, const std::string &id )
+	Shader::ShaderLoader Shader::loadFromFile( const std::string &shaderBasePath, const std::string &id )
 	{
-		base::Shader::ShaderLoader loader = Shader::create( id );
-		loader.attach( GL_VERTEX_SHADER_ARB, base::Path(shaderBasePath.str() + ".vs.glsl") );
-		loader.attach( GL_FRAGMENT_SHADER_ARB, base::Path(shaderBasePath.str() + ".ps.glsl") );
+		Shader::ShaderLoader loader = Shader::create( id );
 
-		Path geometryShaderPath = shaderBasePath.str() + ".gs.glsl";
-		if( base::fs::exists(geometryShaderPath) )
-			loader.attach(GL_GEOMETRY_SHADER_EXT, geometryShaderPath);
+		loader.attachFromFile( GL_VERTEX_SHADER_ARB, shaderBasePath + ".vs.glsl" );
+		loader.attachFromFile( GL_FRAGMENT_SHADER_ARB, shaderBasePath + ".ps.glsl" );
+
+		std::string geometryShaderPath = shaderBasePath + ".gs.glsl";
+		if( fs::exists(geometryShaderPath) )
+			loader.attachFromFile(GL_GEOMETRY_SHADER_EXT, geometryShaderPath);
 
 		return loader;
 	}
@@ -255,7 +255,7 @@ namespace base
 
 	Shader::ShaderLoader Shader::create( const std::string &id )
 	{
-		ShaderPtr shader = ShaderPtr( new Shader() );
+		Shader::Ptr shader = std::make_shared<Shader>();
 		shader->m_shaderIdentifier = id;
 		return Shader::ShaderLoader( shader );
 	}
@@ -277,6 +277,13 @@ namespace base
 		return m_isOk;
 	}
 
+
+	void Shader::getAttributeNames( std::vector<std::string> &names )
+	{
+		names.clear();
+		for( std::map<std::string, int>::iterator it = m_activeAttributes.begin(), end = m_activeAttributes.end(); it != end; ++it )
+			names.push_back(it->first);
+	}
 
 	void Shader::finalize()
 	{
@@ -305,7 +312,7 @@ namespace base
 		int numActiveAttributes = 0;
 		m_activeAttributes.clear();
 		glGetProgramiv(m_glProgram, GL_ACTIVE_ATTRIBUTES, &numActiveAttributes);
-		std::cout << "number of active attributes: " << numActiveAttributes << std::endl;
+		std::cout << "\tnumber of active attributes: " << numActiveAttributes << std::endl;
 		for( int i=0;i<numActiveAttributes; ++i )
 		{
 			char name[1000];
@@ -314,7 +321,7 @@ namespace base
 			unsigned int type;
 			glGetActiveAttrib( m_glProgram, i, 1000, &length, &size, &type, name );
 			int index = glGetAttribLocation(m_glProgram, name);
-			std::cout << "active attribute " << name << " at location " << index << std::endl;
+			std::cout << "\tactive attribute " << name << " at location " << index << std::endl;
 			m_activeAttributes.insert(std::make_pair( std::string(name), index ));
 		}
 
@@ -322,7 +329,7 @@ namespace base
 		int numActiveUniforms = 0;
 		m_activeUniforms.clear();
 		glGetProgramiv(m_glProgram, GL_ACTIVE_UNIFORMS, &numActiveUniforms);
-		std::cout << "number of active uniforms: " << numActiveUniforms << std::endl;
+		std::cout << "\tnumber of active uniforms: " << numActiveUniforms << std::endl;
 		for( int i=0;i<numActiveUniforms; ++i )
 		{
 			char name[1000];
@@ -331,7 +338,7 @@ namespace base
 			unsigned int type;
 			glGetActiveUniform( m_glProgram, i, 1000, &length, &size, &type, name );
 			int index = glGetUniformLocation(m_glProgram, name);
-			std::cout << "active uniform " << name << " at location " << index << std::endl;
+			std::cout << "\tactive uniform " << name << " at location " << index << std::endl;
 
 			// index==-1 means uniform is a built in uniform and we dont touch it
 			if( index != -1 )
@@ -351,11 +358,35 @@ namespace base
 	}
 
 
+	bool Shader::hasUniform( const std::string &name )
+	{
+		return (m_uniforms.find( name ) != m_uniforms.end());
+	}
 
-	void Shader::setUniform( const std::string &name, AttributePtr uniform )
+	Attribute::Ptr Shader::getUniform( const std::string &name )
+	{
+		std::map<std::string, Attribute::Ptr>::iterator it = m_uniforms.find( name );
+		if(it != m_uniforms.end())
+			return it->second;
+		return Attribute::Ptr();
+	}
+
+	void Shader::setUniform( const std::string &name, Attribute::Ptr uniform )
 	{
 		m_uniforms[name] = uniform;
 	}
+
+	void Shader::setUniform( const std::string &name, float value )
+	{
+		Attribute::Ptr u = getUniform(name);
+		if(!u)
+		{
+			u = Attribute::createFloat(1);
+			setUniform(name, u);
+		}
+		u->set<float>(0, value );
+	}
+
 
 	void Shader::setUniform( const std::string &name, float v0, float v1 )
 	{
@@ -429,17 +460,6 @@ namespace base
 			u->set<math::Matrix44f>(0, value);
 	}
 
-	void Shader::setUniform( const std::string &name, float value )
-	{
-		AttributePtr u = getUniform(name);
-		if(!u)
-		{
-			u = Attribute::createFloat();
-			u->appendElement<float>(value);
-			setUniform(name, u);
-		}else
-			u->set<float>(0, value );
-	}
 
 	void Shader::setUniform( const std::string &name, int value )
 	{
@@ -453,30 +473,73 @@ namespace base
 			u->set<int>(0, value);
 	}
 
-	bool Shader::hasUniform( const std::string &name )
+
+/*
+	ShaderPtr Shader::createSimpleLambertShader()
 	{
-		return (m_uniforms.find( name ) != m_uniforms.end());
+		ShaderPtr shader = Shader::loadFromFile("$APPDATA/glsl/simpleLambert");
+		shader->setUniform( "l", math::Vec3f( 1.0f, 1.0f, 1.0f ).normalized() );
+		shader->setUniform( "diffuse", math::Vec3f(0.5f, 0.5f, 0.5f));
+		shader->setUniform( "kd", 1.0f );
+		shader->setUniform( "ambient", math::Vec3f(0.05f, 0.05f, 0.05f));
+		shader->setUniform( "ka", 1.0f );
+		shader->setUniform( "l", math::Vec3f(1.0f, 1.0f, 1.0f).normalized() );
+		return shader;
 	}
 
-	AttributePtr Shader::getUniform( const std::string &name )
+	ShaderPtr Shader::createSimpleTextureShader( Texture2dPtr texture )
 	{
-		std::map<std::string, AttributePtr>::iterator it = m_uniforms.find( name );
-		if(it != m_uniforms.end())
-			return it->second;
-		return AttributePtr();
+		ShaderPtr shader = Shader::create().attachPSFromFile("$APPDATA/glsl/simpleTexture.ps.glsl").attachVSFromFile( "$APPDATA/data/glsl/simpleTexture.vs.glsl");
+		if(texture)
+			shader->setUniform( "texture", texture->getUniform() );
+		return shader;
 	}
 
-//	ShaderPtr Shader::createSimpleLambertShader()
-//	{
-//		ShaderPtr shader = Shader::load(base::path( "base" ) + "/data/glsl/simpleLambert");
-//		shader->setUniform( "l", math::Vec3f( 1.0f, 1.0f, 1.0f ).normalized() );
-//		shader->setUniform( "diffuse", math::Vec3f(0.5f, 0.5f, 0.5f));
-//		shader->setUniform( "kd", 1.0f );
-//		shader->setUniform( "ambient", math::Vec3f(0.05f, 0.05f, 0.05f));
-//		shader->setUniform( "ka", 1.0f );
-//		shader->setUniform( "l", math::Vec3f(1.0f, 1.0f, 1.0f).normalized() );
-//		return shader;
-//	}
+	ShaderPtr Shader::createSimpleConstantShader( float r, float g, float b )
+	{
+		ShaderPtr shader = Shader::create().attachPSFromFile( "$APPDATA/glsl/constant.ps.glsl").attachVSFromFile( "$APPDATA/glsl/constant.vs.glsl");
+		shader->setUniform( "color", math::Vec3f(r, g, b) );
+		return shader;
+	}
+
+*/
+	// creates a shader which uses varying Cd attribute
+	Shader::Ptr Shader::createSimpleColorShader()
+	{
+		unsigned char vertexShaderSource[] =
+			"#version 400 core\n"
+			"in vec3 P;\n"
+			"in vec3 Cd;\n"
+			"out vec3 cd;\n"
+			"uniform mat4 mvpm;\n"
+			"void main(void)\n"
+			"{\n"
+			"\tcd = Cd;\n"
+			"\tgl_Position = mvpm * vec4(P,1.0);\n"
+			"}\n";
+		std::stringstream vs_src;
+		vs_src << vertexShaderSource;
+
+
+		unsigned char pixelShaderSource[] =
+			"#version 400 core\n"
+			"in vec3 cd;\n"
+			"out vec4 color;\n"
+			"void main()\n"
+			"{\n"
+			"\tcolor = vec4( cd, 1.0 );\n"
+			"\t//color = vec4( 0.3, 0.1, 0.5, 1.0 );\n"
+			"}\n";
+
+		std::stringstream ps_src;
+		ps_src << pixelShaderSource;
+
+
+		ShaderLoader sl = Shader::create("simple color");
+		sl.attachVS( vs_src.str() );
+		sl.attachPS( ps_src.str() );
+		return sl;
+	}
 
 	Shader::Ptr Shader::createSimpleTextureShader( Texture2d::Ptr texture )
 	{
@@ -506,20 +569,6 @@ namespace base
 			shader->setUniform( "texture", texture->getUniform() );
 		return shader;
 	}
-
-//	ShaderPtr Shader::createSimpleConstantShader( float r, float g, float b )
-//	{
-//		ShaderPtr shader = Shader::create().attachPS( base::path( "base" ) + "/data/glsl/constant.ps.glsl").attachVS( base::path( "base" ) + "/data/glsl/constant.vs.glsl");
-//		shader->setUniform( "color", math::Vec3f(r, g, b) );
-//		return shader;
-//	}
-
-//	// creates a shader which uses varying Cd attribute
-//	ShaderPtr Shader::createSimpleColorShader()
-//	{
-//		return Shader::load( base::path( "base" ) + "/data/glsl/simpleColor" );
-//	}
-
 }
 
 

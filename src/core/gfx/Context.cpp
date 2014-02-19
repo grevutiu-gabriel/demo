@@ -1,5 +1,6 @@
 #include "Context.h"
 #include <gltools/gl.h>
+#include <gltools/misc.h>
 
 
 
@@ -175,7 +176,7 @@ namespace base
 		if(shader && shader->isOk())
 		{
 			// used for assigning texture units to sampler uniform attributes
-			//Attribute::g_nextTextureUnit = 0;
+			Attribute::g_nextTextureUnit = 0;
 
 			glUseProgram(shader->m_glProgram);
 
@@ -189,7 +190,6 @@ namespace base
 					if (geo->hasAttr(name))
 						geo->getAttr(name)->bindAsAttribute(attrIndex);
 				}
-
 
 			// iterate all active uniforms
 			for( auto it = shader->m_activeUniforms.begin(), end = shader->m_activeUniforms.end(); it != end; ++it )

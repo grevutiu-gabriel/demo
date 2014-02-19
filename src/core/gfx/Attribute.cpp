@@ -206,14 +206,18 @@ namespace base
 		return attr;
 	}
 
-	AttributePtr Attribute::createFloat()
+	AttributePtr Attribute::createFloat( int numElements )
 	{
-		return AttributePtr( new Attribute(1, Attribute::FLOAT) );
+		AttributePtr attr = AttributePtr( new Attribute(1, Attribute::FLOAT) );
+		attr->resize(numElements);
+		return attr;
 	}
 
-	AttributePtr Attribute::createInt()
+	AttributePtr Attribute::createInt( int numElements )
 	{
-		return AttributePtr( new Attribute(1, Attribute::INT) );
+		AttributePtr attr = AttributePtr( new Attribute(1, Attribute::INT) );
+		attr->resize(numElements);
+		return attr;
 	}
 
 /*

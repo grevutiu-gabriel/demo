@@ -132,8 +132,8 @@ namespace base
 		static AttributePtr                createV4f( int numElements = 0 );
 		static AttributePtr                createV3f( int numElements = 0 );
 		static AttributePtr                createV2f( int numElements = 0 );
-		static AttributePtr                createFloat();
-		static AttributePtr                createInt();
+		static AttributePtr                createFloat(int numElements = 0);
+		static AttributePtr                createInt(int numElements = 0);
 
 		//
 		// static utilities
