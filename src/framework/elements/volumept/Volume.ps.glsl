@@ -22,7 +22,7 @@ uniform mat4      localToWorld;
 uniform mat4      worldToLocal;
 uniform vec3      aabb_min; // worldspace
 uniform vec3      aabb_max;
-uniform float     sigma_t_max;
+uniform float     sigma_t_scale;
 
 
 // ------------------------ MATH --------------------------------
@@ -32,7 +32,6 @@ float mapValueToRange( float sourceRangeMin, float sourceRangeMax, float targetR
 {
 	return (value-sourceRangeMin) / (sourceRangeMax - sourceRangeMin) * (targetRangeMax - targetRangeMin) + targetRangeMin;
 }
-
 
 
 // ------------------------ RANDOM NUMBER GENERATOR ------------------------------
@@ -156,7 +155,7 @@ float intersectBox( in Ray ray /* ray origin and direction */,
 // optimization: factor *stepsize out of the loop
 bool sampleDistance( in Ray ray, in float stepsize, out ScatterEvent se )
 {
-	float odmax = -log(randomFloat())/sigma_t_max;
+	float odmax = -log(randomFloat())/sigma_t_scale;
 	//float odmax = -log(randomFloat());
 	float od = 0.0f;
 	float d = randomFloat()*stepsize;
@@ -168,7 +167,7 @@ bool sampleDistance( in Ray ray, in float stepsize, out ScatterEvent se )
 		vec3 localP = (worldToLocal*vec4(se.p, 1)).xyz;
 		vec4 volumeSample = texture(transferFunction, texture(normalizedDensity,localP).r);
 		se.albedo = volumeSample.rgb;
-		se.sigma_t = volumeSample.a;
+		se.sigma_t = volumeSample.a*sigma_t_scale;
 		od += se.sigma_t*stepsize;
 		d += stepsize;
 	}
@@ -179,7 +178,7 @@ bool sampleDistance( in Ray ray, in float stepsize, out ScatterEvent se )
 // optimization: factor *stepsize out of the loop
 bool sampleDistance( in Ray ray, in float stepsize)
 {
-	float odmax = -log(randomFloat())/sigma_t_max;
+	float odmax = -log(randomFloat())/sigma_t_scale;
 	//float odmax = -log(randomFloat());
 	float od = 0.0f;
 	float d = randomFloat()*stepsize;
@@ -188,7 +187,7 @@ bool sampleDistance( in Ray ray, in float stepsize)
 		if( d > ray.tmax )
 			return false;
 		vec3 localP = (worldToLocal*vec4(ray.o+ray.d*d, 1)).xyz;
-		float sigma_t = texture(transferFunction, texture(normalizedDensity,localP).r).a;
+		float sigma_t = texture(transferFunction, texture(normalizedDensity,localP).r).a*sigma_t_scale;
 		od += sigma_t*stepsize;
 		d += stepsize;
 	}
@@ -247,32 +246,50 @@ void sampleLight( inout Ray ray, out float pdf, out vec3 Li )
 }
 */
 
-// environment light -----------
-vec4 lightIntensityEnvironment = vec4(1.0f, 1.0f, 1.0f, 5.0f);
+// environment light for upper hemisphere -----------
+vec4 lightIntensityEnvironmentUpperHemisphere = vec4(1.0f, 1.0f, 1.0f, 5.0f);
 
-void sampleLightEnvironment( inout Ray ray, out float pdf, out vec3 Li )
+void sampleLightEnvironmentUpperHemisphere( inout Ray ray, out float pdf, out vec3 Li )
 {
 	ray.d = sampleHemisphere( pdf );
 	ray.tmax = intersectBox(ray, aabb_min, aabb_max);
-	Li = lightIntensityEnvironment.rgb*lightIntensityEnvironment.a;
+	Li = lightIntensityEnvironmentUpperHemisphere.rgb*lightIntensityEnvironmentUpperHemisphere.a;
+}
+
+// environment light for full sphere -----------
+vec3 lightEnvironmentGradientTop = vec3(0.113f, 0.392f, 1.0f);
+vec3 lightEnvironmentGradientMiddle = vec3(0.3137f, 0.207f, 0.1568f);
+vec3 lightEnvironmentGradientBottom = vec3(0.666f, 0.333f, 0.0f);
+float lightEnvironmentIntensity = 5.0f;
+
+void sampleLightEnvironmentGradient( inout Ray ray, out float pdf, out vec3 Li )
+{
+	ray.d = sampleSphere( pdf );
+	ray.tmax = intersectBox(ray, aabb_min, aabb_max);
+	if( ray.d.y > 0.0f )
+		Li = mix( lightEnvironmentGradientMiddle, lightEnvironmentGradientTop, ray.d.y )*lightEnvironmentIntensity;
+	else
+		Li = mix( lightEnvironmentGradientMiddle, lightEnvironmentGradientBottom, abs(ray.d.y) )*lightEnvironmentIntensity;
 }
 
 // combined light ------------
 void sampleLightCombined( inout Ray ray, out float pdf, out vec3 Li )
 {
-	float ratio = lightIntensityDirectional.a/(lightIntensityDirectional.a+(lightIntensityEnvironment.a*2.0f*M_PI));
+	float ratio = lightIntensityDirectional.a/(lightIntensityDirectional.a+(lightIntensityEnvironmentUpperHemisphere.a*2.0f*M_PI));
 	float lightSample = randomFloat();
 	if( lightSample < ratio )
 		sampleLightDirectional( ray, pdf, Li );
 	else
-		sampleLightEnvironment( ray, pdf, Li );
+		sampleLightEnvironmentUpperHemisphere( ray, pdf, Li );
 	pdf *= ratio;
 }
 
 
 // gg
 
-#define sampleLight sampleLightDirectional
+//#define sampleLight sampleLightEnvironmentUpperHemisphere
+#define sampleLight sampleLightEnvironmentGradient
+//#define sampleLight sampleLightDirectional
 //#define sampleLight sampleLightCombined
 
 void main()
@@ -351,7 +368,7 @@ void main()
 	// stochastic raymarching ER style ---
 	float stepsize = 0.0117188f;
 	float stepsize2 = 0.0117188f;
-	int numSamples = 1;
+	int numSamples = 100;
 	vec4 sum = vec4(0.0f);
 	for(int i=0;i<numSamples;++i)
 	{
@@ -375,7 +392,9 @@ void main()
 			{
 				// TODO: fix to use correct phase function
 				//sum.rgb += (Li*se.albedo/M_PI)/pdf; // ER st
-				sum.rgb += Li*stepsize;
+				//sum.rgb += Li;
+				//sum.rgb += se.albedo*10.0f;
+				sum.rgb += (Li*se.albedo/M_PI)/pdf;
 			}
 		}else
 		{
@@ -387,6 +406,10 @@ void main()
 	sum /= numSamples;
 
 
+
 	frag_color = vec4(sum.rgb, 1.0f-sum.a);
+
+	frag_color = vec4(clamp(frag_color.rgb, 0.0f, 1.0f), frag_color.a);
+
 	//frag_color = vec4(100.0f, 100.0f, 100.0f, 1.0f);
 }

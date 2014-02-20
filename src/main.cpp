@@ -205,9 +205,10 @@ void init( base::Context::Ptr context )
 	g_volume = Volume::create();
 	//g_volume->load( "c:\\projects\\demo\\git\\bin\\data\\manix2.bgeo" );
 	g_volume->load( "c:\\projects\\demo\\git\\bin\\data\\artifix_resized.bgeo" );
+	//g_volume->load( "c:\\projects\\demo\\git\\bin\\data\\artifix_nearest.bgeo" );
 
 	// temp for conversion
-	//houdini::HouGeoIO::xport("c:\\projects\\demo\\git\\bin\\data\\artifix.bgeo", base::ScalarField::load("c:\\projects\\demo\\temp\\ConvertFile-build\\Debug\\artifix_small.field"));
+	//houdini::HouGeoIO::xport("c:\\projects\\demo\\git\\bin\\data\\artifix_nearest.bgeo", base::ScalarField::load("c:\\projects\\demo\\temp\\ConvertFile-build\\Debug\\artifix_small_nearest.field"));
 
 	// init post process -----------
 	g_post = PostProcess::create();
@@ -254,8 +255,8 @@ void onMouseMove( base::MouseState state )
 
 int main(int argc, char ** argv)
 {
-	int xres = 512;
-	int yres = 512;
+	int xres = 800;
+	int yres = 800;
 
 #ifdef STANDALONE
 

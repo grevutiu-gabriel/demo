@@ -216,7 +216,7 @@ Volume::Volume()
 	// transfer function ---
 	m_transferFunction = std::make_shared<TransferFunction>();
 
-	float scale = 100.0f;
+	float scale = 1.0f;
 	//float scale = 1.0f;
 
 //	// manix tf
@@ -227,11 +227,27 @@ Volume::Volume()
 
 	// artifix tf
 	TransferFunction::PLF plf_artifix;
-	plf_artifix.addSample( -1024.0f, math::V4f(math::sRGBToLinear(160.0f/255.0f), math::sRGBToLinear(160.0f/255.0f), math::sRGBToLinear(164.0f/255.0f), 0.0f*scale) );
-	plf_artifix.addSample( 67.46f, math::V4f(math::sRGBToLinear(68.0f/255.0f), math::sRGBToLinear(0.0f/255.0f), math::sRGBToLinear(0.0f/255.0f), 0.0f*scale) );
-	plf_artifix.addSample( 245.88f, math::V4f(math::sRGBToLinear(143.0f/255.0f), math::sRGBToLinear(104.0f/255.0f), math::sRGBToLinear(54.0f/255.0f), 0.059f*scale) );
-	plf_artifix.addSample( 831.27f, math::V4f(math::sRGBToLinear(18.0f/255.0f), math::sRGBToLinear(9.0f/255.0f), math::sRGBToLinear(0.0f/255.0f), 1.0f*scale) );
-	plf_artifix.addSample( 3071.0f, math::V4f(math::sRGBToLinear(160.0f/255.0f), math::sRGBToLinear(160.0f/255.0f), math::sRGBToLinear(64.0f/255.0f), 1.0f*scale) );
+//	plf_artifix.addSample( -1024.0f, math::V4f(math::sRGBToLinear(160.0f/255.0f), math::sRGBToLinear(160.0f/255.0f), math::sRGBToLinear(164.0f/255.0f), 0.0f*scale) );
+//	plf_artifix.addSample( 67.46f, math::V4f(math::sRGBToLinear(68.0f/255.0f), math::sRGBToLinear(0.0f/255.0f), math::sRGBToLinear(0.0f/255.0f), 0.0f*scale) );
+//	plf_artifix.addSample( 245.88f, math::V4f(math::sRGBToLinear(143.0f/255.0f), math::sRGBToLinear(104.0f/255.0f), math::sRGBToLinear(54.0f/255.0f), 0.059f*scale) );
+//	plf_artifix.addSample( 831.27f, math::V4f(math::sRGBToLinear(18.0f/255.0f), math::sRGBToLinear(9.0f/255.0f), math::sRGBToLinear(0.0f/255.0f), 1.0f*scale) );
+//	plf_artifix.addSample( 3071.0f, math::V4f(math::sRGBToLinear(160.0f/255.0f), math::sRGBToLinear(160.0f/255.0f), math::sRGBToLinear(64.0f/255.0f), 1.0f*scale) );
+//	plf_artifix.addSample( -1024.0f, math::V4f(160.0f/255.0f, 160.0f/255.0f, 164.0f/255.0f, 0.0f*scale) );
+//	plf_artifix.addSample( 67.46f, math::V4f(68.0f/255.0f, 0.0f/255.0f, 0.0f/255.0f, 0.0f*scale) );
+//	plf_artifix.addSample( 245.88f, math::V4f(143.0f/255.0f, 104.0f/255.0f, 54.0f/255.0f, 0.059f*scale) );
+//	plf_artifix.addSample( 831.27f, math::V4f(18.0f/255.0f, 9.0f/255.0f, 0.0f/255.0f, 1.0f*scale) );
+//	plf_artifix.addSample( 3071.0f, math::V4f(160.0f/255.0f, 160.0f/255.0f, 164.0f/255.0f, 1.0f*scale) );
+	plf_artifix.addSample( 0.0f, math::V4f(160.0f/255.0f, 160.0f/255.0f, 164.0f/255.0f, 0.0f*scale) );
+	plf_artifix.addSample( 0.266535, math::V4f(68.0f/255.0f, 0.0f/255.0f, 0.0f/255.0f, 0.0f*scale) );
+	plf_artifix.addSample( 0.310104, math::V4f(143.0f/255.0f, 104.0f/255.0f, 54.0f/255.0f, 0.059f*scale) );
+	plf_artifix.addSample( 0.453057, math::V4f(18.0f/255.0f, 9.0f/255.0f, 0.0f/255.0f, 1.0f*scale) );
+	plf_artifix.addSample( 1.0f, math::V4f(160.0f/255.0f, 160.0f/255.0f, 164.0f/255.0f, 1.0f*scale) );
+//	plf_artifix.addSample( 0.0f, math::V4f(0.0f, 0.0f, 0.0f, 0.0f*scale) );
+//	plf_artifix.addSample( 0.266535, math::V4f(0.0f, 0.0f, 0.0f, 0.0f*scale) );
+//	plf_artifix.addSample( 0.45, math::V4f(143.0f/255.0f, 104.0f/255.0f, 54.0f/255.0f, 0.059f*scale) );
+//	plf_artifix.addSample( 0.453057, math::V4f(0.0f, 0.0f, 0.0f, 1.0f*scale) );
+//	plf_artifix.addSample( 1.0f, math::V4f(0.0f, 0.0f, 0.0f, 1.0f*scale) );
+
 
 	//plf_artifix.addSample( -1024.0f, math::V4f(0.0f, 0.0f, 0.0f, 0.0f*scale) );
 	//plf_artifix.addSample( 262.0f, math::V4f(0.0f, 0.0f, 0.0f, 0.0f*scale) );
@@ -250,8 +266,8 @@ Volume::Volume()
 //	m_transferFunction->setPLF(plf_default);
 
 	volumeShader->setUniform( "transferFunction", m_transferFunction->m_texture->getUniform() );
-	volumeShader->setUniform( "sigma_t_max", m_transferFunction->m_st_max );
-	std::cout << "sigma_t_max " << m_transferFunction->m_st_max << std::endl;
+	volumeShader->setUniform( "sigma_t_scale", 100.0f );
+	//std::cout << "sigma_t_scale " << m_transferFunction->m_st_max << std::endl;
 
 
 
