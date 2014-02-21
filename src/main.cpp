@@ -131,8 +131,8 @@ void render( base::Context::Ptr context, base::Camera::Ptr cam )
 
 
 	g_post->begin();
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	//glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	//glEnable(GL_DEPTH_TEST);
 	//context->render(g_geo, g_shader);
@@ -213,9 +213,9 @@ void init( base::Context::Ptr context )
 	// init post process -----------
 	g_post = PostProcess::create();
 	g_post->setHDREnabled(true);
-	//g_post->setGlareEnabled(true);
-	//g_post->setGlareBlurIterations(2);
-	//g_post->setGlareAmount(0.5f);
+	g_post->setGlareEnabled(true);
+	g_post->setGlareBlurIterations(2);
+	g_post->setGlareAmount(0.2f);
 	//g_post->setInput(g_volume->estimate);
 }
 

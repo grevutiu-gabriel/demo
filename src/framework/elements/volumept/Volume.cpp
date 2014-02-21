@@ -136,6 +136,10 @@ size_t computeAABBPlaneIntersectionGeometry( const math::Vec3f& bbMin, const mat
 
 Volume::Volume()
 {
+	int width = 512;
+	int height = 512;
+	std::string basePath = "c:\\projects\\demo\\git\\src\\framework\\elements\\volumept\\";
+
 	// bound geometry --
 	m_proxy = createProxyGeometry();
 
@@ -154,17 +158,60 @@ Volume::Volume()
 	nearClipGeo->addPolygonVertex(0);
 
 
-	volumeBack = base::Texture2d::createRGBAFloat16( 512, 512 );
-	volumeFront = base::Texture2d::createRGBAFloat16( 512, 512 );
-	estimate = base::Texture2d::createRGBAFloat32( 512, 512 );
+	volumeBack = base::Texture2d::createRGBAFloat16( width, height );
+	volumeFront = base::Texture2d::createRGBAFloat16( width, height );
+	estimate = base::Texture2d::createRGBAFloat32( width, height );
 
 	// setup offscreen render pass --
-	volumeFrontFBO = base::FBO::create().width(512).height(512).attach(volumeFront);
-	volumeBackFBO = base::FBO::create().width(512).height(512).attach(volumeBack);
-	estimateFBO = base::FBO::create().width(512).height(512).clearColor(0.0f, 0.0f, 0.0f, 0.0f).attach(estimate);
+	volumeFrontFBO = base::FBO::create().width(width).height(height).attach(volumeFront);
+	volumeBackFBO = base::FBO::create().width(width).height(height).attach(volumeBack);
+	estimateFBO = base::FBO::create().width(width).height(height).clearColor(0.0f, 0.0f, 0.0f, 0.0f).attach(estimate);
+
+	// setup resources for blur pass ---
+	float blurSigma = 1.5f*1.0f;
+	blurHOut = base::Texture2d::createRGBAFloat32(width, height);
+	blurHFBO = base::FBO::create().depthBuffer(false).attach(blurHOut);
+	blurVOut = base::Texture2d::createRGBAFloat32(width, height);
+	blurVFBO = base::FBO::create().depthBuffer(false).attach(blurVOut);
+	base::Shader::ShaderSourcePtr hblurSrc = base::Shader::ShaderSource::create();
+	hblurSrc->verbatim( "#define HORIZONTAL_BLUR_5" );
+	hblurSrc->file( basePath + "Volume.blur.ps.glsl" );
+	blurHShader = base::Shader::create().attachVSFromFile( basePath + "Volume.vs.glsl" ).attachPS(hblurSrc);
+	blurHShader->setUniform("sigma", blurSigma);
+	blurHShader->setUniform( "blurSize", 1.0f/(float)width );
+	blurHShader->setUniform("input", estimate);
+
+	base::Shader::ShaderSourcePtr vblurSrc = base::Shader::ShaderSource::create();
+	vblurSrc->verbatim( "#define VERTICAL_BLUR_5" );
+	vblurSrc->file( basePath + "Volume.blur.ps.glsl" );
+	blurVShader = base::Shader::create().attachVSFromFile( basePath + "Volume.vs.glsl" ).attachPS(vblurSrc);
+	blurVShader->setUniform("sigma", blurSigma);
+	blurVShader->setUniform( "blurSize", 1.0f/(float)height );
+	blurVShader->setUniform("input", blurHOut);
+
+//	{
+//		math::V3f incrementalGaussian;
+//		float sigma = 5.0f;
+//		incrementalGaussian.x = 1.0 / (sqrt(2.0 * MATH_PI) * sigma);
+//		incrementalGaussian.y = exp(-0.5 / (sigma * sigma));
+//		incrementalGaussian.z = incrementalGaussian.y * incrementalGaussian.y;
+//		std::cout << "test " << incrementalGaussian.x << std::endl;
+//		incrementalGaussian.x *= incrementalGaussian.y;
+//		incrementalGaussian.y *= incrementalGaussian.x;
+//		std::cout << "test " << incrementalGaussian.x << std::endl;
+//		incrementalGaussian.x *= incrementalGaussian.y;
+//		incrementalGaussian.y *= incrementalGaussian.x;
+//		std::cout << "test " << incrementalGaussian.x << std::endl;
+//		incrementalGaussian.x *= incrementalGaussian.y;
+//		incrementalGaussian.y *= incrementalGaussian.x;
+//		std::cout << "test " << incrementalGaussian.x << std::endl;
+//		incrementalGaussian.x *= incrementalGaussian.y;
+//		incrementalGaussian.y *= incrementalGaussian.x;
+//		std::cout << "test " << incrementalGaussian.x << std::endl;
+//	}
 
 
-	std::string basePath = "c:\\projects\\demo\\git\\src\\framework\\elements\\volumept\\";
+	//
 	volumeGeoShader = base::Shader::loadFromFile( basePath + "Volume.geo");
 
 	volumeShader = base::Shader::loadFromFile( basePath + "Volume" );
@@ -505,23 +552,22 @@ void Volume::render( base::Context::Ptr context, base::Camera::Ptr cam )
 
 	context->setTransformState(ts);
 
-	// render volume ====================
-
+	// render estimate -----------
 	estimateFBO->begin();
-	//glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-	//m_debugFBO->begin();
-	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	//glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	//glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	context->renderScreen( volumeShader );
-	//m_debugFBO->end();
-	//context->renderScreen(m_debug);
-
 	estimateFBO->end();
+
+	// blur estimate -----
+	blurHFBO->begin();
+	context->renderScreen(blurHShader);
+	blurHFBO->end();
+	blurVFBO->begin();
+	context->renderScreen(blurVShader);
+	blurVFBO->end();
 
 	glEnable( GL_BLEND );
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	context->renderScreen( estimate );
+	context->renderScreen( blurVOut );
 	glDisable( GL_BLEND );
 
 

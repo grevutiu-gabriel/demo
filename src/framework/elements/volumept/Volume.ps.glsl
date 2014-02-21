@@ -212,39 +212,40 @@ void sampleLightDirectional( inout Ray ray, out float pdf, out vec3 Li )
 
 
 // point light ------------
-/*
-vec3 lightPos = vec3(0.3f, 0.5f, 0.5f);
-vec3 lightIntensity = vec3(1.0f, 1.0f, 1.0f)*10.0f;
 
-void sampleLight( inout Ray ray, out float pdf, out vec3 Li )
+vec3 pointLightPos = vec3(0.3f, 0.5f, 0.5f);
+vec3 pointLightColor = vec3(1.0f, 0.32f, 0.1f);
+float pointLightIntensity = 5.0f;
+
+void samplePointLight( inout Ray ray, out float pdf, out vec3 Li )
 {
-	ray.d = lightPos-ray.o;
+	ray.d = pointLightPos-ray.o;
 	ray.tmax = length(ray.d);
 	ray.d = normalize(ray.d);
-	Li = lightIntensity/(4.0f*M_PI*ray.tmax*ray.tmax);
+	Li = (pointLightColor*pointLightIntensity)/(4.0f*M_PI*ray.tmax*ray.tmax);
 	pdf = 1.0f;
 }
-*/
+
 
 // area light -------------
-/*
-float width=1.0f;
-float height=3.0f;
 
-vec3 lightIntensity = vec3(1.0f, 1.0f, 1.0f)*500.0f;
+float areaLightWidth=1.0f;
+float areaLightHeight=1.0f;
+
+vec3 areaLightIntensity = vec3(1.0f, 1.0f, 1.0f)*500.0f;
 uniform mat4      areaLightTransform;
 
-void sampleLight( inout Ray ray, out float pdf, out vec3 Li )
+void sampleAreaLight( inout Ray ray, out float pdf, out vec3 Li )
 {
-	float area = width*height;
-	vec3 lightPos = areaLightTransform[0].xyz*(randomFloat()-0.5f)*width + areaLightTransform[1].xyz*(randomFloat()-0.5f)*height + vec3(areaLightTransform[3].x, areaLightTransform[3].y, areaLightTransform[3].z);
+	float area = areaLightWidth*areaLightHeight;
+	vec3 lightPos = areaLightTransform[0].xyz*(randomFloat()-0.5f)*areaLightWidth + areaLightTransform[1].xyz*(randomFloat()-0.5f)*areaLightHeight + vec3(areaLightTransform[3].x, areaLightTransform[3].y, areaLightTransform[3].z);
 	ray.d = lightPos-ray.o;
 	ray.tmax = length(ray.d);
 	ray.d = normalize(ray.d);
-	Li = lightIntensity/(4.0f*M_PI*ray.tmax*ray.tmax*area);
+	Li = areaLightIntensity/(4.0f*M_PI*ray.tmax*ray.tmax*area);
 	pdf = 1.0f/area;
 }
-*/
+
 
 // environment light for upper hemisphere -----------
 vec4 lightIntensityEnvironmentUpperHemisphere = vec4(1.0f, 1.0f, 1.0f, 5.0f);
@@ -257,10 +258,14 @@ void sampleLightEnvironmentUpperHemisphere( inout Ray ray, out float pdf, out ve
 }
 
 // environment light for full sphere -----------
-vec3 lightEnvironmentGradientTop = vec3(0.113f, 0.392f, 1.0f);
-vec3 lightEnvironmentGradientMiddle = vec3(0.3137f, 0.207f, 0.1568f);
-vec3 lightEnvironmentGradientBottom = vec3(0.666f, 0.333f, 0.0f);
-float lightEnvironmentIntensity = 5.0f;
+//vec3 lightEnvironmentGradientTop = vec3(0.113f, 0.392f, 1.0f);
+//vec3 lightEnvironmentGradientMiddle = vec3(0.3137f, 0.207f, 0.1568f);
+//vec3 lightEnvironmentGradientBottom = vec3(0.666f, 0.333f, 0.0f);
+vec3 lightEnvironmentGradientTop = vec3(30.0f/255.0f, 38.0f/255.0f, 102.0f/255.0f);
+vec3 lightEnvironmentGradientMiddle = vec3(59.0f/255.0f, 31.0f/255.0f, 17.0f/255.0f);
+vec3 lightEnvironmentGradientBottom = vec3(3.0f/255.0f, 80.0f/255.0f, 25.0f/255.0f);
+
+float lightEnvironmentIntensity = .35f;
 
 void sampleLightEnvironmentGradient( inout Ray ray, out float pdf, out vec3 Li )
 {
@@ -275,6 +280,8 @@ void sampleLightEnvironmentGradient( inout Ray ray, out float pdf, out vec3 Li )
 // combined light ------------
 void sampleLightCombined( inout Ray ray, out float pdf, out vec3 Li )
 {
+	/*
+	// directional +upperhemisphereenv
 	float ratio = lightIntensityDirectional.a/(lightIntensityDirectional.a+(lightIntensityEnvironmentUpperHemisphere.a*2.0f*M_PI));
 	float lightSample = randomFloat();
 	if( lightSample < ratio )
@@ -282,15 +289,27 @@ void sampleLightCombined( inout Ray ray, out float pdf, out vec3 Li )
 	else
 		sampleLightEnvironmentUpperHemisphere( ray, pdf, Li );
 	pdf *= ratio;
+	*/
+	// point light + env
+	float ratio = pointLightIntensity/(pointLightIntensity+(lightEnvironmentIntensity*4.0f*M_PI));
+	float lightSample = randomFloat();
+	if( lightSample < ratio )
+		samplePointLight( ray, pdf, Li );
+	else
+		sampleLightEnvironmentGradient( ray, pdf, Li );
+	pdf *= ratio;
 }
 
 
 // gg
 
 //#define sampleLight sampleLightEnvironmentUpperHemisphere
-#define sampleLight sampleLightEnvironmentGradient
+//#define sampleLight sampleLightEnvironmentGradient
 //#define sampleLight sampleLightDirectional
-//#define sampleLight sampleLightCombined
+#define sampleLight sampleLightCombined
+//#define sampleLight sampleLightEnvironmentGradient
+//#define sampleLight samplePointLight
+//#define sampleLight sampleAreaLight
 
 void main()
 {
@@ -368,7 +387,7 @@ void main()
 	// stochastic raymarching ER style ---
 	float stepsize = 0.0117188f;
 	float stepsize2 = 0.0117188f;
-	int numSamples = 100;
+	int numSamples = 10;
 	vec4 sum = vec4(0.0f);
 	for(int i=0;i<numSamples;++i)
 	{
@@ -410,6 +429,7 @@ void main()
 	frag_color = vec4(sum.rgb, 1.0f-sum.a);
 
 	frag_color = vec4(clamp(frag_color.rgb, 0.0f, 1.0f), frag_color.a);
+
 
 	//frag_color = vec4(100.0f, 100.0f, 100.0f, 1.0f);
 }

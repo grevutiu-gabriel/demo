@@ -98,6 +98,7 @@ namespace base
 		void                                             setUniform( const std::string &name, float v0, float v1, float v2, float v3 ); // convinience function
 		void                                             setUniform( const std::string &name, float v0, float v1, float v2 ); // convinience function
 		void                                             setUniform( const std::string &name, float v0, float v1 ); // convinience function
+		void                                             setUniform( const std::string &name, base::Texture2d::Ptr texture ); // convinience function
 
 
 		// list of glshaders which are linked into the glprogram

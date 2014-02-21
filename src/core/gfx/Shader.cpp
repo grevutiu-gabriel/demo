@@ -473,6 +473,11 @@ namespace base
 			u->set<int>(0, value);
 	}
 
+	void Shader::setUniform( const std::string &name, base::Texture2d::Ptr texture )
+	{
+		setUniform( name, texture->getUniform() );
+	}
+
 
 /*
 	ShaderPtr Shader::createSimpleLambertShader()

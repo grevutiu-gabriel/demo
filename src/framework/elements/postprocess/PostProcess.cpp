@@ -273,6 +273,7 @@ void PostProcess::render( base::Context::Ptr context )
 	}
 
 	context->renderScreen(m_ps);
+	//context->renderScreen(m_bloomDownsampleOut[0]);
 }
 
 // GLARE =============================================

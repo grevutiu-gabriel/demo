@@ -62,6 +62,13 @@ struct Volume
 	base::FBOPtr                volumeBackFBO;
 	base::FBOPtr                estimateFBO;
 
+	base::FBO::Ptr              blurHFBO;
+	base::Texture2dPtr          blurHOut;
+	base::FBO::Ptr              blurVFBO;
+	base::Texture2dPtr          blurVOut;
+	base::Shader::Ptr           blurHShader;
+	base::Shader::Ptr           blurVShader;
+
 	base::Shader::Ptr           volumeGeoShader;
 	base::Shader::Ptr           volumeShader;
 
