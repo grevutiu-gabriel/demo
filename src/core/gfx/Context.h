@@ -57,6 +57,7 @@ namespace base
 		void                                                      setCamera( Camera::Ptr camera );
 
 		void                                                      setView( const math::M44f &view, const math::M44f &viewInv, const math::M44f &proj ); // convinience function for updating transformState from view matrices
+		void                                                      setView( const math::M44f &viewToWorldTransform, const math::M44f &proj ); // convinience function for updating transformState from view matrices
 
 		void                                                      setModelMatrix( const math::Matrix44f &modelMatrix );
 		void                                                      setViewMatrix( const math::Matrix44f &viewMatrix );

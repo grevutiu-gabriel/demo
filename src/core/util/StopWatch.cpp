@@ -112,4 +112,9 @@ namespace base
 		return (spec.tv_sec + (spec.tv_nsec/1000000000.0f)) - m_startTime;
 #endif
 	}
+
+	bool StopWatch::isRunning()const
+	{
+		return m_running;
+	}
 }

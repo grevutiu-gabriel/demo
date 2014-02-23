@@ -285,7 +285,7 @@ namespace math
 	template<typename T, typename R>
 	inline T lerp( T x0, T x1, R t )
 	{
-		return x0*((R)(1.0)-t) + x1*t;
+		return T(x0*((R)(1.0)-t) + x1*t);
 	}
 
 

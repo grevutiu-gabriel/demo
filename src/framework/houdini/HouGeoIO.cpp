@@ -32,6 +32,23 @@ namespace houdini
 		return houGeo;
 	}
 
+	base::Geometry::Ptr HouGeoIO::importGeometry( const std::string &path )
+	{
+		base::Geometry::Ptr result;
+		std::ifstream in( path.c_str(), std::ios_base::in | std::ios_base::binary );
+		HouGeo::Ptr hgeo = HouGeoIO::import( &in );
+		if( hgeo )
+		{
+			int primIndex = 0;
+			houdini::HouGeo::Primitive::Ptr prim = hgeo->getPrimitive(primIndex);
+
+			//geo
+			if(std::dynamic_pointer_cast<HouGeo::HouPoly>(prim) )
+				result = convertToGeometry(hgeo, primIndex);
+		}
+		return result;
+	}
+
 	// prim -1 means we will get a simple pointsgeometry
 	base::Geometry::Ptr HouGeoIO::convertToGeometry(HouGeo::Ptr houGeo, int prim )
 	{

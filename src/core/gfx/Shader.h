@@ -123,8 +123,9 @@ namespace base
 		//
 		static ShaderPtr createSimpleLambertShader();
 
-		static ShaderPtr createSimpleConstantShader( float r = 1.0f, float g = 1.0f, float b = 1.0f );
+
 */
+		static Shader::Ptr                               createSimpleConstantShader( float r = 1.0f, float g = 1.0f, float b = 1.0f );
 		static Shader::Ptr                               createSimpleColorShader(); // creates a shader which uses varying Cd attribute
 		static Shader::Ptr                               createSimpleTextureShader( Texture2d::Ptr texture = Texture2d::createUVRefTexture() );
 	};

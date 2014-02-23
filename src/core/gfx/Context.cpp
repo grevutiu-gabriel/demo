@@ -248,6 +248,12 @@ namespace base
 	}
 
 
+	// convinience function for updating transformState from view matrices
+	void Context::setView( const math::M44f &viewToWorldTransform, const math::M44f &proj )
+	{
+		math::M44f view = viewToWorldTransform.inverted();
+		setView( view, viewToWorldTransform, proj);
+	}
 
 	void Context::setView( const math::Matrix44f &view, const math::Matrix44f &viewInv, const math::Matrix44f &proj )
 	{

@@ -28,6 +28,7 @@ namespace base
 		void stop();
 		void reset();
 		float elapsedSeconds();
+		bool isRunning()const;
 
 	private:
 		bool                  m_running;

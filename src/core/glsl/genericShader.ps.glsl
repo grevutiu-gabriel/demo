@@ -1,6 +1,6 @@
 #version 330
 
-//#define LAMBERT
+#define LAMBERT
 in vec3      pw; // position in worldspace
 in vec3      pv; // position in eyespace
 in vec3       n; // normal in eyespace

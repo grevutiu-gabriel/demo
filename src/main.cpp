@@ -30,6 +30,8 @@
 #include <framework/houdini/HouGeoIO.h>
 #include <framework/elements/volumept/Volume.h>
 #include <framework/elements/postprocess/PostProcess.h>
+#include <framework/Property.h>
+#include <framework/Demo.h>
 
 
 
@@ -40,20 +42,22 @@
 
 #ifdef STANDALONE
 base::GLViewer* glviewer;
-base::StopWatch timer;
+
 #else
 
 #endif
 
 
 
-
+Demo::Ptr g_demo;
 base::Geometry::Ptr g_geo;
 base::Shader::Ptr g_shader;
 base::FBO::Ptr g_fbo;
 Volume::Ptr g_volume;
 PostProcess::Ptr g_post;
 
+base::StopWatch g_timer;     // used to drive demo
+base::StopWatch g_performanceTimer; // used to measure fps
 float timerMax=-std::numeric_limits<float>::infinity();
 float timerAvg=0.0f;
 float timerMin=std::numeric_limits<float>::infinity();
@@ -124,20 +128,24 @@ composer::widgets::CategoryList *editor;
 
 void render( base::Context::Ptr context, base::Camera::Ptr cam )
 {
-	//glFinish();
-	//timer.reset();
-	//timer.start();
+	glFinish();
+	g_performanceTimer.reset();
+	g_performanceTimer.start();
+
+	// render demo
+	glEnable(GL_DEPTH_TEST);
+	g_demo->render( context, g_timer.elapsedSeconds(), cam );
 
 
 
-	g_post->begin();
-	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glEnable(GL_DEPTH_TEST);
-	//context->render(g_geo, g_shader);
-	g_volume->render(context, cam);
-	g_post->end(context);
+//	g_post->begin();
+//	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+//	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+//	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//	//glEnable(GL_DEPTH_TEST);
+//	//context->render(g_geo, g_shader);
+//	g_volume->render(context, cam);
+//	g_post->end(context);
 	//g_post->render(context);
 	//context->renderScreen( g_volume->estimate );
 
@@ -145,19 +153,16 @@ void render( base::Context::Ptr context, base::Camera::Ptr cam )
 	//context->renderScreen(context->getTexture2d("c:\\projects\\demo\\git\\bin\\data\\uvref.png"));
 	//context->renderScreen(context->getTexture2d("target"));
 
-#ifdef STANDALONE
-	//std::cout << timer.elapsedSeconds() << std::endl;
-	//context->setTime( timer.elapsedSeconds()*24.0f );
-#endif
-/*
+
+
 	glFinish();
-	timer.stop();
-	float elapsed = timer.elapsedSeconds();
+	g_performanceTimer.stop();
+	float elapsed = g_performanceTimer.elapsedSeconds();
 	timerMax = std::max(timerMax, elapsed);
 	timerMin = std::min(timerMin, elapsed);
 	timerAvg += elapsed;
 	++numFrames;
-*/
+
 }
 
 
@@ -174,17 +179,7 @@ void init( base::Context::Ptr context )
 	// load houdini file ================
 	//std::string filename = "c:\\projects\\demo\\git\\bin\\data\\test.bgeo";
 	std::string filename = "c:\\projects\\demo\\git\\bin\\data\\manix_bound.bgeo";
-	std::ifstream in( filename.c_str(), std::ios_base::in | std::ios_base::binary );
-	houdini::HouGeo::Ptr hgeo = houdini::HouGeoIO::import( &in );
-	if( hgeo )
-	{
-		int primIndex = 0;
-		houdini::HouGeo::Primitive::Ptr prim = hgeo->getPrimitive(primIndex);
 
-		//geo
-		//if(std::dynamic_pointer_cast<houdini::HouGeo::HouPoly>(prim) )
-		//	g_geo = houdini::HouGeoIO::convertToGeometry(hgeo, primIndex);
-	}
 
 	//g_shader = base::Shader::load( "c:\\projects\\demo\\git\\src\\core\\glsl\\genericShader" );
 	//g_shader->setUniform("l", math::V3f(1.0f).normalized());
@@ -217,6 +212,16 @@ void init( base::Context::Ptr context )
 	g_post->setGlareBlurIterations(2);
 	g_post->setGlareAmount(0.2f);
 	//g_post->setInput(g_volume->estimate);
+
+
+	// intialize and load demo --------
+	g_demo = Demo::create();
+	g_demo->load("filename");
+
+
+	// now start demo ------------
+	g_timer.start();
+
 }
 
 
@@ -224,7 +229,9 @@ void shutdown()
 {
 	std::cout << "shutdown...\n";
 #ifdef STANDALONE
-	//timer.stop();
+
+	if(g_timer.isRunning())
+		g_timer.stop();
 	//g_audio.stopAudio();
 #endif
 	//
@@ -252,9 +259,36 @@ void onMouseMove( base::MouseState state )
 */
 
 
+struct TestElement : public Object
+{
+	TestElement( /*json*/ ) : Object()
+	{
+		m_size =1.1234f;
+
+
+		// register properties for external access
+		addProperty<float>( "size", std::bind( &TestElement::getSize, this ), std::bind( &TestElement::setSize, this, std::placeholders::_1 ) );
+	}
+
+	float getSize()const
+	{
+		return m_size;
+	}
+
+	void setSize( float size )
+	{
+		m_size = size;
+	}
+
+
+private:
+	float m_size;
+};
+
 
 int main(int argc, char ** argv)
 {
+	///*
 	int xres = 800;
 	int yres = 800;
 
@@ -269,7 +303,6 @@ int main(int argc, char ** argv)
 	glviewer->show();
 	return app.exec();
 #else
-	/*
 	//Q_INIT_RESOURCE(application);
 	QApplication app(argc, argv);
 	app.setOrganizationName("app");
@@ -288,6 +321,10 @@ int main(int argc, char ** argv)
 	mainWin.show();
 
 	return app.exec();
-	*/
 #endif
+//*/
+
+
+
+
 }

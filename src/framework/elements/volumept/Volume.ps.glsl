@@ -387,7 +387,7 @@ void main()
 	// stochastic raymarching ER style ---
 	float stepsize = 0.0117188f;
 	float stepsize2 = 0.0117188f;
-	int numSamples = 10;
+	int numSamples = 1;
 	vec4 sum = vec4(0.0f);
 	for(int i=0;i<numSamples;++i)
 	{

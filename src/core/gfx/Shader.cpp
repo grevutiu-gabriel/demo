@@ -508,11 +508,36 @@ namespace base
 	}
 
 */
+
+	Shader::Ptr Shader::createSimpleConstantShader( float r, float g, float b )
+	{
+		static std::string g_vs =
+				"#version 330\n"
+				"in vec3 P;"
+				"uniform mat4 mvpm;"
+				"void main()"
+				"{"
+				"    gl_Position = mvpm * vec4(P,1.0);"
+				"}";
+		static std::string g_ps =
+				"#version 330\n"
+				"uniform vec3 color;"
+				"layout(location = 0) out vec4 frag_color;"
+				"void main()"
+				"{"
+				"    frag_color = vec4(color, 1.0f);"
+				"}";
+		Shader::Ptr shader;
+		shader = Shader::create("Shader::simpleConstantShader").attachPS(g_ps).attachVS(g_vs);
+		shader->setUniform( "color", r, g, b );
+		return shader;
+	}
+
 	// creates a shader which uses varying Cd attribute
 	Shader::Ptr Shader::createSimpleColorShader()
 	{
 		unsigned char vertexShaderSource[] =
-			"#version 400 core\n"
+			"#version 330 core\n"
 			"in vec3 P;\n"
 			"in vec3 Cd;\n"
 			"out vec3 cd;\n"
