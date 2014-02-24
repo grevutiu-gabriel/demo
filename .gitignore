@@ -10,6 +10,7 @@ bin/*
 *.lo
 *.o
 *.obj
+*.pyc
 
 # Compiled Dynamic libraries
 *.so
