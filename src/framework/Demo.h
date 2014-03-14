@@ -89,7 +89,7 @@ struct Demo
 	{
 		// load scenes
 		Scene::Ptr scene = Scene::create();
-		scene->load("test");
+		scene->load("c:\\projects\\demo\\git\\bin\\data\\untitled.scn");
 		// load elements
 		// load shots
 		Shot::Ptr shot0 = Shot::create( scene->getCamera("cam1") );
