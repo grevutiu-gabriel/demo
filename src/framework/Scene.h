@@ -52,19 +52,7 @@ struct Scene
 		return std::make_shared<Scene>();
 	}
 
-	void load( const std::string& filename )
-	{
-		//get content from json object
-		Camera::Ptr cam1 = Camera::create();
-		cam1->xformMatrix = ConstantM44fController::create( math::M44f::TranslationMatrix(0.0f, 1.0f, 2.0f) );
-		cam1->fov = ConstantFloatController::create( 54.0f );
-		cam1->aspect = ConstantFloatController::create( 1.0f );
-		cam1->projectionMatrix = ProjectionMatrixController::create( cam1->fov, cam1->aspect );
-		m_cameras["cam1"] = cam1;
-
-		// add some dummy channel
-		m_channels["color"] = FloatToV3fController::create( ConstantFloatController::create(1.0f), SinusController::create(), ConstantFloatController::create(0.0f) );
-	}
+	void load( const std::string& filename );
 
 	Camera::Ptr getCamera( const std::string& name )
 	{
