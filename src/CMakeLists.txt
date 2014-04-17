@@ -55,11 +55,15 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5OpenGL REQUIRED)
 
+# Oculus Rift ----------------------------------
+add_subdirectory( 3rdparty/LibOVR )
+include_directories( ${LIBOVR_INC_DIR} )
 
 # sources ==========================================
 
 # specify app sources
-file(GLOB_RECURSE app_sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.ui )
+#file(GLOB_RECURSE app_sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.ui )
+file(GLOB_RECURSE app_sources ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp ${CMAKE_CURRENT_SOURCE_DIR}/core/* ${CMAKE_CURRENT_SOURCE_DIR}/framework/* ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/stblib/* )
 file(GLOB_RECURSE app_sources_glsl ${CMAKE_CURRENT_SOURCE_DIR}/*.glsl )
 
 # add qt intermediate source files
@@ -76,6 +80,9 @@ include_directories( ${BASE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty )
 
 # Qt ---
 qt5_use_modules(${APP_NAME} Widgets OpenGL)
+
+# Oculus Rift ------
+target_link_libraries( ${APP_NAME} LibOVR )
 
 # OpenGL ---
 INCLUDE(FindOpenGL)

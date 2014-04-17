@@ -9,6 +9,7 @@
 #ifdef STANDALONE
 #include <ui/Application.h>
 #include <ui/GLViewer.h>
+#include <ui/VRWindow.h>
 #else
 #include <gltools/gl.h>
 #include <QtGui>
@@ -294,6 +295,7 @@ int main(int argc, char ** argv)
 
 #ifdef STANDALONE
 
+	/*
 	base::Application app;
 	glviewer = new base::GLViewer( xres, yres, "app", init, render, shutdown );
 	glviewer->getOrbitNavigator().m_distance = 20.0f;
@@ -301,6 +303,19 @@ int main(int argc, char ** argv)
 	glviewer->getOrbitNavigator().update();
 	//glviewer->setMouseMoveCallback( onMouseMove );
 	glviewer->show();
+	return app.exec();
+	*/
+	base::Application app;
+	/*
+	glviewer = new base::GLViewer( xres, yres, "app", init, render, shutdown );
+	glviewer->getOrbitNavigator().m_distance = 20.0f;
+	glviewer->getOrbitNavigator().m_elevation = 45.0f;
+	glviewer->getOrbitNavigator().update();
+	//glviewer->setMouseMoveCallback( onMouseMove );
+	glviewer->show();
+	*/
+	base::VRWindow window;
+	window.show();
 	return app.exec();
 #else
 	//Q_INIT_RESOURCE(application);

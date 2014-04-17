@@ -1,5 +1,5 @@
 #ifdef _WINDOWS
-#include "GLWindow.h"
+#include "VRWindow.h"
 #include "GLExtensions.h"
 #include "GLTemporaryContext.h"
 
@@ -13,25 +13,25 @@ namespace base
 {
 
 	// when using this constructor the window will be created when show is called first time
-	GLWindow::GLWindow() : Window(), m_numSamples(-1), m_sampleBuffers(false), m_init(0), m_shutdown(0), m_initialized(false)
+	VRWindow::VRWindow( InitCallback init, RenderCallback render, ShutdownCallback shutdown ) : Window(), m_numSamples(-1), m_sampleBuffers(false), m_init(init), m_shutdown(shutdown), m_initialized(false), m_render(render)
 	{
-		setSize( 800, 600 );
+		setSize( 1280, 800 );
 		setCaption( "app" );
 	}
 
-	GLWindow::GLWindow( int width, int height, std::string caption, InitCallback init, ShutdownCallback shutdown ) : Window(), m_numSamples(-1), m_sampleBuffers(false), m_init(init), m_shutdown(shutdown), m_initialized(false)
+	VRWindow::VRWindow( int width, int height, std::string caption, InitCallback init, ShutdownCallback shutdown ) : Window(), m_numSamples(-1), m_sampleBuffers(false), m_init(init),m_shutdown(shutdown), m_initialized(false)
 	{
 		setSize( width, height );
 		setCaption( caption );
 		createWindow();
 	}
 
-	GLWindow::~GLWindow()
+	VRWindow::~VRWindow()
 	{
 	}
 
 	// shows the window (creates the window when shown the first time)
-	void GLWindow::show()
+	void VRWindow::show()
 	{
 		if(!m_hwnd)
 			createWindow();
@@ -56,7 +56,7 @@ namespace base
 	}
 
 	// closes and destroys the window
-	void GLWindow::destroy()
+	void VRWindow::destroy()
 	{
 		// shutdown callback
 		if( m_shutdown )
@@ -64,7 +64,7 @@ namespace base
 		Window::destroy();
 	}
 
-	void GLWindow::createWindow()
+	void VRWindow::createWindow()
 	{
 		// intitialisierung
 		m_hdc           =            NULL;
@@ -190,7 +190,7 @@ namespace base
                                                     int *piFormats,
                                                     unsigned int *nNumFormats);
 
-	int GLWindow::choosePixelFormat( HDC pdc, PIXELFORMATDESCRIPTOR *dummyPfd )
+	int VRWindow::choosePixelFormat( HDC pdc, PIXELFORMATDESCRIPTOR *dummyPfd )
 	{
 		// we want to use wglChoosePixelFormatARB which is a replacement for the windows function ChoosePixelFormat
 		// it allows a dynamic list of ints for specifying the pixelformat. In addition it allows us to specify
@@ -296,7 +296,7 @@ namespace base
 	//
 	//
 	//
-	void GLWindow::paint()
+	void VRWindow::paint()
 	{
 		// make current
 		// TODO
@@ -311,50 +311,50 @@ namespace base
 		Window::paint();
 	}
 
-	void GLWindow::paintGL()
+	void VRWindow::paintGL()
 	{
 		glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
-	void GLWindow::setCaption( std::string caption )
+	void VRWindow::setCaption( std::string caption )
 	{
 		Window::setCaption( caption );
 		//TODO: set caption when window already exists
 	}
 
-	void GLWindow::setSize( int width, int height )
+	void VRWindow::setSize( int width, int height )
 	{
 		Window::setSize( width, height );
 		// tODO: set size when window already exists
 	}
 
 	// specifies whether a glcontext with samplebuffer support is to be created
-	void GLWindow::setSampleBuffers( bool enabled )
+	void VRWindow::setSampleBuffers( bool enabled )
 	{
 		m_sampleBuffers = enabled;
 		// TODO: handle the case when the context already has been created
 	}
 
 	// specifies the number of samples we want
-	void GLWindow::setSamples( int numSamples )
+	void VRWindow::setSamples( int numSamples )
 	{
 		m_numSamples = numSamples;
 		// TODO: handle the case when the context already has been created
 	}
 
 	// specifies whether a glcontext with stencil support is to be created
-	void GLWindow::setStencilBuffer( bool enabled )
+	void VRWindow::setStencilBuffer( bool enabled )
 	{
 		m_stencilBuffer = enabled;
 	}
 
-	void GLWindow::setInitCallback( InitCallback init )
+	void VRWindow::setInitCallback( InitCallback init )
 	{
 		m_init = init;
 	}
 
-	void GLWindow::setShutdownCallback( ShutdownCallback shutdown )
+	void VRWindow::setShutdownCallback( ShutdownCallback shutdown )
 	{
 		m_shutdown = shutdown;
 	}
@@ -381,14 +381,14 @@ namespace base
 
 	/*
 
-	void GLWindow::show( void )
+	void VRWindow::show( void )
 	{
 		ShowWindow( mhwnd , SW_SHOW );
 		UpdateWindow( mhwnd );
 		SetForegroundWindow( mhwnd );
 		SetFocus( mhwnd );
 	}
-		int GLWindow::getWidth( void )
+		int VRWindow::getWidth( void )
 	{
 		RECT windowRect;
 		GetClientRect( mhwnd, &windowRect );
@@ -397,7 +397,7 @@ namespace base
 		return windowRect.right - windowRect.left;
 	}
 
-	int GLWindow::getHeight( void )
+	int VRWindow::getHeight( void )
 	{
 		RECT windowRect;
 		GetClientRect( mhwnd, &windowRect );
@@ -417,13 +417,13 @@ namespace base
 
 #ifdef linux
 
-#include "GLWindow.h"
+#include "VRWindow.h"
 #include <string>
 
 
 namespace base
 {
-	GLWindow::GLWindow( int width, int height, std::string caption ) : Window()
+	VRWindow::VRWindow( int width, int height, std::string caption ) : Window()
 	{
 		XVisualInfo *visualInfo;
 		int         errorBase;
@@ -488,7 +488,7 @@ namespace base
 		Application::registerWindow( this );
 	}
 
-	GLWindow::~GLWindow()
+	VRWindow::~VRWindow()
 	{
 		Display *display = Application::getDisplay();
 
@@ -502,7 +502,7 @@ namespace base
 	//
 	//
 	//
-	void GLWindow::paint()
+	void VRWindow::paint()
 	{
 		// make current
 		// TODO
@@ -517,7 +517,7 @@ namespace base
 		Window::paint();
 	}
 
-	void GLWindow::paintGL()
+	void VRWindow::paintGL()
 	{
 		glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -546,7 +546,7 @@ namespace base
 namespace win32
 {
 
-	GLWindow::GLWindow()
+	VRWindow::VRWindow()
 	{
 		// intitialisierung
 		mhwnd       =  NULL;
@@ -572,7 +572,7 @@ namespace win32
 		EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &this->DMsaved); 
 
 	}
-	GLWindow::~GLWindow()
+	VRWindow::~VRWindow()
 	{
 		if( this->mhwnd )
 		{
@@ -603,7 +603,7 @@ namespace win32
 
 
 
-	bool GLWindow::createGLWindow( std::string  _caption, int _width, int _height,
+	bool VRWindow::createVRWindow( std::string  _caption, int _width, int _height,
 								  int _startx, int _starty, int _bpp, bool _fullscreen,
 									WNDPROC WindowProcedure, HINSTANCE _hInstance )
 	{
@@ -679,7 +679,7 @@ namespace win32
 	}
 
 
-	bool GLWindow::_SetPixelFormat( HWND hWnd )
+	bool VRWindow::_SetPixelFormat( HWND hWnd )
 	{
 		PIXELFORMATDESCRIPTOR pfd=				// pfd Tells Windows How We Want Things To Be
 		{
@@ -715,7 +715,7 @@ namespace win32
 
 
 
-	bool GLWindow::setFullScreen( int width, int height, int _bpp )
+	bool VRWindow::setFullScreen( int width, int height, int _bpp )
 	{
 		// already fullscreen? -> go back
 		if( fullscreen )
@@ -770,7 +770,7 @@ namespace win32
 		return true;
 	}
 
-	void GLWindow::restoreScreen( bool show_cursor )
+	void VRWindow::restoreScreen( bool show_cursor )
 	{	
 		dwExstyle	= WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
 		dwstyle		= WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
@@ -803,7 +803,7 @@ namespace win32
 		}
 	}
 
-	bool GLWindow::toggleFullscreen( void )
+	bool VRWindow::toggleFullscreen( void )
 	{
 		if( this->fullscreen == true )
 			this->restoreScreen();
@@ -813,7 +813,7 @@ namespace win32
 	}
 
 
-	void GLWindow::show( void )
+	void VRWindow::show( void )
 	{
 		ShowWindow( mhwnd , SW_SHOW );
 		UpdateWindow( mhwnd );
@@ -821,13 +821,13 @@ namespace win32
 		SetFocus( mhwnd );
 	}
 
-	HWND GLWindow::getHandle()
+	HWND VRWindow::getHandle()
 	{
 		return mhwnd;
 	}
 
 
-	int GLWindow::getWidth( void )
+	int VRWindow::getWidth( void )
 	{
 		RECT windowRect;
 		GetClientRect( mhwnd, &windowRect );
@@ -836,7 +836,7 @@ namespace win32
 		return windowRect.right - windowRect.left;
 	}
 
-	int GLWindow::getHeight( void )
+	int VRWindow::getHeight( void )
 	{
 		RECT windowRect;
 		GetClientRect( mhwnd, &windowRect );
