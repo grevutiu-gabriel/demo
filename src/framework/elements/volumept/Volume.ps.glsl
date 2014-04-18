@@ -265,7 +265,8 @@ vec3 lightEnvironmentGradientTop = vec3(30.0f/255.0f, 38.0f/255.0f, 102.0f/255.0
 vec3 lightEnvironmentGradientMiddle = vec3(59.0f/255.0f, 31.0f/255.0f, 17.0f/255.0f);
 vec3 lightEnvironmentGradientBottom = vec3(3.0f/255.0f, 80.0f/255.0f, 25.0f/255.0f);
 
-float lightEnvironmentIntensity = .35f;
+//float lightEnvironmentIntensity = .35f;
+float lightEnvironmentIntensity = 5.0f;
 
 void sampleLightEnvironmentGradient( inout Ray ray, out float pdf, out vec3 Li )
 {
@@ -306,8 +307,8 @@ void sampleLightCombined( inout Ray ray, out float pdf, out vec3 Li )
 //#define sampleLight sampleLightEnvironmentUpperHemisphere
 //#define sampleLight sampleLightEnvironmentGradient
 //#define sampleLight sampleLightDirectional
-#define sampleLight sampleLightCombined
-//#define sampleLight sampleLightEnvironmentGradient
+//#define sampleLight sampleLightCombined
+#define sampleLight sampleLightEnvironmentGradient
 //#define sampleLight samplePointLight
 //#define sampleLight sampleAreaLight
 
@@ -387,7 +388,7 @@ void main()
 	// stochastic raymarching ER style ---
 	float stepsize = 0.0117188f;
 	float stepsize2 = 0.0117188f;
-	int numSamples = 1;
+	int numSamples = 10;
 	vec4 sum = vec4(0.0f);
 	for(int i=0;i<numSamples;++i)
 	{

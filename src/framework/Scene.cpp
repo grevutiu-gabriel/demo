@@ -18,7 +18,7 @@
 void Scene::load( const std::string& filename )
 {
 	//houdini::HouGeoIO::makeLog(filename, &std::cout);
-
+/*
 	std::ifstream in( filename.c_str(), std::ios_base::in | std::ios_base::binary );
 	houdini::json::JSONLogger logger(std::cout);
 	houdini::json::JSONReader reader;
@@ -35,7 +35,7 @@ void Scene::load( const std::string& filename )
 		houdini::json::ObjectPtr locators = root->getObject("locators");
 
 	}
-
+*/
 
 
 

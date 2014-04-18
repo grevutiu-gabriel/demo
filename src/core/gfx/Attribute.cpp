@@ -127,8 +127,21 @@ namespace base
 	}
 	void Attribute::unbindAsUniform( int index )
 	{
-		// ?
-		// for better texture unit management tell the currently used texture unit is not used anymore
+//		switch( numComponents() )
+//		{
+//		case 1:
+//			if( m_internalComponentType == SAMPLER )
+//			{
+//				int num = numElements();
+//				for( int i=0;i<num;++i )
+//				{
+//					--g_nextTextureUnit;
+//					glActiveTexture(GL_TEXTURE0+g_nextTextureUnit);
+//					glBindTexture(0);
+//				}
+//			}
+//			break;
+//		};
 	}
 
 

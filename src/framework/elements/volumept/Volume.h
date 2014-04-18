@@ -15,13 +15,15 @@
 
 #include "TransferFunction.h"
 
+#include "../../Element.h"
+
 
 
 
 
 
 BASE_DECL_SMARTPTR_STRUCT(Volume);
-struct Volume
+struct Volume : public Element
 {
 	typedef std::shared_ptr<Volume> Ptr;
 	struct Light
@@ -37,6 +39,7 @@ struct Volume
 	static VolumePtr            create();
 	static VolumePtr            create( const base::Path dataSourceGLSLPath ); // create volume with custom data source glsl module (file be be loaded from base::fs)
 
+	virtual void render(base::Context::Ptr context)override;
 	void                        render(base::Context::Ptr context, base::Camera::Ptr cam );
 	void                        load( const std::string& filename );
 

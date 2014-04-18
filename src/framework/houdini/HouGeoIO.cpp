@@ -258,6 +258,9 @@ namespace houdini
 
 				vertex_ptr+=numVerts;
 			}
+
+			// houdini polys are CW - opengl defaults to CCW
+			result->reverse();
 		}
 
 		return result;

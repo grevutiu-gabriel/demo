@@ -134,7 +134,7 @@ size_t computeAABBPlaneIntersectionGeometry( const math::Vec3f& bbMin, const mat
 	return nPoints;
 }
 
-Volume::Volume()
+Volume::Volume() : Element()
 {
 	int width = 512;
 	int height = 512;
@@ -496,6 +496,82 @@ base::GeometryPtr Volume::createProxyGeometry()
 	return result;
 }
 
+void Volume::render(base::Context::Ptr context)
+{
+	float znear = 0.1f;
+	glDisable(GL_DEPTH_TEST);
+	glEnable( GL_CULL_FACE );
+
+	// render primary pass =========================================================
+
+	base::Context::TransformState ts;
+	context->getTransformState(ts);
+	context->setModelMatrix(m_normalizedDensity->m_localToWorld);
+
+	// render back faces
+	volumeBackFBO->begin();
+	glFrontFace( GL_CW );
+	//context->render( m_proxy, volumeGeoShader, m_density->m_localToWorld );
+	context->render( m_proxy, volumeGeoShader );
+	volumeBackFBO->end();
+
+	// render front faces
+	volumeFrontFBO->begin();
+	glFrontFace( GL_CCW );
+	//context->render( m_proxy, volumeGeoShader, m_density->m_localToWorld );
+	context->render( m_proxy, volumeGeoShader );
+
+	// computer polygon from intersection of near clipping plane with bounding box
+	// calculate the near clip plane in local space of the model
+	const float clipEpsilon = 0.001f;
+	math::Matrix44f modelViewInverse = context->getModelViewInverseMatrix();
+	math::Vec3f nearClipPlaneN;
+	float nearClipPlaneDist;
+	{
+		math::Vec3f vsOrigin( 0, 0, 0 );
+		math::Vec3f vsClipPlanePoint( 0, 0, -(znear + clipEpsilon) );
+		math::Vec3f wsOrigin = math::transform(vsOrigin, modelViewInverse);
+		math::Vec3f wsNearClipPlanePoint = math::transform(vsClipPlanePoint, modelViewInverse);
+
+		nearClipPlaneN = ( wsNearClipPlanePoint - wsOrigin ).normalized();
+		nearClipPlaneDist = -math::dotProduct( nearClipPlaneN, wsNearClipPlanePoint );
+	}
+
+	size_t npoints = computeAABBPlaneIntersectionGeometry(  math::Vec3f( 0.0f, 0.0f, 0.0f ), math::Vec3f( 1.0f,  1.0f,  1.0f ),
+		nearClipPlaneN, nearClipPlaneDist, (math::Vec3f*)nearClipP->getRawPointer(), (math::Vec3f*)nearClipUVW->getRawPointer() );
+
+	nearClipP->m_isDirty = true;
+	nearClipUVW->m_isDirty = true;
+
+	if( npoints )
+		context->render( nearClipGeo, volumeGeoShader );
+
+
+	volumeFrontFBO->end();
+
+	context->setTransformState(ts);
+
+	// render estimate -----------
+	estimateFBO->begin();
+	context->renderScreen( volumeShader );
+	estimateFBO->end();
+
+	// blur estimate -----
+	blurHFBO->begin();
+	context->renderScreen(blurHShader);
+	blurHFBO->end();
+	blurVFBO->begin();
+	context->renderScreen(blurVShader);
+	blurVFBO->end();
+
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	context->renderScreen( blurVOut );
+	glDisable( GL_BLEND );
+
+
+
+}
 
 void Volume::render( base::Context::Ptr context, base::Camera::Ptr cam )
 {

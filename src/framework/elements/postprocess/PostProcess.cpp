@@ -5,7 +5,7 @@
 
 
 
-PostProcess::PostProcess()
+PostProcess::PostProcess() : Element()
 {
 	m_glare = false;
 	m_hdr = false;
@@ -217,20 +217,15 @@ void PostProcess::setInput( base::Texture2dPtr input )
 	}
 }
 
-void PostProcess::begin()
+void PostProcess::begin(base::Context::Ptr context)
 {
 	m_inputFBO->begin();
 }
-
-
-void PostProcess::end( base::Context::Ptr context )
+void PostProcess::end(base::Context::Ptr context)
 {
 	m_inputFBO->end();
-	render( context );
 }
-
-
-void PostProcess::render( base::Context::Ptr context )
+void PostProcess::render(base::Context::Ptr context)
 {
 	if( m_glare )
 	{

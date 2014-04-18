@@ -6,9 +6,9 @@
 #include <gfx/Context.h>
 #include <gfx/FBO.h>
 
+#include "../../Element.h"
 
-
-struct PostProcess
+struct PostProcess : public Element
 {
 	typedef std::shared_ptr<PostProcess> Ptr;
 
@@ -28,12 +28,13 @@ struct PostProcess
 	PostProcess();
 
 	static Ptr                    create();
-	void                          begin();
-	void                          end( base::Context::Ptr context );
+	virtual void begin(base::Context::Ptr context)override;
+	virtual void end(base::Context::Ptr context)override;
+	virtual void render(base::Context::Ptr context)override;
 
 	void                          setupShader();
 	void                          setInput( base::Texture2dPtr input );
-	void                          render(base::Context::Ptr context);
+
 
 	// GLARE =================
 	void                                      setGlareEnabled( bool enabled );

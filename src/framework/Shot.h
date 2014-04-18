@@ -31,6 +31,14 @@ struct Shot
 		{
 			return std::make_shared<ShotElement>( element );
 		}
+
+		Ptr addChild( Element::Ptr element )
+		{
+			Ptr child = create(element);
+			m_childs.push_back( child );
+			return child;
+		}
+
 		void render( base::Context::Ptr context, float time )
 		{
 			// update animated properties

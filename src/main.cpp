@@ -54,8 +54,7 @@ Demo::Ptr g_demo;
 base::Geometry::Ptr g_geo;
 base::Shader::Ptr g_shader;
 base::FBO::Ptr g_fbo;
-Volume::Ptr g_volume;
-PostProcess::Ptr g_post;
+
 
 base::StopWatch g_timer;     // used to drive demo
 base::StopWatch g_performanceTimer; // used to measure fps
@@ -139,23 +138,6 @@ void render( base::Context::Ptr context, base::Camera::Ptr cam )
 
 
 
-//	g_post->begin();
-//	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-//	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-//	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//	//glEnable(GL_DEPTH_TEST);
-//	//context->render(g_geo, g_shader);
-//	g_volume->render(context, cam);
-//	g_post->end(context);
-	//g_post->render(context);
-	//context->renderScreen( g_volume->estimate );
-
-
-	//context->renderScreen(context->getTexture2d("c:\\projects\\demo\\git\\bin\\data\\uvref.png"));
-	//context->renderScreen(context->getTexture2d("target"));
-
-
-
 	glFinish();
 	g_performanceTimer.stop();
 	float elapsed = g_performanceTimer.elapsedSeconds();
@@ -176,7 +158,7 @@ void init( base::Context::Ptr context )
 
 	g_geo = base::Geometry::createGrid(10, 10, base::Geometry::LINE);
 	g_geo->transform( math::M44f::ScaleMatrix(16.0f, 1.0f, 16.0f) );
-///*
+
 	// load houdini file ================
 	//std::string filename = "c:\\projects\\demo\\git\\bin\\data\\test.bgeo";
 	std::string filename = "c:\\projects\\demo\\git\\bin\\data\\manix_bound.bgeo";
@@ -197,22 +179,6 @@ void init( base::Context::Ptr context )
 	//g_fbo = base::FBO::create().width(512).height(512).attach(target);
 //*/
 	g_shader = base::Shader::loadFromFile( "c:\\projects\\demo\\git\\src\\core\\glsl\\genericShader" );
-
-	g_volume = Volume::create();
-	//g_volume->load( "c:\\projects\\demo\\git\\bin\\data\\manix2.bgeo" );
-	g_volume->load( "c:\\projects\\demo\\git\\bin\\data\\artifix_resized.bgeo" );
-	//g_volume->load( "c:\\projects\\demo\\git\\bin\\data\\artifix_nearest.bgeo" );
-
-	// temp for conversion
-	//houdini::HouGeoIO::xport("c:\\projects\\demo\\git\\bin\\data\\artifix_nearest.bgeo", base::ScalarField::load("c:\\projects\\demo\\temp\\ConvertFile-build\\Debug\\artifix_small_nearest.field"));
-
-	// init post process -----------
-	g_post = PostProcess::create();
-	g_post->setHDREnabled(true);
-	g_post->setGlareEnabled(true);
-	g_post->setGlareBlurIterations(2);
-	g_post->setGlareAmount(0.2f);
-	//g_post->setInput(g_volume->estimate);
 
 
 	// intialize and load demo --------
@@ -295,7 +261,7 @@ int main(int argc, char ** argv)
 
 #ifdef STANDALONE
 
-	/*
+	///*
 	base::Application app;
 	glviewer = new base::GLViewer( xres, yres, "app", init, render, shutdown );
 	glviewer->getOrbitNavigator().m_distance = 20.0f;
@@ -304,19 +270,20 @@ int main(int argc, char ** argv)
 	//glviewer->setMouseMoveCallback( onMouseMove );
 	glviewer->show();
 	return app.exec();
-	*/
+	//*/
+
+/*
 	base::Application app;
-	/*
-	glviewer = new base::GLViewer( xres, yres, "app", init, render, shutdown );
-	glviewer->getOrbitNavigator().m_distance = 20.0f;
-	glviewer->getOrbitNavigator().m_elevation = 45.0f;
-	glviewer->getOrbitNavigator().update();
-	//glviewer->setMouseMoveCallback( onMouseMove );
-	glviewer->show();
-	*/
+//	glviewer = new base::GLViewer( xres, yres, "app", init, render, shutdown );
+//	glviewer->getOrbitNavigator().m_distance = 20.0f;
+//	glviewer->getOrbitNavigator().m_elevation = 45.0f;
+//	glviewer->getOrbitNavigator().update();
+//	//glviewer->setMouseMoveCallback( onMouseMove );
+//	glviewer->show();
 	base::VRWindow window;
 	window.show();
 	return app.exec();
+*/
 #else
 	//Q_INIT_RESOURCE(application);
 	QApplication app(argc, argv);
