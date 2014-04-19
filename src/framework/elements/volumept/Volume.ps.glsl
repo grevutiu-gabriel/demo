@@ -390,7 +390,7 @@ void main()
 //	float stepsize2 = 0.0117188f;
 	float stepsize = 1.17188f;
 	float stepsize2 = 1.17188f;
-	int numSamples = 5;
+	int numSamples = 8;
 	vec4 sum = vec4(0.0f);
 	for(int i=0;i<numSamples;++i)
 	{
