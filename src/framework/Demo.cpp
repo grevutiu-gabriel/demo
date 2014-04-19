@@ -11,8 +11,10 @@ void Demo::load( const std::string& filename )
 	// load shots
 	Shot::Ptr shot0 = Shot::create( scene->getCamera("cam1") );
 	Shot::Ptr shot1 = Shot::create( scene->getCamera("cam2") );
-	m_shots.push_back(shot0);
-	m_shots.push_back(shot1);
+	SwitchedShot::Ptr shot2 = SwitchedShot::create( scene->getSwitcher("switcher1") );
+	//m_shots.push_back(shot0);
+	//m_shots.push_back(shot1);
+	m_shots.push_back(shot2);
 
 	Element::Ptr black = Clear::create(math::V3f(0.0f, 0.0f, 0.0f));
 	Element::Ptr red = Clear::create(math::V3f(1.0f, 0.0f, 0.0f));
@@ -60,9 +62,31 @@ void Demo::load( const std::string& filename )
 		shot1->addElement(se);
 	}
 
-
+	// shot 2
+	{
+		Shot::ShotElement::Ptr se = Shot::ShotElement::create(post);
+		se->addChild(black);
+		se->addChild(volume)->setController("PointLightPosition", scene->getLocator("null1")->xform->translation);
+		//shot1->addElement(black);//->setController("color", scene->getChannel("color"));
+		shot2->addElement(se);
+	}
 	m_duration = 10.0f;
 	m_shotIndex.addSample(0.0f, 0);
-	m_shotIndex.addSample(5.0f, 1);
+	//m_shotIndex.addSample(5.0f, 1);
+
+}
+
+
+void Demo::render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera )
+{
+	//std::cout << "Demo::render\n";
+
+	//TODO: update time controller
+
+	int newShotIndex = m_shotIndex.evaluate(time);
+//	//std::cout << time << " rendering shot " << newShotIndex << std::endl;
+
+	Shot::Ptr shot = m_shots[newShotIndex];
+	shot->render(context, time, overrideCamera);
 
 }

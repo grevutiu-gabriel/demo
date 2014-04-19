@@ -40,6 +40,21 @@ struct Camera : public Transform
 	M44fController::Ptr projectionMatrix;
 };
 
+struct Switcher
+{
+	typedef std::shared_ptr<Switcher> Ptr;
+	Switcher()
+	{
+	}
+	static Ptr create()
+	{
+		return std::make_shared<Switcher>();
+	}
+
+	FloatController::Ptr m_switch;
+	std::vector<Camera::Ptr> m_cameras;
+};
+
 
 
 struct Scene
@@ -63,6 +78,13 @@ struct Scene
 			return it->second;
 		return Camera::Ptr();
 	}
+	Switcher::Ptr getSwitcher( const std::string& name )
+	{
+		auto it = m_switchers.find(name);
+		if( it!=m_switchers.end() )
+			return it->second;
+		return Switcher::Ptr();
+	}
 	Transform::Ptr getLocator( const std::string& name )
 	{
 		auto it = m_locators.find(name);
@@ -79,6 +101,7 @@ struct Scene
 	}
 
 	std::map<std::string, Camera::Ptr> m_cameras;
+	std::map<std::string, Switcher::Ptr> m_switchers;
 	std::map<std::string, Transform::Ptr> m_locators;
 	std::map<std::string, Controller::Ptr> m_channels; // generic animations
 
@@ -86,5 +109,6 @@ private:
 	void loadTransform( houdini::json::ObjectPtr transform, Transform::Ptr xform );
 	Transform::Ptr loadLocator( houdini::json::ObjectPtr transform );
 	Camera::Ptr loadCamera( houdini::json::ObjectPtr camera );
+	Switcher::Ptr loadSwitcher( houdini::json::ObjectPtr switcher );
 	FloatController::Ptr loadChannel( houdini::json::ObjectPtr channel );
 };

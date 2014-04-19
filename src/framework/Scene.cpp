@@ -62,6 +62,20 @@ void Scene::load( const std::string& filename )
 			m_cameras[name] = loadCamera(camera);
 		}
 	}
+	if(root && root->hasKey("switchers"))
+	{
+		houdini::json::ObjectPtr switchers = root->getObject("switchers");
+
+		std::vector<std::string> keys;
+		switchers->getKeys(keys);
+
+		for(auto it = keys.begin(), end=keys.end();it!=end;++it)
+		{
+			std::string name = *it;
+			houdini::json::ObjectPtr switcher = switchers->getObject(name);
+			m_switchers[name] = loadSwitcher(switcher);
+		}
+	}
 
 //	//get content from json object
 //	Camera::Ptr cam1 = Camera::create();
@@ -213,6 +227,30 @@ Camera::Ptr Scene::loadCamera( houdini::json::ObjectPtr camera )
 	loadTransform( camera, cam );
 
 	return cam;
+}
+
+Switcher::Ptr Scene::loadSwitcher( houdini::json::ObjectPtr switcher )
+{
+	Switcher::Ptr s = Switcher::create();
+	houdini::json::ObjectPtr channels = switcher->getObject("channels");
+	if(channels->hasKey("camswitch"))
+	{
+		s->m_switch = loadChannel( channels->getObject("camswitch") );
+	}else
+		s->m_switch = ConstantFloatController::create( 0.0f );
+	if(switcher->hasKey("cameras"))
+	{
+		houdini::json::ArrayPtr cameras = switcher->getArray("cameras");
+		int numItems = cameras->size();
+		for( int i=0;i<numItems;++i )
+		{
+			std::string cameraName = cameras->get<std::string>(i);
+			Camera::Ptr cam = getCamera( cameraName );
+			if( cam )
+				s->m_cameras.push_back( cam );
+		}
+	}
+	return s;
 }
 
 /*

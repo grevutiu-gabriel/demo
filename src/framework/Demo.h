@@ -87,19 +87,7 @@ struct Demo
 
 	void load( const std::string& filename);
 
-	void render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera = base::Camera::Ptr() )
-	{
-		//std::cout << "Demo::render\n";
-
-		//TODO: update time controller
-
-		int newShotIndex = m_shotIndex.evaluate(time);
-		//std::cout << time << " rendering shot " << newShotIndex << std::endl;
-
-		Shot::Ptr shot = m_shots[newShotIndex];
-		shot->render(context, time, overrideCamera);
-
-	}
+	void render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera = base::Camera::Ptr() );
 
 	float                                m_duration; // how long does the thing go? (in s)
 	std::vector<Scene::Ptr>              m_scenes;

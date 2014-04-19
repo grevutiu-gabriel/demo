@@ -41,12 +41,12 @@ namespace base
 				maxx = m_domain[m_numSamples-1];
 			}
 		}
-		void getValueRange( float& miny, float& maxy )
+		void getValueRange( T& miny, T& maxy )
 		{
 			if(m_numSamples==0)
 			{
-				miny = std::numeric_limits<float>::max();
-				maxy = -std::numeric_limits<float>::max();
+				miny = std::numeric_limits<T>::max();
+				maxy = -std::numeric_limits<T>::max();
 			}else
 			{
 				std::pair<std::vector<T>::iterator, std::vector<T>::iterator> minmax = std::minmax_element( m_values.begin(), m_values.end() );

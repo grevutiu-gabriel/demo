@@ -78,6 +78,7 @@ class ExportScene:
 			# initialize lists of things we want to export...
 			self.objects = []
 			self.cameras = []
+			self.switchers = []
 			self.lights = []
 			self.locators = []
 			self.inSubnet = {}
@@ -108,7 +109,7 @@ class ExportScene:
 		if self.exportPath[len(self.exportPath)-1] != '/':
 			self.exportPath += '/'
 
-		self.readObjects(self.selected) 
+		self.readObjects(self.selected)
 
 		outfile = open( self.exportPath + self.exportScriptName, "w" )
 		writer = binary_json.Writer( outfile, False, 6 )
@@ -116,6 +117,7 @@ class ExportScene:
 		writer.jsonBeginMap()
 		#self.exportObjects()
 		self.exportCameras( writer )
+		self.exportSwitchers( writer )
 		#self.exportLights()
 		self.exportLocators( writer )
 		writer.jsonEndMap()
@@ -181,7 +183,8 @@ class ExportScene:
 				self.readObjects(childrenNodes)
 			elif thisObjectType == 'null':
 				self.locators[:0] = [thisNode]
-
+			elif thisObjectType == 'switcher':
+				self.switchers[:0] = [thisNode]
 				
 				
 				
@@ -190,12 +193,14 @@ class ExportScene:
 				
 				
 				
-				
+	# exports all cameras of the scene
 	def exportCameras(self, writer):
 		channelMatch = {'transform.tx':'tx', 'transform.ty':'ty', 'transform.tz':'tz', 'transform.rx':'rx', 'transform.ry':'ry', 'transform.rz':'rz', 'transform.rotateOrder':'rOrd', 'camera.fl':'focal', 'camera.horizontalFilmAperture':'aperture'}
 
+				
 		writer.jsonKeyToken("cameras")
 		writer.jsonBeginMap()
+		# export all cameras
 		for camera in self.cameras:
 			object = hou.node(camera.path())
 			objectName = object.name()
@@ -204,7 +209,25 @@ class ExportScene:
 			#self.exportData(camera, channelMatch, self.startFrame, self.endFrame, self.exportPath + camera.name() + '.fm2n')
 			#self.exportData2(camera, channelMatch, self.startFrame, self.endFrame, writer)
 			print "Exported: " + camera.name()
+			
 		writer.jsonEndMap()
+		
+	def exportSwitchers(self, writer):
+		channelMatch = {'camswitch':'camswitch'}
+
+				
+		writer.jsonKeyToken("switchers")
+		writer.jsonBeginMap()
+		# export all switchers
+		for switcher in self.switchers:
+			object = hou.node(switcher.path())
+			objectName = object.name()
+			writer.jsonKeyToken(objectName)
+			self.exportNode(switcher, channelMatch, self.startFrame, self.endFrame, writer)
+			print "Exported: " + switcher.name()
+			
+		writer.jsonEndMap()
+
 
 	def exportLocators(self, writer):
 		channelMatch = {'transform.tx':'tx', 'transform.ty':'ty', 'transform.tz':'tz', 'transform.rx':'rx', 'transform.ry':'ry', 'transform.rz':'rz', 'transform.rotateOrder':'rOrd'}
@@ -248,27 +271,36 @@ class ExportScene:
 		
 		return isAnimated
 	
-
-	def exportChannel(self, object, channelName, channel, startF, endF, writer):
-		objectPath = object.path()
-	
+	def writeChannel( self, channelName, channelData, writer ):
 		#write channel ---
 		writer.jsonBeginMap()
-		
 		writer.jsonKeyToken( "nsamples" )
-		writer.jsonInt( (endF+1)-startF )
-		
+		writer.jsonInt( len(channelData) )
 		writer.jsonKeyToken( "data" )
 		writer.jsonBeginArray()
+		for value in channelData:
+			writer.jsonReal32( value )
+		writer.jsonEndArray()		
+		writer.jsonEndMap()
+		
+	def exportChannel(self, object, channelName, channel, startF, endF, writer):
+		objectPath = object.path()
+		
+		#numSamples = (endF+1)-startF
+		channelData = []
+
 		for frame in range(startF, (endF+1)):
-			thisValue = hou.parm(objectPath+"/"+channel).evalAsFloatAtFrame(frame)
+			parm = hou.parm(objectPath+"/"+channel)
+			type = parm.parmTemplate().type()
+			if type == hou.parmTemplateType.Int:
+				thisValue = parm.evalAsIntAtFrame(frame)
+			else:
+				thisValue = parm.evalAsFloatAtFrame(frame)
 			if channel in self.checkParentParameters :
 				thisValue = self.getRealParmValue(object, channel, frame)
-			writer.jsonReal32( thisValue )
-		writer.jsonEndArray()
-		
-		
-		writer.jsonEndMap()
+			channelData.append(thisValue)
+			
+		self.writeChannel( channelName, channelData, writer )
 
 	
 	def exportNode(self, object, channels, startF, endF, writer):
@@ -288,6 +320,8 @@ class ExportScene:
 
 		if objectType == 'cam':
 			objectNodeTypeWrite = 'camera'
+		elif objectType == 'switcher':
+			objectNodeTypeWrite = 'switcher'
 		elif objectType == 'null':
 			objectNodeTypeWrite = 'locator'
 		elif objectType == 'hlight':
@@ -345,7 +379,7 @@ class ExportScene:
 			
 			
 		
-		if objectType == 'cam':
+		if objectType == 'cam' or objectType == 'switcher':
 			resy = float(object.parm('resy').eval())
 			resx = float(object.parm('resx').eval())
 			apx = float(object.parm('aperture').eval())
@@ -357,8 +391,17 @@ class ExportScene:
 			writer.jsonKey( "resy" )
 			writer.jsonInt( resy );
 
+		# for switchers we export the names of the camera inputs
+		if objectType == 'switcher':
+			writer.jsonKeyToken( "cameras" )
+			writer.jsonBeginArray()
+			cams = object.inputs()
+			for cam in cams:
+				writer.jsonString( cam.name() )
+			writer.jsonEndArray()
+			
+			
 		
-		#writeOut += '+++++Animated+++++\n'
 	
 		# write animated channels into channels ---
 		writer.jsonKeyToken( "channels" )
@@ -371,7 +414,61 @@ class ExportScene:
 
 		writer.jsonEndMap() #object
 		
-	
+	# bakes and exports animated channels of camera switcher
+	def exportSwitcherChannels( self, object, startF, endF, writer ):
+		objectPath = object.path()
+		
+		# we export transform.[tx|ty|tz|rx|ry|rz] by default
+		#numSamples = (endF+1)-startF
+		channelData_tx = []
+		channelData_ty = []
+		channelData_tz = []
+		channelData_rx = []
+		channelData_ry = []
+		channelData_rz = []
+
+		cameras = object.inputs()
+		tx = 0.0
+		ty = 0.0
+		tz = 0.0
+		rx = 0.0
+		ry = 0.0
+		rz = 0.0
+
+		for frame in range(startF, (endF+1)):
+			#get camera
+			switch = hou.parm(objectPath+"/camswitch").evalAsIntAtFrame(frame)
+			if switch < len(cameras):
+				camera = cameras[switch]
+				tx = hou.parm(camera.path()+"/tx").evalAsFloatAtFrame(frame)
+				ty = hou.parm(camera.path()+"/ty").evalAsFloatAtFrame(frame)
+				tz = hou.parm(camera.path()+"/tz").evalAsFloatAtFrame(frame)
+				rx = hou.parm(camera.path()+"/rx").evalAsFloatAtFrame(frame)
+				ry = hou.parm(camera.path()+"/ry").evalAsFloatAtFrame(frame)
+				rz = hou.parm(camera.path()+"/rz").evalAsFloatAtFrame(frame)
+				
+			# append values
+			channelData_tx.append(tx)
+			channelData_ty.append(ty)
+			channelData_tz.append(tz)
+			channelData_rx.append(rx)
+			channelData_ry.append(ry)
+			channelData_rz.append(rz)
+		
+		writer.jsonKeyToken( "transform.tx" )
+		self.writeChannel( "transform.tx", channelData_tx, writer )
+		writer.jsonKeyToken( "transform.ty" )
+		self.writeChannel( "transform.ty", channelData_ty, writer )
+		writer.jsonKeyToken( "transform.tz" )
+		self.writeChannel( "transform.tz", channelData_tz, writer )
+		writer.jsonKeyToken( "transform.rx" )
+		self.writeChannel( "transform.rx", channelData_rx, writer )
+		writer.jsonKeyToken( "transform.ry" )
+		self.writeChannel( "transform.ry", channelData_ry, writer )
+		writer.jsonKeyToken( "transform.rz" )
+		self.writeChannel( "transform.rz", channelData_rz, writer )
+		
+		
 	def exportData2(self, object, channels, startF, endF, writer):
 		object = hou.node(object.path())
 		objectPath = object.path()

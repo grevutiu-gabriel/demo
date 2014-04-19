@@ -77,7 +77,7 @@ struct Shot
 		std::vector<Ptr> m_childs;
 	};
 
-	Shot( Camera::Ptr camera ) : m_camera(camera)
+	Shot( Camera::Ptr camera = Camera::Ptr() ) : m_camera(camera)
 	{
 	}
 
@@ -97,9 +97,8 @@ struct Shot
 		m_elements.push_back(se);
 	}
 
-	void render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera )
+	virtual void render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera )
 	{
-		//std::cout << "Shot::render\n";
 		if( overrideCamera )
 		{
 			context->setView( overrideCamera->m_worldToView, overrideCamera->m_viewToWorld, overrideCamera->m_viewToNDC );
@@ -118,4 +117,29 @@ struct Shot
 
 	Camera::Ptr                   m_camera;
 	std::vector<ShotElement::Ptr> m_elements;
+};
+
+// camera is driven by a switcher
+// convinience for having the same element setup shot from many different cameras
+struct SwitchedShot : public Shot
+{
+	typedef std::shared_ptr<SwitchedShot> Ptr;
+	SwitchedShot( Switcher::Ptr switcher ) :
+		Shot(),
+		m_switcher(switcher)
+	{
+	}
+	static Ptr create( Switcher::Ptr switcher )
+	{
+		return std::make_shared<SwitchedShot>( switcher );
+	}
+	virtual void render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera )override
+	{
+		int sw = int(m_switcher->m_switch->evaluate(time));
+		m_camera = m_switcher->m_cameras[ sw ];
+		Shot::render(context, time, overrideCamera);
+	}
+
+	Switcher::Ptr m_switcher;
+
 };
