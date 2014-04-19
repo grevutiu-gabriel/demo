@@ -1,6 +1,7 @@
 #pragma once
 
 #include <math/Math.h>
+#include <util/PiecewiseLinearFunction.h>
 #include "Property.h"
 
 
@@ -69,37 +70,77 @@ private:
 };
 
 typedef ConstantController<float> ConstantFloatController;
+typedef ConstantController<math::V3f> ConstantV3fController;
 typedef ConstantController<math::M44f> ConstantM44fController;
 
-/*
-template<typename T>
-struct AnimationControllerT : public ControllerT<T>
-{
-	AnimationControllerT( FCurve<T>& curve ) : Controller(), m_curve(curve)
-	{
-	}
 
+template<typename T>
+struct CurveControllerT : public ControllerT<T>
+{
+	typedef std::shared_ptr<CurveControllerT> Ptr;
+	CurveControllerT( base::PiecewiseLinearFunction<T>& curve ) : ControllerT<T>(), curve(curve), m_isAnimated(false)
+	{
+		float miny, maxy;
+		curve.getValueRange(miny, maxy);
+		if( abs(miny-maxy)>0.0f )
+			m_isAnimated = true;
+	}
+	static Ptr create( base::PiecewiseLinearFunction<T>& curve )
+	{
+		return std::make_shared<CurveControllerT<T>>(curve);
+	}
 	T evaluate(float time)override
 	{
 		return curve.evaluate(time);
 	}
-	FCurve<T> m_curve;
+	virtual bool isAnimated()const override
+	{
+		return m_isAnimated;
+	}
+
+	base::PiecewiseLinearFunction<T> curve;
+
+private:
+	bool m_isAnimated;
 };
+
+typedef CurveControllerT<float> CurveFloatController;
+
 
 struct PRSController : public M44fController
 {
-	PRSController( V3fController translation, V3fController rotation, V3fController scale ) : Controller()
+	typedef std::shared_ptr<PRSController> Ptr;
+
+	PRSController( V3fController::Ptr translation, V3fController::Ptr rotation, V3fController::Ptr scale ) :
+		M44fController(),
+		translation(translation),
+		rotation(rotation),
+		scale(scale)
 	{
 	}
-
+	static Ptr create(V3fController::Ptr translation, V3fController::Ptr rotation, V3fController::Ptr scale)
+	{
+		return std::make_shared<PRSController>(translation, rotation, scale);
+	}
 	math::M44f evaluate(float time)override
 	{
-		math::M44f::TranslationMatrix transl(translation->evaluate(time));
-		return transl;
+		math::M44f t = math::M44f::TranslationMatrix(translation->evaluate(time));
+		math::V3f r = rotation->evaluate(time);
+		math::M44f rotationX = math::M44f::RotationMatrixX( -math::degToRad(r.x) );
+		math::M44f rotationY = math::M44f::RotationMatrixY( -math::degToRad(r.y) );
+		math::M44f rotationZ = math::M44f::RotationMatrixZ( -math::degToRad(r.z) );
+		//TODO: scale
+		return rotationX*rotationY*rotationZ*t;
+	}
+	virtual bool isAnimated()const override
+	{
+		return translation->isAnimated()||rotation->isAnimated()||scale->isAnimated();
 	}
 
+	V3fController::Ptr translation;
+	V3fController::Ptr rotation;
+	V3fController::Ptr scale;
 };
-*/
 
 struct SinusController : public FloatController
 {

@@ -134,7 +134,8 @@ void render( base::Context::Ptr context, base::Camera::Ptr cam )
 
 	// render demo
 	glEnable(GL_DEPTH_TEST);
-	g_demo->render( context, g_timer.elapsedSeconds(), cam );
+	//g_demo->render( context, g_timer.elapsedSeconds(), cam );
+	g_demo->render( context, g_timer.elapsedSeconds() );
 
 
 
@@ -257,7 +258,7 @@ int main(int argc, char ** argv)
 {
 	///*
 	int xres = 800;
-	int yres = 800;
+	int yres = 600;
 
 #ifdef STANDALONE
 
@@ -269,6 +270,7 @@ int main(int argc, char ** argv)
 	glviewer->getOrbitNavigator().update();
 	//glviewer->setMouseMoveCallback( onMouseMove );
 	glviewer->show();
+	glviewer->setFullscreen(true);
 	return app.exec();
 	//*/
 

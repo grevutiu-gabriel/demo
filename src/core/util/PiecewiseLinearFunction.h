@@ -1,7 +1,7 @@
 #pragma once
 
-
-
+#include <vector>
+#include <algorithm>
 
 
 
@@ -14,6 +14,14 @@ namespace base
 	struct PiecewiseLinearFunction
 	{
 		PiecewiseLinearFunction()
+		{
+		}
+
+
+		PiecewiseLinearFunction( PiecewiseLinearFunction& other ):
+			m_domain(other.m_domain),
+			m_values(other.m_values),
+			m_numSamples(other.m_numSamples)
 		{
 		}
 
@@ -33,7 +41,19 @@ namespace base
 				maxx = m_domain[m_numSamples-1];
 			}
 		}
-
+		void getValueRange( float& miny, float& maxy )
+		{
+			if(m_numSamples==0)
+			{
+				miny = std::numeric_limits<float>::max();
+				maxy = -std::numeric_limits<float>::max();
+			}else
+			{
+				std::pair<std::vector<T>::iterator, std::vector<T>::iterator> minmax = std::minmax_element( m_values.begin(), m_values.end() );
+				miny = *minmax.first;
+				maxy = *minmax.second;
+			}
+		}
 		void reset()
 		{
 			m_domain.clear();

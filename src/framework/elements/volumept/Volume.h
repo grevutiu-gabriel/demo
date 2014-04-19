@@ -47,7 +47,10 @@ struct Volume : public Element
 
 	void                        reload(); // reloads the shaders (for development)
 
-
+	void setPointLightPosition( math::V3f& pos );
+	math::V3f getPointLightPosition()const;
+	void setPointLightIntensity( float intensity );
+	float getPointLightIntensity()const;
 
 	Volume();
 
@@ -88,6 +91,7 @@ struct Volume : public Element
 	base::ScalarField::Ptr      m_normalizedDensity;
 
 	TransferFunction::Ptr       m_transferFunction;
+
 
 	base::Texture2dPtr        m_debug;
 	base::FBO::Ptr            m_debugFBO;

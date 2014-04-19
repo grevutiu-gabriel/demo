@@ -115,7 +115,7 @@ class ExportScene:
 
 		writer.jsonBeginMap()
 		#self.exportObjects()
-		#self.exportCameras( writer )
+		self.exportCameras( writer )
 		#self.exportLights()
 		self.exportLocators( writer )
 		writer.jsonEndMap()
@@ -200,8 +200,9 @@ class ExportScene:
 			object = hou.node(camera.path())
 			objectName = object.name()
 			writer.jsonKeyToken(objectName)
+			self.exportNode(camera, channelMatch, self.startFrame, self.endFrame, writer)
 			#self.exportData(camera, channelMatch, self.startFrame, self.endFrame, self.exportPath + camera.name() + '.fm2n')
-			self.exportData2(camera, channelMatch, self.startFrame, self.endFrame, writer)
+			#self.exportData2(camera, channelMatch, self.startFrame, self.endFrame, writer)
 			print "Exported: " + camera.name()
 		writer.jsonEndMap()
 
@@ -248,13 +249,13 @@ class ExportScene:
 		return isAnimated
 	
 
-	def exportTrack(self, object, channelName, channel, startF, endF, writer):
+	def exportChannel(self, object, channelName, channel, startF, endF, writer):
 		objectPath = object.path()
 	
-		#write track ---
+		#write channel ---
 		writer.jsonBeginMap()
 		
-		writer.jsonKeyToken( "tracklength" )
+		writer.jsonKeyToken( "nsamples" )
 		writer.jsonInt( (endF+1)-startF )
 		
 		writer.jsonKeyToken( "data" )
@@ -343,7 +344,7 @@ class ExportScene:
 				
 			
 			
-		'''		
+		
 		if objectType == 'cam':
 			resy = float(object.parm('resy').eval())
 			resx = float(object.parm('resx').eval())
@@ -357,18 +358,17 @@ class ExportScene:
 			writer.jsonInt( resy );
 
 		
-		writeOut += '+++++Animated+++++\n'
+		#writeOut += '+++++Animated+++++\n'
 	
-	
-		# write animated channels into tracks ---
-		writer.jsonKeyToken( "tracks" )
+		# write animated channels into channels ---
+		writer.jsonKeyToken( "channels" )
 		writer.jsonBeginMap()
-		if len(channalsAnimated) > 0:
-			for channel in channalsAnimated:
+		if len(channelsAnimated) > 0:
+			for channel in channelsAnimated:
 				writer.jsonKeyToken( channel )
-				self.exportTrack( object, channel, channels[channel], startF, endF, writer )
-		writer.jsonEndMap() #tracks
-		'''
+				self.exportChannel( object, channel, channels[channel], startF, endF, writer )
+		writer.jsonEndMap() #channels
+
 		writer.jsonEndMap() #object
 		
 	

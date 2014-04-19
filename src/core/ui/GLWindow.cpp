@@ -13,13 +13,15 @@ namespace base
 {
 
 	// when using this constructor the window will be created when show is called first time
-	GLWindow::GLWindow() : Window(), m_numSamples(-1), m_sampleBuffers(false), m_init(0), m_shutdown(0), m_initialized(false)
+	GLWindow::GLWindow() : Window(), m_numSamples(-1), m_sampleBuffers(false), m_init(0), m_shutdown(0), m_initialized(false),
+		m_fullscreen(false)
 	{
 		setSize( 800, 600 );
 		setCaption( "app" );
 	}
 
-	GLWindow::GLWindow( int width, int height, std::string caption, InitCallback init, ShutdownCallback shutdown ) : Window(), m_numSamples(-1), m_sampleBuffers(false), m_init(init), m_shutdown(shutdown), m_initialized(false)
+	GLWindow::GLWindow( int width, int height, std::string caption, InitCallback init, ShutdownCallback shutdown ) : Window(), m_numSamples(-1), m_sampleBuffers(false), m_init(init), m_shutdown(shutdown), m_initialized(false),
+		m_fullscreen(false)
 	{
 		setSize( width, height );
 		setCaption( caption );
@@ -108,16 +110,16 @@ namespace base
 		m_dwExstyle	        = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
 		m_dwstyle		        = WS_OVERLAPPEDWINDOW;
 
-		/*
-		if ( _fullscreen == true )
-		{
-			dwstyle = WS_POPUP;
-		}
-		else
-		{
-			dwstyle = WS_OVERLAPPEDWINDOW;
-		}
-*/
+
+//		if ( _fullscreen == true )
+//		{
+//			m_dwstyle = WS_POPUP;
+//		}
+//		else
+//		{
+//			m_dwstyle = WS_OVERLAPPEDWINDOW;
+//		}
+
 
 		AdjustWindowRectEx( &m_windowRect , m_dwstyle , FALSE , m_dwExstyle );
 
@@ -175,6 +177,102 @@ namespace base
 		return true;
 */
 		Application::registerWindow( this );
+	}
+
+	void GLWindow::setFullscreen( bool fullscreen )
+	{
+		// already fullscreen? -> go back
+		if( m_fullscreen == fullscreen )
+		{
+			return;// true;
+		}
+
+		if( fullscreen )
+		{
+			m_dwExstyle=WS_EX_APPWINDOW;
+			m_dwstyle = WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+
+			// Save The Current Display State
+			EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &this->m_DMsaved);
+
+			DEVMODE dmScreenSettings;
+
+			memset(&dmScreenSettings,0,sizeof(dmScreenSettings));	// Makes Sure Memory's Cleared
+
+			dmScreenSettings.dmSize             = sizeof(dmScreenSettings);
+			dmScreenSettings.dmPelsWidth        = m_width;
+			dmScreenSettings.dmPelsHeight       = m_height;
+			dmScreenSettings.dmBitsPerPel       = m_bpp;
+			dmScreenSettings.dmFields           = DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT|DM_DISPLAYFREQUENCY;
+			dmScreenSettings.dmDisplayFrequency = 60;  // we assume that there are at least 85 hz
+
+			if ( ChangeDisplaySettings( &dmScreenSettings , CDS_FULLSCREEN ) != DISP_CHANGE_SUCCESSFUL )
+			{
+				restoreScreen();
+				// somethings gone wrong
+				//return false;
+				return;
+			}
+
+			// adjust the window
+			m_fullscreenRect.left   =      0;
+			m_fullscreenRect.top    =      0;
+			m_fullscreenRect.right  =  m_width;
+			m_fullscreenRect.bottom = m_height;
+
+			SetWindowLong( m_hwnd , GWL_STYLE   , m_dwstyle   );
+			SetWindowLong( m_hwnd , GWL_EXSTYLE , m_dwExstyle );
+
+			SetWindowPos(  m_hwnd , HWND_TOP , 0 , 0 , m_width , m_height , SWP_SHOWWINDOW );
+
+			AdjustWindowRectEx( &m_fullscreenRect , m_dwstyle , FALSE , m_dwExstyle );
+
+			SetForegroundWindow( m_hwnd );
+
+			// hide the cursor
+			ShowCursor( FALSE );
+
+			m_fullscreen = true;
+		}else
+		{
+			restoreScreen();
+			m_fullscreen = false;
+		}
+
+
+		//return true;
+	}
+
+	void GLWindow::restoreScreen()
+	{
+		m_dwExstyle	= WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
+		m_dwstyle		= WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+
+		AdjustWindowRectEx(&m_windowRect, m_dwstyle, FALSE, m_dwExstyle);
+
+		SetWindowLong( m_hwnd , GWL_STYLE   , m_dwstyle   );
+		SetWindowLong( m_hwnd , GWL_EXSTYLE , m_dwExstyle );
+
+		SetWindowPos( m_hwnd, HWND_TOP, m_windowRect.left, m_windowRect.top, m_windowRect.right - m_windowRect.left, m_windowRect.bottom - m_windowRect.top, SWP_SHOWWINDOW );
+
+		ShowCursor( TRUE );
+
+		if( m_fullscreen )
+		{
+			// If The Shortcut Doesn't Work
+			if (!ChangeDisplaySettings(NULL,CDS_TEST))
+			{
+				// Do It Anyway (To Get The Values Out Of The Registry)
+				ChangeDisplaySettings(NULL,CDS_RESET);
+				// Change Resolution To The Saved Settings
+				ChangeDisplaySettings(&this->m_DMsaved,CDS_RESET);
+			}else
+			{
+				ChangeDisplaySettings(NULL,CDS_RESET);
+			}
+
+			m_fullscreen = false;
+		}
 	}
 
 	typedef bool (APIENTRY *PFNWGLGETPIXELFORMATATTRIBIVARB)(HDC hdc,

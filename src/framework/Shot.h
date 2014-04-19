@@ -92,6 +92,10 @@ struct Shot
 		m_elements.push_back(se);
 		return se;
 	}
+	void addElement( ShotElement::Ptr se )
+	{
+		m_elements.push_back(se);
+	}
 
 	void render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera )
 	{
@@ -101,7 +105,7 @@ struct Shot
 			context->setView( overrideCamera->m_worldToView, overrideCamera->m_viewToWorld, overrideCamera->m_viewToNDC );
 		}else
 			// set view from our own camera
-			context->setView( m_camera->xformMatrix->evaluate(time), m_camera->projectionMatrix->evaluate(time)  );
+			context->setView( m_camera->xform->evaluate(time), m_camera->projectionMatrix->evaluate(time)  );
 
 		// render elements
 		for( auto it = m_elements.begin(), end=m_elements.end();it!=end;++it )

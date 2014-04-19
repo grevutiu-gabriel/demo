@@ -346,8 +346,34 @@ Volume::Volume() : Element()
 	areaLightTransform = math::M44f::RotationMatrixX( -MATH_PI*0.5 )*math::M44f::TranslationMatrix(0.0f, 1.3f, 0.0f);
 	volumeShader->setUniform( "areaLightTransform", areaLightTransform );
 
+	setPointLightPosition( math::V3f(1.0f, 13.4f, -13.4f) );
+	setPointLightIntensity( 5000 );
+
+	// register properties -----
+	addProperty<math::V3f>( "PointLightPosition", std::bind( &Volume::getPointLightPosition, this ), std::bind( &Volume::setPointLightPosition, this, std::placeholders::_1 ) );
+	addProperty<float>( "PointLightIntensity", std::bind( &Volume::getPointLightIntensity, this ), std::bind( &Volume::setPointLightIntensity, this, std::placeholders::_1 ) );
+
 }
 
+void Volume::setPointLightPosition( math::V3f& pos )
+{
+	volumeShader->setUniform( "pointLightPos", pos );
+}
+
+math::V3f Volume::getPointLightPosition()const
+{
+	return volumeShader->getUniform("pointLightPos")->get<math::V3f>(0);
+}
+
+void Volume::setPointLightIntensity( float intensity )
+{
+	volumeShader->setUniform( "pointLightIntensity", intensity );
+}
+
+float Volume::getPointLightIntensity()const
+{
+	return volumeShader->getUniform("pointLightIntensity")->get<float>(0);
+}
 
 void Volume::load( const std::string& filename )
 {

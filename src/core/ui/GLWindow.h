@@ -31,6 +31,8 @@ namespace base
 		void                                    setSamples( int numSamples ); // specifies the number of samples we want
 		void                            setInitCallback( InitCallback init );
 		void                setShutdownCallback( ShutdownCallback shutdown );
+		void setFullscreen( bool fullscreen );
+		void restoreScreen();
 
 
 	private:

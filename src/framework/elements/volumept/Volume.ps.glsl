@@ -213,9 +213,9 @@ void sampleLightDirectional( inout Ray ray, out float pdf, out vec3 Li )
 
 // point light ------------
 
-vec3 pointLightPos = vec3(0.3f, 0.5f, 0.5f);
+uniform vec3 pointLightPos;
 vec3 pointLightColor = vec3(1.0f, 0.32f, 0.1f);
-float pointLightIntensity = 5.0f;
+uniform float pointLightIntensity;
 
 void samplePointLight( inout Ray ray, out float pdf, out vec3 Li )
 {
@@ -308,8 +308,8 @@ void sampleLightCombined( inout Ray ray, out float pdf, out vec3 Li )
 //#define sampleLight sampleLightEnvironmentGradient
 //#define sampleLight sampleLightDirectional
 //#define sampleLight sampleLightCombined
-#define sampleLight sampleLightEnvironmentGradient
-//#define sampleLight samplePointLight
+//#define sampleLight sampleLightEnvironmentGradient
+#define sampleLight samplePointLight
 //#define sampleLight sampleAreaLight
 
 void main()
@@ -386,9 +386,11 @@ void main()
 	*/
 
 	// stochastic raymarching ER style ---
-	float stepsize = 0.0117188f;
-	float stepsize2 = 0.0117188f;
-	int numSamples = 10;
+//	float stepsize = 0.0117188f;
+//	float stepsize2 = 0.0117188f;
+	float stepsize = 1.17188f;
+	float stepsize2 = 1.17188f;
+	int numSamples = 5;
 	vec4 sum = vec4(0.0f);
 	for(int i=0;i<numSamples;++i)
 	{

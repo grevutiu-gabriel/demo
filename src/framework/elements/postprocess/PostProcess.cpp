@@ -227,6 +227,8 @@ void PostProcess::end(base::Context::Ptr context)
 }
 void PostProcess::render(base::Context::Ptr context)
 {
+	glDisable(GL_DEPTH_TEST);
+	///*
 	if( m_glare )
 	{
 		// brightness pass
@@ -269,6 +271,7 @@ void PostProcess::render(base::Context::Ptr context)
 
 	context->renderScreen(m_ps);
 	//context->renderScreen(m_bloomDownsampleOut[0]);
+	//*/
 }
 
 // GLARE =============================================
