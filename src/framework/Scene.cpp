@@ -164,7 +164,7 @@ void Scene::loadTransform( houdini::json::ObjectPtr transform, Transform::Ptr xf
 				translationZ = ConstantFloatController::create(0.0f);
 			translation = FloatToV3fController::create( translationX, translationY, translationZ );
 		}else
-			translation = ConstantV3fController::create(math::V3f(0.0f));
+			translation = ConstantV3fController::create(math::V3f(transform->get<float>("transform.tx"), transform->get<float>("transform.ty"), transform->get<float>("transform.tz")));
 	}
 	V3fController::Ptr rotation;
 	{
@@ -188,7 +188,7 @@ void Scene::loadTransform( houdini::json::ObjectPtr transform, Transform::Ptr xf
 				rotationZ = ConstantFloatController::create(0.0f);
 			rotation = FloatToV3fController::create( rotationX, rotationY, rotationZ );
 		}else
-			rotation = ConstantV3fController::create(math::V3f(0.0f));
+			rotation = ConstantV3fController::create(math::V3f(math::V3f(transform->get<float>("transform.rx"), transform->get<float>("transform.ry"), transform->get<float>("transform.rz"))));
 	}
 	V3fController::Ptr scale = ConstantV3fController::create(math::V3f(1.0f));
 	xform->xform = PRSController::create( translation, rotation, scale );

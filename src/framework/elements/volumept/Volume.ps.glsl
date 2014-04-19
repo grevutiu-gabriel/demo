@@ -308,8 +308,8 @@ void sampleLightCombined( inout Ray ray, out float pdf, out vec3 Li )
 //#define sampleLight sampleLightEnvironmentGradient
 //#define sampleLight sampleLightDirectional
 //#define sampleLight sampleLightCombined
-//#define sampleLight sampleLightEnvironmentGradient
-#define sampleLight samplePointLight
+#define sampleLight sampleLightEnvironmentGradient
+//#define sampleLight samplePointLight
 //#define sampleLight sampleAreaLight
 
 void main()

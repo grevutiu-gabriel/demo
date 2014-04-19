@@ -2,6 +2,11 @@
 #include "elements/volumept/Volume.h"
 #include "elements/postprocess/PostProcess.h"
 
+Shot::Ptr Demo::getShot( int index )
+{
+	return m_shots[index];
+}
+
 void Demo::load( const std::string& filename )
 {
 	// load scenes

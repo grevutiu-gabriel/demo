@@ -63,7 +63,7 @@ include_directories( ${LIBOVR_INC_DIR} )
 
 # specify app sources
 #file(GLOB_RECURSE app_sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.ui )
-file(GLOB_RECURSE app_sources ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp ${CMAKE_CURRENT_SOURCE_DIR}/core/* ${CMAKE_CURRENT_SOURCE_DIR}/framework/* ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/stblib/* )
+file(GLOB_RECURSE app_sources ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp ${CMAKE_CURRENT_SOURCE_DIR}/core/* ${CMAKE_CURRENT_SOURCE_DIR}/framework/* ${CMAKE_CURRENT_SOURCE_DIR}/gui/* ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/stblib/* )
 file(GLOB_RECURSE app_sources_glsl ${CMAKE_CURRENT_SOURCE_DIR}/*.glsl )
 
 # add qt intermediate source files

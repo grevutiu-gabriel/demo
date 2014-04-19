@@ -85,6 +85,7 @@ struct Demo
 		return std::make_shared<Demo>();
 	}
 
+	Shot::Ptr getShot( int index );
 	void load( const std::string& filename);
 
 	void render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera = base::Camera::Ptr() );

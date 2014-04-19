@@ -381,6 +381,14 @@ namespace base
 	}
 
 	template<typename T>
+	void field_range( const Field<T> &field, T& min, T& max )
+	{
+		auto minmax = std::minmax( field.m_data.begin(), field.m_data.end() );
+		min = *minmax.first;
+		max = *minmax.second;
+	}
+
+	template<typename T>
 	void field_writeplot( const Field<T> &field, math::V3f wsP0, math::V3f wsP1, int numSamples, std::ofstream &out )
 	{
 		math::Ray3f ray;

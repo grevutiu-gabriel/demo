@@ -38,6 +38,14 @@ struct Shot
 			m_childs.push_back( child );
 			return child;
 		}
+		Ptr getChild(int index)
+		{
+			return m_childs[index];
+		}
+		Element::Ptr getElement()
+		{
+			return m_element;
+		}
 
 		void render( base::Context::Ptr context, float time )
 		{
@@ -96,6 +104,12 @@ struct Shot
 	{
 		m_elements.push_back(se);
 	}
+
+	ShotElement::Ptr getShotElement( int index )
+	{
+		return m_elements[index];
+	}
+
 
 	virtual void render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera )
 	{

@@ -3,7 +3,7 @@
 //
 //============================================================================
 
-#define STANDALONE 1
+//#define STANDALONE 1
 
 
 #ifdef STANDALONE
@@ -14,6 +14,9 @@
 #include <gltools/gl.h>
 #include <QtGui>
 #include <QApplication>
+#include <QMainWindow>
+#include "gui/widgets/GLViewer/GLViewer.h"
+#include "gui/widgets/TFEditor/TFEWidget.h"
 #endif
 
 
@@ -45,7 +48,7 @@
 base::GLViewer* glviewer;
 
 #else
-
+gui::widgets::GLViewer* glviewer;
 #endif
 
 
@@ -134,8 +137,8 @@ void render( base::Context::Ptr context, base::Camera::Ptr cam )
 
 	// render demo
 	glEnable(GL_DEPTH_TEST);
-	//g_demo->render( context, g_timer.elapsedSeconds(), cam );
-	g_demo->render( context, g_timer.elapsedSeconds() );
+	g_demo->render( context, g_timer.elapsedSeconds(), cam );
+	//g_demo->render( context, g_timer.elapsedSeconds() );
 
 
 
@@ -156,30 +159,6 @@ void render( base::Context::Ptr context, base::Camera::Ptr cam )
 void init( base::Context::Ptr context )
 {
 	std::cout << "init...\n";
-
-	g_geo = base::Geometry::createGrid(10, 10, base::Geometry::LINE);
-	g_geo->transform( math::M44f::ScaleMatrix(16.0f, 1.0f, 16.0f) );
-
-	// load houdini file ================
-	//std::string filename = "c:\\projects\\demo\\git\\bin\\data\\test.bgeo";
-	std::string filename = "c:\\projects\\demo\\git\\bin\\data\\manix_bound.bgeo";
-
-
-	//g_shader = base::Shader::load( "c:\\projects\\demo\\git\\src\\core\\glsl\\genericShader" );
-	//g_shader->setUniform("l", math::V3f(1.0f).normalized());
-	//g_shader->setUniform("ka", 0.2f);
-	//g_shader->setUniform("ambient", math::V3f(1.0f));
-	//g_shader->setUniform("kd", 1.0f);
-	//g_shader->setUniform("diffuse", math::V3f(.5f));
-	//g_shader = base::Shader::load( "c:\\projects\\demo\\git\\src\\core\\glsl\\simpleColor" );
-	//g_shader = base::Shader::load( "c:\\projects\\demo\\git\\src\\core\\glsl\\simpleTexture" );
-	//g_shader->setUniform("texture", base::Context::getCurrentContext()->getTexture2d("c:\\projects\\demo\\git\\bin\\data\\uvref.png")->getUniform());
-
-	//base::Texture2d::Ptr target = base::Texture2d::createRGBAFloat32(512, 512);
-	//context->addTexture2d("target", target);
-	//g_fbo = base::FBO::create().width(512).height(512).attach(target);
-//*/
-	g_shader = base::Shader::loadFromFile( "c:\\projects\\demo\\git\\src\\core\\glsl\\genericShader" );
 
 
 	// intialize and load demo --------
@@ -227,31 +206,7 @@ void onMouseMove( base::MouseState state )
 */
 
 
-struct TestElement : public Object
-{
-	TestElement( /*json*/ ) : Object()
-	{
-		m_size =1.1234f;
 
-
-		// register properties for external access
-		addProperty<float>( "size", std::bind( &TestElement::getSize, this ), std::bind( &TestElement::setSize, this, std::placeholders::_1 ) );
-	}
-
-	float getSize()const
-	{
-		return m_size;
-	}
-
-	void setSize( float size )
-	{
-		m_size = size;
-	}
-
-
-private:
-	float m_size;
-};
 
 
 int main(int argc, char ** argv)
@@ -294,19 +249,27 @@ int main(int argc, char ** argv)
 
 	QMainWindow mainWin;
 	mainWin.resize(800, 600);
-	glviewer = new composer::widgets::GLViewer(init, shutdown, render);
+
+	glviewer = new gui::widgets::GLViewer(init, shutdown, render);
+	/*
 	glviewer->getCamera()->m_znear = .1f;
 	glviewer->getCamera()->m_zfar = 1000.0f;
 	glviewer->getOrbitNavigator().m_distance = 1.0f;
 	glviewer->getOrbitNavigator().m_elevation = 45.0f;
 	glviewer->getOrbitNavigator().update();
 	glviewer->setMouseMoveCallback( onMouseMove );
+	*/
 	mainWin.setCentralWidget( glviewer );
 	mainWin.show();
 
+
+	Volume::Ptr volume = std::dynamic_pointer_cast<Volume>(g_demo->getShot(0)->getShotElement(0)->getChild(1)->getElement());
+	gui::VolumeWrapper::Ptr volumeWrapper = std::make_shared<gui::VolumeWrapper>( volume );
+	gui::TFEWidget tfe(volumeWrapper);
+	tfe.show();
+	volumeWrapper->connect( volumeWrapper.get(), SIGNAL(changed()), glviewer, SLOT(updateGL()) );
 	return app.exec();
 #endif
-//*/
 
 
 
