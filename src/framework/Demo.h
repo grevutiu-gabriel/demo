@@ -71,6 +71,20 @@ struct PiecewiseConstantFunction
 	int                                 m_numSamples;
 };
 
+struct Clip
+{
+	int shotIndex;
+	float shotStart;
+	float shotEnd;
+	float duration;
+
+
+	float toShotTime( float globalTime )const
+	{
+		// todo: scale for slowmo stuff?
+		return globalTime - shotStart;
+	}
+};
 
 struct Demo
 {
@@ -84,17 +98,17 @@ struct Demo
 	{
 		return std::make_shared<Demo>();
 	}
-
-	Shot::Ptr getShot( int index );
 	void load( const std::string& filename);
+
+	void addClip( int shotIndex, float shotStart, float shotEnd, float clipDuration );
+	int addShot( Shot::Ptr shot );
+	Shot::Ptr getShot( int index );
 
 	void render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera = base::Camera::Ptr() );
 
-	float                                m_duration; // how long does the thing go? (in s)
 	std::vector<Scene::Ptr>              m_scenes;
 	std::vector<Shot::Ptr>               m_shots;
-	PiecewiseConstantFunction<int>       m_shotIndex; // tells which shot to render when (should cover the range [0, m_duration])
-
-
+	std::vector<Clip>                    m_clips;
+	PiecewiseConstantFunction<int>       m_clipIndex; // tells which shot to render when (should cover the range [0, m_duration])
 };
 

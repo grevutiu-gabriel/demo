@@ -115,6 +115,7 @@ struct Shot
 	}
 
 
+
 	virtual void render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera )
 	{
 		if( overrideCamera )

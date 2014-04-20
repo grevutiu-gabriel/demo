@@ -9,38 +9,19 @@ Shot::Ptr Demo::getShot( int index )
 
 void Demo::load( const std::string& filename )
 {
-	// load scenes
+	// load scenes ------
 	Scene::Ptr scene = Scene::create();
-	scene->load("c:\\projects\\demo\\git\\bin\\data\\untitled.scn");
-	// load elements
-	// load shots
-	Shot::Ptr shot0 = Shot::create( scene->getCamera("cam1") );
-	Shot::Ptr shot1 = Shot::create( scene->getCamera("cam2") );
-	SwitchedShot::Ptr shot2 = SwitchedShot::create( scene->getSwitcher("switcher1") );
-	//m_shots.push_back(shot0);
-	//m_shots.push_back(shot1);
-	m_shots.push_back(shot2);
+	scene->load("c:\\projects\\demo\\git\\bin\\data\\artifix.scn");
+	Scene::Ptr scene_test = Scene::create();
+	scene_test->load("c:\\projects\\demo\\git\\bin\\data\\test.scn");
 
+	// load elements ----
+	// black background
 	Element::Ptr black = Clear::create(math::V3f(0.0f, 0.0f, 0.0f));
-	Element::Ptr red = Clear::create(math::V3f(1.0f, 0.0f, 0.0f));
-	Element::Ptr green = Clear::create(math::V3f(0.0f, 1.0f, 0.0f));
-
-	// ------------
-	base::Geometry::Ptr geo = houdini::HouGeoIO::importGeometry("c:\\projects\\demo\\git\\bin\\data\\test.bgeo");
-	//base::Shader::Ptr shader = base::Shader::createSimpleConstantShader();
-	base::Shader::Ptr shader = base::Shader::loadFromFile( "c:\\projects\\demo\\git\\src\\core\\glsl\\genericShader" );
-	shader->setUniform("l", math::V3f(1.0f).normalized());
-	shader->setUniform("ka", 0.2f);
-	shader->setUniform("ambient", math::V3f(1.0f));
-	shader->setUniform("kd", 1.0f);
-	shader->setUniform("diffuse", math::V3f(.5f));
-	Element::Ptr renderGeo = RenderGeometry::create(geo, shader);
-
-	// volume ---
+	// volume
 	Volume::Ptr volume = Volume::create();
 	volume->load( "c:\\projects\\demo\\git\\bin\\data\\artifix_resized_moved.bgeo" );
-
-	// init post process -----------
+	// post process
 	PostProcess::Ptr post = PostProcess::create();
 	post->setHDREnabled(true);
 	post->setGlareEnabled(true);
@@ -48,42 +29,47 @@ void Demo::load( const std::string& filename )
 	post->setGlareAmount(0.8f);
 
 
-
-
-	// shot 0
+	// manix shot ---------
 	{
-		Shot::ShotElement::Ptr se = Shot::ShotElement::create(post);
-		se->addChild(black);
-		se->addChild(volume)->setController("PointLightPosition", scene->getLocator("null1")->xform->translation);
-		shot0->addElement(se);
-	}
+		// create shot
+		SwitchedShot::Ptr shot = SwitchedShot::create( scene->getSwitcher("switcher1") );
 
-	// shot 1
-	{
 		Shot::ShotElement::Ptr se = Shot::ShotElement::create(post);
 		se->addChild(black);
 		Shot::ShotElement::Ptr volumese = se->addChild(volume);
 		volumese->setController("PointLightPosition", scene->getLocator("null1")->xform->translation);
 		volumese->setController("PointLightIntensity", scene->getChannel("ch1.x"));
-		//shot1->addElement(black);//->setController("color", scene->getChannel("color"));
-		shot1->addElement(se);
+		volumese->setController(volume->m_transferFunction->getNode(1), "density", scene->getChannel("tfnode.density"));
+		shot->addElement(se);
+		addShot(shot);
 	}
 
-	// shot 2
+	// geometry --------
 	{
-		Shot::ShotElement::Ptr se = Shot::ShotElement::create(post);
-		se->addChild(black);
-		Shot::ShotElement::Ptr volumese = se->addChild(volume);
-		volumese->setController("PointLightPosition", scene->getLocator("null1")->xform->translation);
-		//volumese->setController("PointLightIntensity", scene->getChannel("ch1.x"));
-		volumese->setController(volume->m_transferFunction->getNode(1), "density", scene->getChannel("tfnode.density"));
-		//se->addChild(volume)->setController("PointLightPosition", scene->getLocator("null1")->xform->translation);
-		//shot1->addElement(black);//->setController("color", scene->getChannel("color"));
-		shot2->addElement(se);
+		SwitchedShot::Ptr shot = SwitchedShot::create( scene_test->getSwitcher("switcher1") );
+		// ------------
+		base::Geometry::Ptr geo = houdini::HouGeoIO::importGeometry("c:\\projects\\demo\\git\\bin\\data\\test.bgeo");
+		base::Shader::Ptr shader = base::Shader::loadFromFile( "c:\\projects\\demo\\git\\src\\core\\glsl\\genericShader" );
+		shader->setUniform("l", math::V3f(1.0f).normalized());
+		shader->setUniform("ka", 0.1f);
+		shader->setUniform("ambient", math::V3f(1.0f));
+		shader->setUniform("kd", 1.0f);
+		shader->setUniform("diffuse", math::V3f(.5f));
+		Element::Ptr renderGeo = RenderGeometry::create(geo, shader);
+
+		shot->addElement( black );
+		shot->addElement( renderGeo );
+		addShot(shot);
 	}
-	m_duration = 10.0f;
-	m_shotIndex.addSample(0.0f, 0);
-	//m_shotIndex.addSample(5.0f, 1);
+
+
+
+	// add clips
+	// clips define when on the global timeline which shot will be rendered
+	addClip( 0, 0.0f, 24.0f, 24.0f );
+	addClip( 1, 24.0f, 48.0f, 24.0f );
+
+
 
 }
 
@@ -94,10 +80,39 @@ void Demo::render( base::Context::Ptr context, float time, base::Camera::Ptr ove
 
 	//TODO: update time controller
 
-	int newShotIndex = m_shotIndex.evaluate(time);
+	int newClipIndex = m_clipIndex.evaluate(time);
+	Clip& clip = m_clips[newClipIndex];
+	int newShotIndex = clip.shotIndex;
 //	//std::cout << time << " rendering shot " << newShotIndex << std::endl;
 
 	Shot::Ptr shot = m_shots[newShotIndex];
-	shot->render(context, time, overrideCamera);
+	shot->render(context, clip.toShotTime(time), overrideCamera);
 
+}
+
+int Demo::addShot( Shot::Ptr shot )
+{
+	int index = int(m_shots.size());
+	m_shots.push_back(shot);
+	return index;
+}
+
+void Demo::addClip(int shotIndex, float shotStart , float shotEnd, float clipDuration)
+{
+	Clip clip;
+	clip.shotStart = shotStart;
+	clip.shotEnd = shotEnd;
+	clip.shotIndex = shotIndex;
+	clip.duration = clipDuration;
+	m_clips.push_back( clip );
+
+	m_clipIndex.reset();
+	float lastEnd = 0.0f;
+	int clipIndex = 0;
+	for( auto it = m_clips.begin(), end=m_clips.end();it!=end;++it, ++clipIndex)
+	{
+		Clip& c = *it;
+		m_clipIndex.addSample( lastEnd, clipIndex );
+		lastEnd += c.duration;
+	}
 }
