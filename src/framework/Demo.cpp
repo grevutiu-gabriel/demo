@@ -1,6 +1,7 @@
 #include "Demo.h"
 #include "elements/volumept/Volume.h"
 #include "elements/postprocess/PostProcess.h"
+#include "elements/stars/Stars.h"
 
 Demo::Demo( bool doAudio )
 {
@@ -24,6 +25,11 @@ void Demo::load( const std::string& filename )
 	// load elements ----
 	// black background
 	Element::Ptr black = Clear::create(math::V3f(0.0f, 0.0f, 0.0f));
+	//stars
+	Stars::Ptr stars = Stars::create();
+	stars->setFixedRotationEnabled(true);
+	stars->setFixedRotation( math::V3f(1.0f, 1.0f, 0.0f).normalized(), math::degToRad(5.0f) );
+	stars->setMotionblurScale(1.0f);
 	// volume
 	Volume::Ptr volume = Volume::create();
 	volume->load( "c:\\projects\\demo\\git\\bin\\data\\artifix_resized_moved.bgeo" );
@@ -46,6 +52,7 @@ void Demo::load( const std::string& filename )
 		volumese->setController("PointLightPosition", scene->getLocator("null1")->xform->translation);
 		volumese->setController("PointLightIntensity", scene->getChannel("ch1.x"));
 		volumese->setController(volume->m_transferFunction->getNode(1), "density", scene->getChannel("tfnode.density"));
+		se->addChild(stars);
 		shot->addElement(se);
 		addShot(shot);
 	}
@@ -53,6 +60,8 @@ void Demo::load( const std::string& filename )
 	// geometry --------
 	{
 		SwitchedShot::Ptr shot = SwitchedShot::create( scene_test->getSwitcher("switcher1") );
+
+		Shot::ShotElement::Ptr se = Shot::ShotElement::create(post);
 		// ------------
 		base::Geometry::Ptr geo = houdini::HouGeoIO::importGeometry("c:\\projects\\demo\\git\\bin\\data\\test.bgeo");
 		base::Shader::Ptr shader = base::Shader::loadFromFile( "c:\\projects\\demo\\git\\src\\core\\glsl\\genericShader" );
@@ -63,8 +72,11 @@ void Demo::load( const std::string& filename )
 		shader->setUniform("diffuse", math::V3f(.5f));
 		Element::Ptr renderGeo = RenderGeometry::create(geo, shader);
 
-		shot->addElement( black );
-		shot->addElement( renderGeo );
+		se->addChild(black);
+		se->addChild(stars);
+		se->addChild(renderGeo);
+
+		shot->addElement(se);
 		addShot(shot);
 	}
 

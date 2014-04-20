@@ -29,6 +29,8 @@ namespace base
 			static std::map<std::string, std::string>                   m_fileRedirectionTable;
 		};
 
+		// path register
+
 
 		typedef struct File
 		{

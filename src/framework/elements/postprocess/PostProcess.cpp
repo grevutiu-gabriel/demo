@@ -17,7 +17,7 @@ PostProcess::PostProcess() : Element()
 	m_glareAmount = 1.0f;
 	m_glareThreshold = 0.0f;
 
-	std::string basePath = "c:\\projects\\demo\\git\\src\\framework\\elements\\postprocess\\";
+	std::string basePath = base::path("src") + "/framework/elements/postprocess/";
 
 	base::Shader::ShaderSourcePtr dsbpssrc = base::Shader::ShaderSource::create();
 	dsbpssrc->define( "DO_BRIGHTNESS_PASS" );

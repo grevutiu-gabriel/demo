@@ -40,7 +40,6 @@ struct Volume : public Element
 	static VolumePtr            create( const base::Path dataSourceGLSLPath ); // create volume with custom data source glsl module (file be be loaded from base::fs)
 
 	virtual void render(base::Context::Ptr context, float time)override;
-	void                        render(base::Context::Ptr context, base::Camera::Ptr cam );
 	void                        load( const std::string& filename );
 
 

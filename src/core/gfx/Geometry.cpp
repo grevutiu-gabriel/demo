@@ -163,6 +163,54 @@ namespace base
 
 
 	//
+	// computes vertex normals
+	// Assumes geometry to be triangles!
+	//
+	void Geometry::addNormals()
+	{
+		// only works with triangles and quads
+		if( !((primitiveType() == Geometry::TRIANGLE)||(primitiveType() == Geometry::QUAD)) )
+		{
+			std::cerr << "apply_normals: can compute normals only on non triangle or quad geometry\n";
+			return;
+		}
+
+		Attribute::Ptr normalAttr = getAttr("N");
+
+		if( !normalAttr )
+			normalAttr = Attribute::createV3f();
+		else
+			normalAttr->clear();
+
+		Attribute::Ptr positions = getAttr("P");
+		int numPoints = positions->numElements();
+		for( int i=0; i < numPoints; ++i )
+			normalAttr->appendElement( math::V3f(0.0f, 0.0f, 0.0f) );
+
+		int numPrims = numPrimitives();
+		int numPrimVerts = numPrimitiveVertices();
+		for( int i=0; i < numPrims; ++i )
+		{
+			int idx[3];
+			idx[0] = m_indexBuffer[i*numPrimVerts];
+			idx[1] = m_indexBuffer[i*numPrimVerts+1];
+			idx[2] = m_indexBuffer[i*numPrimVerts+2];
+
+			math::V3f v1 = positions->get<math::V3f>( idx[1] )-positions->get<math::V3f>( idx[0] );
+			math::V3f v2 = positions->get<math::V3f>( idx[2] )-positions->get<math::V3f>( idx[0] );
+			math::V3f fn = math::normalize( math::cross( v1,v2 ) );
+
+			for( int j=0; j<3; ++j )
+				normalAttr->set<math::V3f>( idx[j], normalAttr->get<math::V3f>(idx[j])+fn );
+		}
+
+		for( int i=0; i < numPoints; ++i )
+			normalAttr->set<math::V3f>( i, math::normalize(  normalAttr->get<math::V3f>(i) ) );
+
+		setAttr( "N", normalAttr );
+	}
+
+	//
 	// removes all attributes and primitives
 	//
 	void Geometry::clear()
@@ -320,6 +368,87 @@ namespace base
 				}
 
 
+		return result;
+	}
+
+	Geometry::Ptr Geometry::createSphere( int uSubdivisions, int vSubdivisions, float radius, math::Vec3f center, Geometry::PrimitiveType primType )
+	{
+		Geometry::Ptr result = std::make_shared<Geometry>(primType);
+
+		Attribute::Ptr positions = Attribute::createV3f();
+		result->setAttr( "P", positions);
+
+		Attribute::Ptr uvs = Attribute::createV2f();
+		result->setAttr( "UV", uvs );
+
+		float dPhi = MATH_2PIf/uSubdivisions;
+		float dTheta = MATH_PIf/vSubdivisions;
+		float theta, phi;
+
+		// y
+		for (theta=MATH_PIf/2.0f+dTheta;theta<=(3.0f*MATH_PIf)/2.0f-dTheta;theta+=dTheta)
+		{
+			math::V3f p;
+			float y = sin(theta);
+			// x-z
+			phi = 0.0f;
+			for( int j = 0; j<uSubdivisions; ++j  )
+			{
+				p.x = cos(theta) * cos(phi);
+				p.y = y;
+				p.z = cos(theta) * sin(phi);
+
+				p = p*radius + center;
+
+				positions->appendElement( p );
+				phi+=dPhi;
+			}
+		}
+
+		int pole1 = positions->appendElement( math::V3f(0.0f, 1.0f, 0.0f)*radius + center );
+		int pole2 = positions->appendElement( math::V3f(0.0f, -1.0f, 0.0f)*radius + center );
+
+		if( primType == Geometry::POINT )
+		{
+			int numVertices = positions->numElements();
+			for( int i=0; i< numVertices; ++i )
+				result->addPoint( i );
+		}else
+		if( primType == Geometry::LINE )
+		{
+			int numVertices = positions->numElements();
+			for( int j=0; j<vSubdivisions-3;++j )
+			{
+				int offset = j*(uSubdivisions);
+				int i = 0;
+				for( i=0; i<uSubdivisions-1; ++i )
+					result->addLine(offset+i, offset+i+1);
+				result->addLine(offset+0, offset+i);
+			}
+		}else
+		if( primType == Geometry::TRIANGLE )
+		{
+			// add faces
+			for( int j=0; j<vSubdivisions-3;++j )
+			{
+				int offset = j*(uSubdivisions);
+				int i = 0;
+				for( i=0; i<uSubdivisions-1; ++i )
+				{
+					result->addTriangle(offset+i+1, offset+i + uSubdivisions, offset+i);
+					result->addTriangle(offset+i+1, offset+i+uSubdivisions+1, offset+i + uSubdivisions);
+				}
+				result->addTriangle(offset+0,offset+i + uSubdivisions,offset+i);
+				result->addTriangle(offset,offset + uSubdivisions,offset+i + uSubdivisions);
+			}
+			for( int i=0; i<uSubdivisions-1; ++i )
+			{
+				result->addTriangle(i+1, i,pole1);
+				result->addTriangle(uSubdivisions*(vSubdivisions-3)+i, uSubdivisions*(vSubdivisions-3)+i+1, pole2);
+			}
+			result->addTriangle(0, uSubdivisions-1, pole1);
+			result->addTriangle(uSubdivisions*(vSubdivisions-2)-1, uSubdivisions*(vSubdivisions-3), pole2);
+		}
 		return result;
 	}
 /*
@@ -614,53 +743,7 @@ namespace base
 
 
 
-	//
-	// computes vertex normals
-	// Assumes geometry to be triangles!
-	//
-	void apply_normals( GeometryPtr geo )
-	{
-		// only works with triangles and quads
-		if( !((geo->primitiveType() == Geometry::TRIANGLE)||(geo->primitiveType() == Geometry::QUAD)) )
-		{
-			std::cerr << "apply_normals: can compute normals only on non triangle or quad geometry\n";
-			return;
-		}
 
-		AttributePtr normalAttr = geo->getAttr("N");
-		
-		if( !normalAttr )
-			normalAttr = Attribute::createVec3f();
-		else
-			normalAttr->clear();
-
-		AttributePtr positions = geo->getAttr("P");
-		int numPoints = positions->numElements();
-		for( int i=0; i < numPoints; ++i )
-			normalAttr->appendElement( math::Vec3f(0.0f, 0.0f, 0.0f) );
-
-		int numPrimitives = geo->numPrimitives();
-		int numPrimitiveVertices = geo->numPrimitiveVertices();
-		for( int i=0; i < numPrimitives; ++i )
-		{
-			int idx[3];
-			idx[0] = geo->m_indexBuffer[i*numPrimitiveVertices];
-			idx[1] = geo->m_indexBuffer[i*numPrimitiveVertices+1];
-			idx[2] = geo->m_indexBuffer[i*numPrimitiveVertices+2];
-
-			math::Vec3f v1 = positions->get<math::Vec3f>( idx[1] )-positions->get<math::Vec3f>( idx[0] );
-			math::Vec3f v2 = positions->get<math::Vec3f>( idx[2] )-positions->get<math::Vec3f>( idx[0] );
-			math::Vec3f fn = math::normalize( math::crossProduct( v1,v2 ) );
-
-			for( int j=0; j<3; ++j )
-				normalAttr->set<math::Vec3f>( idx[j], normalAttr->get<math::Vec3f>(idx[j])+fn );
-		}
-
-		for( int i=0; i < numPoints; ++i )
-			normalAttr->set<math::Vec3f>( i, math::normalize(  normalAttr->get<math::Vec3f>(i) ) );
-
-		geo->setAttr( "N", normalAttr );
-	}
 
 
 

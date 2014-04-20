@@ -40,6 +40,7 @@ namespace base
 		void                                                        reverse(); // reverses the order of vertices for each primitive (CW polys become CCW)
 		unsigned int                                                duplicatePoint( unsigned int index ); // duplicates point and returns index of duplicate (all attributes are copied etc.)
 		void                                                        transform( const math::M44f& tm );
+		void                                                        addNormals();
 
 
 
@@ -94,6 +95,7 @@ namespace base
 
 		static Ptr                                                  createQuad(Geometry::PrimitiveType primType = Geometry::TRIANGLE);
 		static Ptr                                                  createGrid( int xres, int zres, Geometry::PrimitiveType primType = Geometry::TRIANGLE );
+		static Ptr                                                  createSphere( int uSubdivisions, int vSubdivisions, float radius, math::Vec3f center = math::V3f(0.0f), Geometry::PrimitiveType primType = Geometry::TRIANGLE );
 	};
 
 
