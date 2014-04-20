@@ -63,7 +63,7 @@ struct Element : public Object
 	virtual void end(base::Context::Ptr context)
 	{
 	}
-	virtual void render(base::Context::Ptr context)
+	virtual void render(base::Context::Ptr context, float time)
 	{
 	}
 

@@ -17,7 +17,7 @@ struct RenderGeometry : public Element
 		return std::make_shared<RenderGeometry>(geometry, shader);
 	}
 
-	virtual void render(base::Context::Ptr context)override
+	virtual void render(base::Context::Ptr context, float time)override
 	{
 		context->render(m_geometry, m_shader);
 	}

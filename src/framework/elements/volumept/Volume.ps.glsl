@@ -18,11 +18,13 @@ uniform sampler2D volumeBack;
 // volume parameters
 uniform sampler3D normalizedDensity;
 uniform sampler1D transferFunction;
+uniform sampler2D transferFunction2;
 uniform mat4      localToWorld;
 uniform mat4      worldToLocal;
 uniform vec3      aabb_min; // worldspace
 uniform vec3      aabb_max;
 uniform float     sigma_t_scale;
+uniform float     shotLocalTime;
 
 
 // ------------------------ MATH --------------------------------
@@ -121,6 +123,12 @@ vec3 sampleHemisphere( out float pdf )
 	return wi;
 }
 
+vec4 sampleVolume( in vec3 localP )
+{
+	return texture(transferFunction, texture(normalizedDensity,localP).r);
+	//return texture(transferFunction2, vec2(texture(normalizedDensity,localP).r, shotLocalTime));
+}
+
 //----------------------------- RAYTRACING -------------------------------------
 struct Ray
 {
@@ -165,7 +173,7 @@ bool sampleDistance( in Ray ray, in float stepsize, out ScatterEvent se )
 			return false;
 		se.p = ray.o+ray.d*d;
 		vec3 localP = (worldToLocal*vec4(se.p, 1)).xyz;
-		vec4 volumeSample = texture(transferFunction, texture(normalizedDensity,localP).r);
+		vec4 volumeSample = sampleVolume(localP);
 		se.albedo = volumeSample.rgb;
 		se.sigma_t = volumeSample.a*sigma_t_scale;
 		od += se.sigma_t*stepsize;
@@ -187,7 +195,7 @@ bool sampleDistance( in Ray ray, in float stepsize)
 		if( d > ray.tmax )
 			return false;
 		vec3 localP = (worldToLocal*vec4(ray.o+ray.d*d, 1)).xyz;
-		float sigma_t = texture(transferFunction, texture(normalizedDensity,localP).r).a*sigma_t_scale;
+		float sigma_t = sampleVolume(localP).a*sigma_t_scale;
 		od += sigma_t*stepsize;
 		d += stepsize;
 	}
@@ -308,8 +316,8 @@ void sampleLightCombined( inout Ray ray, out float pdf, out vec3 Li )
 //#define sampleLight sampleLightEnvironmentGradient
 //#define sampleLight sampleLightDirectional
 //#define sampleLight sampleLightCombined
-#define sampleLight sampleLightEnvironmentGradient
-//#define sampleLight samplePointLight
+//#define sampleLight sampleLightEnvironmentGradient
+#define sampleLight samplePointLight
 //#define sampleLight sampleAreaLight
 
 void main()

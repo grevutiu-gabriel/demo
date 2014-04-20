@@ -272,9 +272,17 @@ Volume::Volume() : Element()
 //	plf_manix.addSample( 3095.0f, math::V4f(1.0f, 0.0f, 0.0f, 1.0f) );
 //	m_transferFunction->setPLF(plf_manix);
 
+
+	TransferFunction::PLF plf_0;
+	plf_0.addSample( 0.0f, math::V4f(0.0f, 0.0f, 0.0f, 0.0f*scale) );
+	plf_0.addSample( 1.0f, math::V4f(0.0f, 0.0f, 0.0f, 1.0f*scale) );
+	TransferFunction::PLF plf_1;
+	plf_1.addSample( 0.0f, math::V4f(0.0f, 0.0f, 0.0f, 0.0f*scale) );
+	plf_1.addSample( 1.0f, math::V4f(1.0f, 1.0f, 1.0f, 1.0f*scale) );
+	m_transferFunction->setPLF(plf_1);
+
 	// artifix tf
 	TransferFunction::PLF plf_artifix;
-
 	plf_artifix.addSample( 0.0f, math::V4f(160.0f/255.0f, 160.0f/255.0f, 164.0f/255.0f, 0.0f*scale) );
 	plf_artifix.addSample( 0.266535, math::V4f(68.0f/255.0f, 0.0f/255.0f, 0.0f/255.0f, 0.0f*scale) );
 	plf_artifix.addSample( 0.310104, math::V4f(143.0f/255.0f, 104.0f/255.0f, 54.0f/255.0f, 0.059f*scale) );
@@ -282,20 +290,42 @@ Volume::Volume() : Element()
 	plf_artifix.addSample( 1.0f, math::V4f(160.0f/255.0f, 160.0f/255.0f, 164.0f/255.0f, 1.0f*scale) );
 	m_transferFunction->setPLF(plf_artifix);
 
-//	// default tf
-//	TransferFunction::PLF plf_default;
+	TransferFunction::PLF plf_artifix2;
+	plf_artifix2.addSample( 0.0f, math::V4f(160.0f/255.0f, 160.0f/255.0f, 164.0f/255.0f, 0.0f*scale) );
+	plf_artifix2.addSample( 0.3101, math::V4f(68.0f/255.0f, 0.0f/255.0f, 0.0f/255.0f, 0.0f*scale) );
+	plf_artifix2.addSample( 0.310104, math::V4f(143.0f/255.0f, 104.0f/255.0f, 54.0f/255.0f, 0.059f*scale) );
+	plf_artifix2.addSample( 0.453057, math::V4f(18.0f/255.0f, 9.0f/255.0f, 0.0f/255.0f, 1.0f*scale) );
+	plf_artifix2.addSample( 1.0f, math::V4f(160.0f/255.0f, 160.0f/255.0f, 164.0f/255.0f, 1.0f*scale) );
+	//m_transferFunction->setPLF(plf_artifix2);
+
+	// default tf
+	TransferFunction::PLF plf_default;
 //	plf_default.addSample( 0.0f, math::V4f(1.0f, 1.0f, 1.0f, 0.00001f*scale) );
 //	plf_default.addSample( 0.266535, math::V4f(1.0f, 1.0f, 1.0f, 0.0f*scale) );
 //	plf_default.addSample( 0.3f, math::V4f(1.0f, 1.0f, 1.0f, 1.0f*scale) );
 //	plf_default.addSample( 1.0f, math::V4f(1.0f, 1.0f, 1.0f, 1.0f*scale) );
-//	m_transferFunction->setPLF(plf_default);
+	plf_default.addSample( 0.0f, math::V4f(160.0f/255.0f, 160.0f/255.0f, 164.0f/255.0f, 0.0f*scale) );
+	plf_default.addSample( 0.226535, math::V4f(68.0f/255.0f, 0.0f/255.0f, 0.0f/255.0f, 0.0f*scale) );
+	plf_default.addSample( 0.310104, math::V4f(143.0f/255.0f, 104.0f/255.0f, 54.0f/255.0f, 0.059f*scale) );
+	plf_default.addSample( 0.453057, math::V4f(18.0f/255.0f, 9.0f/255.0f, 0.0f/255.0f, 1.0f*scale) );
+	plf_default.addSample( 1.0f, math::V4f(160.0f/255.0f, 160.0f/255.0f, 164.0f/255.0f, 1.0f*scale) );
+
+	//	m_transferFunction->setPLF(plf_default);
 
 
+	m_transferFunction2 = std::make_shared<AnimatedTransferFunction>();
+	m_transferFunction2->addPLF(0.0f, plf_1);
+	m_transferFunction2->addPLF(10.0f, plf_1);
+	//m_transferFunction2->addPLF(10.0f, plf_artifix);
+	//m_transferFunction2->addPLF(100.0f, plf_artifix);
+	//m_transferFunction2->addPLF(5.0f, plf_1);
 
 
 
 	volumeShader->setUniform( "transferFunction", m_transferFunction->m_texture->getUniform() );
+	volumeShader->setUniform( "transferFunction2", m_transferFunction2->m_texture->getUniform() );
 	volumeShader->setUniform( "sigma_t_scale", 100.0f );
+	volumeShader->setUniform( "shotLocalTime", 0.5f );
 	//std::cout << "sigma_t_scale " << m_transferFunction->m_st_max << std::endl;
 
 
@@ -497,8 +527,13 @@ base::GeometryPtr Volume::createProxyGeometry()
 	return result;
 }
 
-void Volume::render(base::Context::Ptr context)
+void Volume::render(base::Context::Ptr context, float time)
 {
+	float normalizedTime = time;
+	if( m_transferFunction2->m_time.size()>1 )
+		normalizedTime = (time - m_transferFunction2->m_time_min)/(m_transferFunction2->m_time_max-m_transferFunction2->m_time_min);
+	volumeShader->setUniform( "shotLocalTime", normalizedTime );
+	//std::cout << time << "->" << normalizedTime  << std::endl;
 	float znear = 0.1f;
 	glDisable(GL_DEPTH_TEST);
 	glEnable( GL_CULL_FACE );

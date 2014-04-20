@@ -64,7 +64,7 @@ struct Shot
 				m_element->end(context);
 			}
 			// finally render the element
-			m_element->render(context);
+			m_element->render(context, time);
 		}
 
 		void setController( const std::string& name, Controller::Ptr controller )

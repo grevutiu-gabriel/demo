@@ -39,7 +39,7 @@ struct Volume : public Element
 	static VolumePtr            create();
 	static VolumePtr            create( const base::Path dataSourceGLSLPath ); // create volume with custom data source glsl module (file be be loaded from base::fs)
 
-	virtual void render(base::Context::Ptr context)override;
+	virtual void render(base::Context::Ptr context, float time)override;
 	void                        render(base::Context::Ptr context, base::Camera::Ptr cam );
 	void                        load( const std::string& filename );
 
@@ -91,6 +91,7 @@ struct Volume : public Element
 	base::ScalarField::Ptr      m_normalizedDensity;
 
 	TransferFunction::Ptr       m_transferFunction;
+	AnimatedTransferFunction::Ptr       m_transferFunction2;
 
 
 	base::Texture2dPtr        m_debug;

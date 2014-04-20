@@ -225,7 +225,7 @@ void PostProcess::end(base::Context::Ptr context)
 {
 	m_inputFBO->end();
 }
-void PostProcess::render(base::Context::Ptr context)
+void PostProcess::render(base::Context::Ptr context, float time)
 {
 	glDisable(GL_DEPTH_TEST);
 	///*

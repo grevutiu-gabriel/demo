@@ -18,7 +18,7 @@ namespace base
 		}
 
 
-		PiecewiseLinearFunction( PiecewiseLinearFunction& other ):
+		PiecewiseLinearFunction( const PiecewiseLinearFunction& other ):
 			m_domain(other.m_domain),
 			m_values(other.m_values),
 			m_numSamples(other.m_numSamples)

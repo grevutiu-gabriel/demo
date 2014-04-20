@@ -76,6 +76,20 @@ void Scene::load( const std::string& filename )
 			m_switchers[name] = loadSwitcher(switcher);
 		}
 	}
+	if(root && root->hasKey("channels"))
+	{
+		houdini::json::ObjectPtr channels = root->getObject("channels");
+
+		std::vector<std::string> keys;
+		channels->getKeys(keys);
+
+		for(auto it = keys.begin(), end=keys.end();it!=end;++it)
+		{
+			std::string name = *it;
+			houdini::json::ObjectPtr channel = channels->getObject(name);
+			loadChannel(name, channel);
+		}
+	}
 
 //	//get content from json object
 //	Camera::Ptr cam1 = Camera::create();
@@ -119,11 +133,11 @@ void Scene::load( const std::string& filename )
 	*/
 //}
 
-FloatController::Ptr Scene::loadChannel( houdini::json::ObjectPtr channel )
+FloatController::Ptr Scene::loadTrack( houdini::json::ObjectPtr track )
 {
 	float fps = 24.0f;
-	int numSamples = channel->get<int>("nsamples");
-	houdini::json::ArrayPtr data = channel->getArray("data");
+	int numSamples = track->get<int>("nsamples");
+	houdini::json::ArrayPtr data = track->getArray("data");
 	base::PiecewiseLinearFunction<float> plf;
 	for(int i=0;i<numSamples;++i)
 		plf.addSample(float(i)/fps, data->get<float>(i));
@@ -142,21 +156,21 @@ void Scene::loadTransform( houdini::json::ObjectPtr transform, Transform::Ptr xf
 		{
 			FloatController::Ptr translationX, translationY, translationZ;
 			if(hasX)
-				translationX = loadChannel( channels->getObject("transform.tx") );
+				translationX = loadTrack( channels->getObject("transform.tx") );
 			else
 			if( transform->hasKey("transform.tx") )
 				translationX = ConstantFloatController::create(transform->get<float>("transform.tx"));
 			else
 				translationX = ConstantFloatController::create(0.0f);
 			if(hasY)
-				translationY = loadChannel( channels->getObject("transform.ty") );
+				translationY = loadTrack( channels->getObject("transform.ty") );
 			else
 			if( transform->hasKey("transform.ty") )
 				translationY = ConstantFloatController::create(transform->get<float>("transform.ty"));
 			else
 				translationY = ConstantFloatController::create(0.0f);
 			if(hasZ)
-				translationZ = loadChannel( channels->getObject("transform.tz") );
+				translationZ = loadTrack( channels->getObject("transform.tz") );
 			else
 			if( transform->hasKey("transform.tz") )
 				translationZ = ConstantFloatController::create(transform->get<float>("transform.tz"));
@@ -175,15 +189,15 @@ void Scene::loadTransform( houdini::json::ObjectPtr transform, Transform::Ptr xf
 		{
 			FloatController::Ptr rotationX, rotationY, rotationZ;
 			if(hasX)
-				rotationX = loadChannel( channels->getObject("transform.rx") );
+				rotationX = loadTrack( channels->getObject("transform.rx") );
 			else
 				rotationX = ConstantFloatController::create(0.0f);
 			if(hasY)
-				rotationY = loadChannel( channels->getObject("transform.ry") );
+				rotationY = loadTrack( channels->getObject("transform.ry") );
 			else
 				rotationY = ConstantFloatController::create(0.0f);
 			if(hasZ)
-				rotationZ = loadChannel( channels->getObject("transform.rz") );
+				rotationZ = loadTrack( channels->getObject("transform.rz") );
 			else
 				rotationZ = ConstantFloatController::create(0.0f);
 			rotation = FloatToV3fController::create( rotationX, rotationY, rotationZ );
@@ -235,7 +249,7 @@ Switcher::Ptr Scene::loadSwitcher( houdini::json::ObjectPtr switcher )
 	houdini::json::ObjectPtr channels = switcher->getObject("channels");
 	if(channels->hasKey("camswitch"))
 	{
-		s->m_switch = loadChannel( channels->getObject("camswitch") );
+		s->m_switch = loadTrack( channels->getObject("camswitch") );
 	}else
 		s->m_switch = ConstantFloatController::create( 0.0f );
 	if(switcher->hasKey("cameras"))
@@ -251,6 +265,20 @@ Switcher::Ptr Scene::loadSwitcher( houdini::json::ObjectPtr switcher )
 		}
 	}
 	return s;
+}
+
+void Scene::loadChannel( const std::string& channelName, houdini::json::ObjectPtr channel )
+{
+	std::vector<std::string> tracks;
+	channel->getKeys(tracks);
+	for(auto it = tracks.begin(),end=tracks.end();it!=end;++it)
+	{
+		const std::string& trackName = *it;
+		std::string name = channelName + "." + trackName;
+		std::cout << "loading " << name << std::endl;
+		FloatController::Ptr track = loadTrack( channel->getObject(trackName) );
+		m_channels[name] = track;
+	}
 }
 
 /*

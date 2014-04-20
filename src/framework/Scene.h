@@ -110,5 +110,6 @@ private:
 	Transform::Ptr loadLocator( houdini::json::ObjectPtr transform );
 	Camera::Ptr loadCamera( houdini::json::ObjectPtr camera );
 	Switcher::Ptr loadSwitcher( houdini::json::ObjectPtr switcher );
-	FloatController::Ptr loadChannel( houdini::json::ObjectPtr channel );
+	void loadChannel( const std::string& name, houdini::json::ObjectPtr channel );
+	FloatController::Ptr loadTrack( houdini::json::ObjectPtr track );
 };

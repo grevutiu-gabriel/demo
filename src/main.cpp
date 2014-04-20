@@ -3,7 +3,7 @@
 //
 //============================================================================
 
-//#define STANDALONE 1
+#define STANDALONE 1
 
 
 #ifdef STANDALONE
@@ -137,8 +137,8 @@ void render( base::Context::Ptr context, base::Camera::Ptr cam )
 
 	// render demo
 	glEnable(GL_DEPTH_TEST);
-	g_demo->render( context, g_timer.elapsedSeconds(), cam );
-	//g_demo->render( context, g_timer.elapsedSeconds() );
+	//g_demo->render( context, g_timer.elapsedSeconds(), cam );
+	g_demo->render( context, g_timer.elapsedSeconds() );
 
 
 

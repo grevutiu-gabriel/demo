@@ -28,7 +28,7 @@ struct Clear : public Element
 	}
 
 
-	virtual void render(base::Context::Ptr context)override
+	virtual void render(base::Context::Ptr context, float time)override
 	{
 		glClearColor(m_color.x, m_color.y, m_color.z, 1.0f);
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

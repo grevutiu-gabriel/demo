@@ -44,8 +44,8 @@ void Demo::load( const std::string& filename )
 	PostProcess::Ptr post = PostProcess::create();
 	post->setHDREnabled(true);
 	post->setGlareEnabled(true);
-	post->setGlareBlurIterations(2);
-	post->setGlareAmount(0.2f);
+	post->setGlareBlurIterations(4);
+	post->setGlareAmount(0.8f);
 
 
 
@@ -62,7 +62,9 @@ void Demo::load( const std::string& filename )
 	{
 		Shot::ShotElement::Ptr se = Shot::ShotElement::create(post);
 		se->addChild(black);
-		se->addChild(volume)->setController("PointLightPosition", scene->getLocator("null1")->xform->translation);
+		Shot::ShotElement::Ptr volumese = se->addChild(volume);
+		volumese->setController("PointLightPosition", scene->getLocator("null1")->xform->translation);
+		volumese->setController("PointLightIntensity", scene->getChannel("ch1.x"));
 		//shot1->addElement(black);//->setController("color", scene->getChannel("color"));
 		shot1->addElement(se);
 	}
@@ -71,7 +73,10 @@ void Demo::load( const std::string& filename )
 	{
 		Shot::ShotElement::Ptr se = Shot::ShotElement::create(post);
 		se->addChild(black);
-		se->addChild(volume)->setController("PointLightPosition", scene->getLocator("null1")->xform->translation);
+		Shot::ShotElement::Ptr volumese = se->addChild(volume);
+		volumese->setController("PointLightPosition", scene->getLocator("null1")->xform->translation);
+		volumese->setController("PointLightIntensity", scene->getChannel("ch1.x"));
+		//se->addChild(volume)->setController("PointLightPosition", scene->getLocator("null1")->xform->translation);
 		//shot1->addElement(black);//->setController("color", scene->getChannel("color"));
 		shot2->addElement(se);
 	}

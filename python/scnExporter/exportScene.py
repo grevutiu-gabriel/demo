@@ -45,11 +45,12 @@ class ExportScene:
 		self.defaultStartFrameValue = int(hou.hscriptStringExpression("$RFSTART"))
 		self.defaultEndFrameValue = int(hou.hscriptStringExpression("$RFEND"))
 
-		self.selected = hou.selectedNodes()
+		#self.selected = hou.selectedNodes()
+		self.selected = []
 		if len(self.selected) == 0:
 			self.selected=[]
 			# objects
-			objs = hou.node("/obj").children()
+			objs = hou.node("/obj").children() + hou.node("/ch").children()
 			
 			for obj in objs:
 				#ignore export config object
@@ -81,6 +82,7 @@ class ExportScene:
 			self.switchers = []
 			self.lights = []
 			self.locators = []
+			self.channels = []
 			self.inSubnet = {}
 			# run export
 			self.startExportProcedure()
@@ -118,6 +120,7 @@ class ExportScene:
 		#self.exportObjects()
 		self.exportCameras( writer )
 		self.exportSwitchers( writer )
+		self.exportChannels( writer )
 		#self.exportLights()
 		self.exportLocators( writer )
 		writer.jsonEndMap()
@@ -185,7 +188,8 @@ class ExportScene:
 				self.locators[:0] = [thisNode]
 			elif thisObjectType == 'switcher':
 				self.switchers[:0] = [thisNode]
-				
+			elif thisObjectType == 'ch':
+				self.channels[:0] = [thisNode]			
 				
 				
 				
@@ -209,6 +213,23 @@ class ExportScene:
 			#self.exportData(camera, channelMatch, self.startFrame, self.endFrame, self.exportPath + camera.name() + '.fm2n')
 			#self.exportData2(camera, channelMatch, self.startFrame, self.endFrame, writer)
 			print "Exported: " + camera.name()
+			
+		writer.jsonEndMap()
+
+	# exports all channels of the scene
+	def exportChannels(self, writer):
+		channelMatch = {}
+
+				
+		writer.jsonKeyToken("channels")
+		writer.jsonBeginMap()
+		# export all channels
+		for channel in self.channels:
+			object = hou.node(channel.path())
+			objectName = object.name()
+			writer.jsonKeyToken(objectName)
+			self.exportNode(channel, channelMatch, self.startFrame, self.endFrame, writer)
+			print "Exported: " + channel.name()
 			
 		writer.jsonEndMap()
 		
@@ -271,7 +292,7 @@ class ExportScene:
 		
 		return isAnimated
 	
-	def writeChannel( self, channelName, channelData, writer ):
+	def writeChannel( self, channelData, writer ):
 		#write channel ---
 		writer.jsonBeginMap()
 		writer.jsonKeyToken( "nsamples" )
@@ -286,7 +307,6 @@ class ExportScene:
 	def exportChannel(self, object, channelName, channel, startF, endF, writer):
 		objectPath = object.path()
 		
-		#numSamples = (endF+1)-startF
 		channelData = []
 
 		for frame in range(startF, (endF+1)):
@@ -300,7 +320,14 @@ class ExportScene:
 				thisValue = self.getRealParmValue(object, channel, frame)
 			channelData.append(thisValue)
 			
-		self.writeChannel( channelName, channelData, writer )
+		self.writeChannel( channelData, writer )
+
+	def exportTrack( self, track, startF, endF, writer ):
+		channelData = []
+		for frame in range(startF, (endF+1)):
+			channelData.append(track.evalAtFrame(frame))
+			
+		self.writeChannel( channelData, writer )
 
 	
 	def exportNode(self, object, channels, startF, endF, writer):
@@ -322,6 +349,8 @@ class ExportScene:
 			objectNodeTypeWrite = 'camera'
 		elif objectType == 'switcher':
 			objectNodeTypeWrite = 'switcher'
+		elif objectType == 'ch':
+			objectNodeTypeWrite = 'channel'
 		elif objectType == 'null':
 			objectNodeTypeWrite = 'locator'
 		elif objectType == 'hlight':
@@ -399,18 +428,35 @@ class ExportScene:
 			for cam in cams:
 				writer.jsonString( cam.name() )
 			writer.jsonEndArray()
+		
+		# for channels we export each channel track
+		if objectType == 'ch':
+			childs = object.allSubChildren()
+			chopNode = None
+			for child in childs:
+				if child.isDisplayFlagSet():
+					chopNode = child
+					break
+			#export all tracks
+			if chopNode != None:
+				tracks = chopNode.tracks()
+				for track in tracks:
+					writer.jsonKeyToken( track.name() )
+					self.exportTrack( track, startF, endF, writer )
+					
 			
 			
 		
 	
 		# write animated channels into channels ---
-		writer.jsonKeyToken( "channels" )
-		writer.jsonBeginMap()
-		if len(channelsAnimated) > 0:
-			for channel in channelsAnimated:
-				writer.jsonKeyToken( channel )
-				self.exportChannel( object, channel, channels[channel], startF, endF, writer )
-		writer.jsonEndMap() #channels
+		if objectType != 'ch':
+			writer.jsonKeyToken( "channels" )
+			writer.jsonBeginMap()
+			if len(channelsAnimated) > 0:
+				for channel in channelsAnimated:
+					writer.jsonKeyToken( channel )
+					self.exportChannel( object, channel, channels[channel], startF, endF, writer )
+			writer.jsonEndMap() #channels
 
 		writer.jsonEndMap() #object
 		
