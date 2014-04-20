@@ -2,6 +2,7 @@
 #include "elements/volumept/Volume.h"
 #include "elements/postprocess/PostProcess.h"
 
+
 Shot::Ptr Demo::getShot( int index )
 {
 	return m_shots[index];
@@ -71,6 +72,8 @@ void Demo::load( const std::string& filename )
 
 
 
+	// load audio ----
+	m_audio->load("c:\\projects\\demo\\git\\bin\\data\\heart_of_courage.ogg");
 }
 
 

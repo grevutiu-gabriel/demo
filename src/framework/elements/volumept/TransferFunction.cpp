@@ -83,7 +83,6 @@ TransferFunctionNode::TransferFunctionNode( TransferFunction* tf, int index ):
 
 void TransferFunctionNode::setDensity( float density )
 {
-	std::cout << "setting density " << density << std::endl;
 	m_tf->m_plf.m_domain[m_index] = density;
 	m_tf->makeDirty();
 }

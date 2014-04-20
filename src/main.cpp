@@ -167,6 +167,7 @@ void init( base::Context::Ptr context )
 
 
 	// now start demo ------------
+	g_demo->getAudio()->startPlayback();
 	g_timer.start();
 
 }

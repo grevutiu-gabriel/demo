@@ -6,7 +6,7 @@
 #include "Shot.h"
 #include "elements/Clear.h"
 #include "elements/RenderGeometry.h"
-
+#include "Audio.h"
 
 #include "houdini/HouGeoIO.h"
 
@@ -92,13 +92,20 @@ struct Demo
 
 	Demo()
 	{
+		m_audio = std::make_shared<Audio>();
 	}
 
 	static Ptr create()
 	{
 		return std::make_shared<Demo>();
 	}
+
 	void load( const std::string& filename);
+
+	Audio::Ptr getAudio()
+	{
+		return m_audio;
+	}
 
 	void addClip( int shotIndex, float shotStart, float shotEnd, float clipDuration );
 	int addShot( Shot::Ptr shot );
@@ -110,5 +117,6 @@ struct Demo
 	std::vector<Shot::Ptr>               m_shots;
 	std::vector<Clip>                    m_clips;
 	PiecewiseConstantFunction<int>       m_clipIndex; // tells which shot to render when (should cover the range [0, m_duration])
+	Audio::Ptr                           m_audio;
 };
 
