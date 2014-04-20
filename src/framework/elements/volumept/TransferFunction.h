@@ -14,15 +14,27 @@
 #include <gfx/FBO.h>
 #include <gfx/Field.h>
 
+#include "../../Object.h"
+
 
 struct TransferFunction;
 
-struct TransferFunctionNode
+struct TransferFunctionNode : public Object
 {
-	TransferFunctionNode( TransferFunction* tf );
+	typedef std::shared_ptr<TransferFunctionNode> Ptr;
+	TransferFunctionNode( TransferFunction* tf, int index );
+
+	void setDensity( float density );
+	float getDensity()const;
+	void setMappedDensity( float mappedDensity);
+	float getMappedDensity()const;
+	void setColor( const math::V3f& color );
+	math::V3f getColor()const;
 
 private:
+	int m_index;
 	TransferFunction* m_tf;
+	friend struct TransferFunction;
 };
 
 
@@ -33,15 +45,29 @@ struct TransferFunction
 
 	TransferFunction();
 
-	void                                   setPLF( PLF plf );
+	//void                                   setPLF( PLF plf );
 	void                                   updateTexture(); // bakes pfl into texture
 
+
+	TransferFunctionNode::Ptr addNode( float density, const math::V4f& value );
+	TransferFunctionNode::Ptr getNode( int index );
+
+	std::vector<TransferFunctionNode::Ptr> m_nodes;
 
 	PLF                                    m_plf;
 	int                                    m_numSamples;
 	std::vector<math::V4f>                 m_samples;
 	base::Texture1d::Ptr                   m_texture;
 	float                                  m_st_max;
+private:
+	bool                                   m_isDirty;
+
+	void makeDirty();
+//	bool compareTransferFunctionNodes( TransferFunctionNode::Ptr left, TransferFunctionNode::Ptr right )
+//	{
+//		return left->m_density < right->m_density;
+//	}
+	friend struct TransferFunctionNode;
 };
 
 struct AnimatedTransferFunction

@@ -69,7 +69,11 @@ struct Shot
 
 		void setController( const std::string& name, Controller::Ptr controller )
 		{
-			Property::Ptr prop = m_element->getProperty( name );
+			setController( m_element, name, controller );
+		}
+		void setController( Object::Ptr object, const std::string& name, Controller::Ptr controller )
+		{
+			Property::Ptr prop = object->getProperty( name );
 			if(prop)
 			{
 				if(controller->isAnimated())

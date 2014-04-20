@@ -75,7 +75,8 @@ void Demo::load( const std::string& filename )
 		se->addChild(black);
 		Shot::ShotElement::Ptr volumese = se->addChild(volume);
 		volumese->setController("PointLightPosition", scene->getLocator("null1")->xform->translation);
-		volumese->setController("PointLightIntensity", scene->getChannel("ch1.x"));
+		//volumese->setController("PointLightIntensity", scene->getChannel("ch1.x"));
+		volumese->setController(volume->m_transferFunction->getNode(1), "density", scene->getChannel("tfnode.density"));
 		//se->addChild(volume)->setController("PointLightPosition", scene->getLocator("null1")->xform->translation);
 		//shot1->addElement(black);//->setController("color", scene->getChannel("color"));
 		shot2->addElement(se);
