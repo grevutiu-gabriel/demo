@@ -4,7 +4,7 @@
 //============================================================================
 
 #define STANDALONE 1
-
+//#define DOAUDIO false
 
 #ifdef STANDALONE
 #include <ui/Application.h>
@@ -162,12 +162,18 @@ void init( base::Context::Ptr context )
 
 
 	// intialize and load demo --------
+#ifdef DOAUDIO
+	g_demo = Demo::create(true);
+#else
 	g_demo = Demo::create();
+#endif
 	g_demo->load("filename");
 
 
 	// now start demo ------------
+#ifdef DOAUDIO
 	g_demo->getAudio()->startPlayback();
+#endif
 	g_timer.start();
 
 }

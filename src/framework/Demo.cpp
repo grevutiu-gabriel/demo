@@ -2,6 +2,11 @@
 #include "elements/volumept/Volume.h"
 #include "elements/postprocess/PostProcess.h"
 
+Demo::Demo( bool doAudio )
+{
+	if(doAudio)
+		m_audio = std::make_shared<Audio>();
+}
 
 Shot::Ptr Demo::getShot( int index )
 {
@@ -73,7 +78,8 @@ void Demo::load( const std::string& filename )
 
 
 	// load audio ----
-	m_audio->load("c:\\projects\\demo\\git\\bin\\data\\heart_of_courage.ogg");
+	if(m_audio)
+		m_audio->load("c:\\projects\\demo\\git\\bin\\data\\heart_of_courage.ogg");
 }
 
 

@@ -90,14 +90,11 @@ struct Demo
 {
 	typedef std::shared_ptr<Demo> Ptr;
 
-	Demo()
-	{
-		m_audio = std::make_shared<Audio>();
-	}
+	Demo( bool doAudio = false );
 
-	static Ptr create()
+	static Ptr create( bool doAudio = false )
 	{
-		return std::make_shared<Demo>();
+		return std::make_shared<Demo>(doAudio);
 	}
 
 	void load( const std::string& filename);
