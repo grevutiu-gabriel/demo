@@ -4,7 +4,7 @@
 //============================================================================
 
 #define STANDALONE 1
-//#define DOAUDIO false
+#define DOAUDIO true
 
 #ifdef STANDALONE
 #include <ui/Application.h>
@@ -137,8 +137,8 @@ void render( base::Context::Ptr context, base::Camera::Ptr cam )
 
 	// render demo
 	glEnable(GL_DEPTH_TEST);
-	g_demo->render( context, g_timer.elapsedSeconds(), cam );
-	//g_demo->render( context, g_timer.elapsedSeconds() );
+	//g_demo->render( context, g_timer.elapsedSeconds(), cam );
+	g_demo->render( context, g_timer.elapsedSeconds() );
 
 	//glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	//glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -237,7 +237,7 @@ int main(int argc, char ** argv)
 	glviewer->getOrbitNavigator().update();
 	//glviewer->setMouseMoveCallback( onMouseMove );
 	glviewer->show();
-	//glviewer->setFullscreen(true);
+	glviewer->setFullscreen(true);
 	return app.exec();
 	//*/
 
