@@ -14,6 +14,13 @@ TransferFunction::TransferFunction() :m_isDirty(true)
 
 }
 
+void TransferFunction::clear()
+{
+	m_nodes.clear();
+	m_plf.clear();
+	makeDirty();
+}
+
 
 //void TransferFunction::setPLF( PLF plf )
 //{

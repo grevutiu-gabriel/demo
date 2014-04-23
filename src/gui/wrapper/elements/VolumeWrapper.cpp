@@ -58,20 +58,16 @@ VolumeWrapper::VolumeWrapper( Volume::Ptr volume ):m_volume(volume)
 
 void VolumeWrapper::transferFunctionChanged()
 {
-//	// update transfer function of volume
-//	TransferFunction::PLF plf;
+	m_volume->m_transferFunction->clear();
+	const QNodeList& nodes = m_transferFunction.GetNodes();
 
-//	const QNodeList& nodes = m_transferFunction.GetNodes();
+	for( auto it = nodes.begin(), end = nodes.end(); it!=end;++it )
+	{
+		const QNode& n = *it;
+		m_volume->m_transferFunction->addNode( n.GetIntensity(), math::V4f( n.GetDiffuse().redF(), n.GetDiffuse().greenF(), n.GetDiffuse().blueF(), n.GetOpacity() ) );
+	}
 
-//	for( auto it = nodes.begin(), end = nodes.end(); it!=end;++it )
-//	{
-//		const QNode& n = *it;
-//		plf.addSample( n.GetIntensity(), math::V4f( n.GetDiffuse().redF(), n.GetDiffuse().greenF(), n.GetDiffuse().blueF(), n.GetOpacity() ) );
-//	}
-
-//	m_volume->m_transferFunction->setPLF(plf);
-
-//	emit changed();
+	emit changed();
 }
 
 

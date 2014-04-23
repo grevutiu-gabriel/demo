@@ -45,6 +45,7 @@ struct TransferFunction
 
 	TransferFunction();
 
+	void clear();
 	//void                                   setPLF( PLF plf );
 	void                                   updateTexture(); // bakes pfl into texture
 

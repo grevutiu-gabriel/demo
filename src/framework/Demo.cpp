@@ -51,8 +51,8 @@ void Demo::load( const std::string& filename )
 		Shot::ShotElement::Ptr volumese = se->addChild(volume);
 		volumese->setController("PointLightPosition", scene->getLocator("null1")->xform->translation);
 		volumese->setController("PointLightIntensity", scene->getChannel("ch1.x"));
-		volumese->setController(volume->m_transferFunction->getNode(1), "density", scene->getChannel("tfnode.density"));
-		se->addChild(stars);
+		//volumese->setController(volume->m_transferFunction->getNode(1), "density", scene->getChannel("tfnode.density"));
+		//se->addChild(stars);
 		shot->addElement(se);
 		addShot(shot);
 	}
@@ -73,7 +73,7 @@ void Demo::load( const std::string& filename )
 		Element::Ptr renderGeo = RenderGeometry::create(geo, shader);
 
 		se->addChild(black);
-		se->addChild(stars);
+		//se->addChild(stars);
 		se->addChild(renderGeo);
 
 		shot->addElement(se);
@@ -85,7 +85,7 @@ void Demo::load( const std::string& filename )
 	// add clips
 	// clips define when on the global timeline which shot will be rendered
 	addClip( 0, 0.0f, 24.0f, 24.0f );
-	addClip( 1, 24.0f, 48.0f, 24.0f );
+	//addClip( 1, 24.0f, 48.0f, 24.0f );
 
 
 

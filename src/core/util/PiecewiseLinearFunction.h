@@ -54,7 +54,7 @@ namespace base
 				maxy = *minmax.second;
 			}
 		}
-		void reset()
+		void clear()
 		{
 			m_domain.clear();
 			m_values.clear();
