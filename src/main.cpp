@@ -271,12 +271,13 @@ int main(int argc, char ** argv)
 
 
 	gui::FlareShopWrapper::Ptr fsw;
-//	Volume::Ptr volume = std::dynamic_pointer_cast<Volume>(g_demo->getShot(0)->getShotElement(0)->getChild(1)->getElement());
-//	gui::VolumeWrapper::Ptr volumeWrapper = std::make_shared<gui::VolumeWrapper>( volume );
-//	gui::TFEWidget tfe(volumeWrapper);
-//	tfe.show();
-//	volumeWrapper->connect( volumeWrapper.get(), SIGNAL(changed()), glviewer, SLOT(updateGL()) );
+	Volume::Ptr volume = std::dynamic_pointer_cast<Volume>(g_demo->getShot(0)->getShotElement(0)->getChild(1)->getElement());
+	gui::VolumeWrapper::Ptr volumeWrapper = std::make_shared<gui::VolumeWrapper>( volume );
+	gui::TFEWidget tfe(volumeWrapper);
+	tfe.show();
+	volumeWrapper->connect( volumeWrapper.get(), SIGNAL(changed()), app.getGlViewer(), SLOT(updateGL()) );
 
+	/*
 	if( g_demo->getNumShots()>0 )
 	{
 		Shot::Ptr shot = g_demo->getShot(0);
@@ -292,7 +293,7 @@ int main(int argc, char ** argv)
 			}
 		}
 	}
-
+*/
 
 	return app.exec();
 #endif

@@ -22,12 +22,15 @@ int Demo::getNumShots() const
 
 void Demo::load( const std::string& filename )
 {
-	/*
+	std::string basePathData = base::path("data");
+	std::string basePathSrc = base::path("src");
+
+	///*
 	// load scenes ------
 	Scene::Ptr scene = Scene::create();
-	scene->load("c:\\projects\\demo\\git\\bin\\data\\artifix.scn");
+	scene->load(basePathData + "/artifix.scn");
 	Scene::Ptr scene_test = Scene::create();
-	scene_test->load("c:\\projects\\demo\\git\\bin\\data\\test.scn");
+	scene_test->load(basePathData + "/test.scn");
 
 	// load elements ----
 	// black background
@@ -39,14 +42,17 @@ void Demo::load( const std::string& filename )
 	stars->setMotionblurScale(1.0f);
 	// volume
 	Volume::Ptr volume = Volume::create();
-	volume->load( "c:\\projects\\demo\\git\\bin\\data\\artifix_resized_moved.bgeo" );
+	volume->load( basePathData + "/artifix_resized_moved.bgeo" );
 	// post process
 	PostProcess::Ptr post = PostProcess::create();
+//	post->setHDREnabled(true);
+//	post->setGlareEnabled(true);
+//	post->setGlareBlurIterations(4);
+//	post->setGlareAmount(0.8f);
 	post->setHDREnabled(true);
 	post->setGlareEnabled(true);
-	post->setGlareBlurIterations(4);
-	post->setGlareAmount(0.8f);
-
+	post->setGlareBlurIterations(3);
+	post->setGlareAmount(0.1f);
 
 	// manix shot ---------
 	{
@@ -70,20 +76,35 @@ void Demo::load( const std::string& filename )
 
 		Shot::ShotElement::Ptr se = Shot::ShotElement::create(post);
 		// ------------
-		base::Geometry::Ptr geo = houdini::HouGeoIO::importGeometry("c:\\projects\\demo\\git\\bin\\data\\test.bgeo");
-		base::Shader::Ptr shader = base::Shader::loadFromFile( "c:\\projects\\demo\\git\\src\\core\\glsl\\genericShader" );
-		shader->setUniform("l", math::V3f(1.0f).normalized());
-		shader->setUniform("ka", 0.1f);
-		shader->setUniform("ambient", math::V3f(1.0f));
-		shader->setUniform("kd", 1.0f);
-		shader->setUniform("diffuse", math::V3f(.5f));
+		base::Geometry::Ptr geo = houdini::HouGeoIO::importGeometry(basePathData + "/test.bgeo");
+
+//		base::Shader::Ptr shader = base::Shader::loadFromFile( basePathSrc + "/core/glsl/genericShader" );
+//		shader->setUniform("l", math::V3f(1.0f).normalized());
+//		shader->setUniform("ka", 0.1f);
+//		shader->setUniform("ambient", math::V3f(1.0f));
+//		shader->setUniform("kd", 1.0f);
+//		shader->setUniform("diffuse", math::V3f(.5f));
+
+		base::Shader::Ptr shader = base::Shader::loadFromFile( basePathData + "/matcap" );
+		//base::Texture2d::Ptr tex = base::Texture2d::load( basePathData + "/droplet_01.png", GL_SRGB8 );
+		//base::Texture2d::Ptr tex = base::Texture2d::load( basePathData + "/00ZBrush_RedWax.png", GL_SRGB8 );
+		base::Texture2d::Ptr tex = base::Texture2d::load( basePathData + "/scary-light.jpg", GL_SRGB8 );
+
+		base::Context::getCurrentContext()->addTexture2d("droplet_01.png", tex);
+		shader->setUniform("tex", tex);
+
+
 		Element::Ptr renderGeo = RenderGeometry::create(geo, shader);
 
 		se->addChild(black);
-		//se->addChild(stars);
+		se->addChild(stars);
 		se->addChild(renderGeo);
 
 		shot->addElement(se);
+
+		//shot->addElement(black);
+		//shot->addElement(renderGeo);
+
 		addShot(shot);
 	}
 
@@ -91,20 +112,20 @@ void Demo::load( const std::string& filename )
 
 	// add clips
 	// clips define when on the global timeline which shot will be rendered
-	addClip( 0, 0.0f, 24.0f, 24.0f );
-	//addClip( 1, 24.0f, 48.0f, 24.0f );
-	*/
+	//addClip( 0, 0.0f, 24.0f, 24.0f );
+	addClip( 1, 24.0f, 48.0f, 24.0f );
+	//*/
 
-	// TEMP ----------
-	{
-		Element::Ptr black = Clear::create(math::V3f(0.0f, 0.0f, 0.0f));
-		FlareShop::Ptr fs = FlareShop::create();
-		Shot::Ptr shot = Shot::create();
-		shot->addElement(black);
-		shot->addElement(fs);
-		this->addShot(shot);
-		addClip( 0, 0.0f, 1.0f, 1.0f );
-	}
+//	// TEMP ----------
+//	{
+//		Element::Ptr black = Clear::create(math::V3f(0.0f, 0.0f, 0.0f));
+//		FlareShop::Ptr fs = FlareShop::create();
+//		Shot::Ptr shot = Shot::create();
+//		shot->addElement(black);
+//		shot->addElement(fs);
+//		this->addShot(shot);
+//		addClip( 0, 0.0f, 1.0f, 1.0f );
+//	}
 
 
 	// load audio ----
