@@ -107,6 +107,7 @@ struct Demo
 	void addClip( int shotIndex, float shotStart, float shotEnd, float clipDuration );
 	int addShot( Shot::Ptr shot );
 	Shot::Ptr getShot( int index );
+	int getNumShots()const;
 
 	void render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera = base::Camera::Ptr() );
 

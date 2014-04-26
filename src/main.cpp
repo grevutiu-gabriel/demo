@@ -11,12 +11,9 @@
 #include <ui/GLViewer.h>
 #include <ui/VRWindow.h>
 #else
-#include <gltools/gl.h>
-#include <QtGui>
-#include <QApplication>
-#include <QMainWindow>
-#include "gui/widgets/GLViewer/GLViewer.h"
+#include "gui/Application.h"
 #include "gui/widgets/TFEditor/TFEWidget.h"
+#include "gui/wrapper/elements/FlareShopWrapper.h"
 #endif
 
 
@@ -255,14 +252,12 @@ int main(int argc, char ** argv)
 */
 #else
 	//Q_INIT_RESOURCE(application);
-	QApplication app(argc, argv);
+	gui::Application app(argc, argv, init, shutdown, render);
 	app.setOrganizationName("app");
 	app.setApplicationName("app");
 
-	QMainWindow mainWin;
-	mainWin.resize(800, 600);
 
-	glviewer = new gui::widgets::GLViewer(init, shutdown, render);
+
 	/*
 	glviewer->getCamera()->m_znear = .1f;
 	glviewer->getCamera()->m_zfar = 1000.0f;
@@ -271,15 +266,34 @@ int main(int argc, char ** argv)
 	glviewer->getOrbitNavigator().update();
 	glviewer->setMouseMoveCallback( onMouseMove );
 	*/
-	mainWin.setCentralWidget( glviewer );
-	mainWin.show();
+//	mainWin.setCentralWidget( glviewer );
+//	mainWin.show();
 
 
-	Volume::Ptr volume = std::dynamic_pointer_cast<Volume>(g_demo->getShot(0)->getShotElement(0)->getChild(1)->getElement());
-	gui::VolumeWrapper::Ptr volumeWrapper = std::make_shared<gui::VolumeWrapper>( volume );
-	gui::TFEWidget tfe(volumeWrapper);
-	tfe.show();
-	volumeWrapper->connect( volumeWrapper.get(), SIGNAL(changed()), glviewer, SLOT(updateGL()) );
+	gui::FlareShopWrapper::Ptr fsw;
+//	Volume::Ptr volume = std::dynamic_pointer_cast<Volume>(g_demo->getShot(0)->getShotElement(0)->getChild(1)->getElement());
+//	gui::VolumeWrapper::Ptr volumeWrapper = std::make_shared<gui::VolumeWrapper>( volume );
+//	gui::TFEWidget tfe(volumeWrapper);
+//	tfe.show();
+//	volumeWrapper->connect( volumeWrapper.get(), SIGNAL(changed()), glviewer, SLOT(updateGL()) );
+
+	if( g_demo->getNumShots()>0 )
+	{
+		Shot::Ptr shot = g_demo->getShot(0);
+		int numShotElements = shot->getNumShotElements();
+		for( int i=0;i<numShotElements;++i )
+		{
+			Shot::ShotElement::Ptr shotElement = shot->getShotElement(i);
+			FlareShop::Ptr fs = std::dynamic_pointer_cast<FlareShop>(shotElement->getElement());
+			if( fs )
+			{
+				fsw = gui::FlareShopWrapper::create(fs);
+				fsw->connect( fsw.get(), SIGNAL(changed()), app.getGlViewer(), SLOT(updateGL()) );
+			}
+		}
+	}
+
+
 	return app.exec();
 #endif
 

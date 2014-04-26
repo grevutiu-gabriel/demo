@@ -2,6 +2,7 @@
 #include "elements/volumept/Volume.h"
 #include "elements/postprocess/PostProcess.h"
 #include "elements/stars/Stars.h"
+#include "elements/FlareShop/FlareShop.h"
 
 Demo::Demo( bool doAudio )
 {
@@ -14,8 +15,14 @@ Shot::Ptr Demo::getShot( int index )
 	return m_shots[index];
 }
 
+int Demo::getNumShots() const
+{
+	return int(m_shots.size());
+}
+
 void Demo::load( const std::string& filename )
 {
+	/*
 	// load scenes ------
 	Scene::Ptr scene = Scene::create();
 	scene->load("c:\\projects\\demo\\git\\bin\\data\\artifix.scn");
@@ -86,7 +93,18 @@ void Demo::load( const std::string& filename )
 	// clips define when on the global timeline which shot will be rendered
 	addClip( 0, 0.0f, 24.0f, 24.0f );
 	//addClip( 1, 24.0f, 48.0f, 24.0f );
+	*/
 
+	// TEMP ----------
+	{
+		Element::Ptr black = Clear::create(math::V3f(0.0f, 0.0f, 0.0f));
+		FlareShop::Ptr fs = FlareShop::create();
+		Shot::Ptr shot = Shot::create();
+		shot->addElement(black);
+		shot->addElement(fs);
+		this->addShot(shot);
+		addClip( 0, 0.0f, 1.0f, 1.0f );
+	}
 
 
 	// load audio ----

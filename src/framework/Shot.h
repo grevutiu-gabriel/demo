@@ -93,7 +93,7 @@ struct Shot
 	{
 	}
 
-	static Ptr create( Camera::Ptr camera )
+	static Ptr create( Camera::Ptr camera = Camera::Ptr() )
 	{
 		return std::make_shared<Shot>( camera );
 	}
@@ -114,6 +114,11 @@ struct Shot
 		return m_elements[index];
 	}
 
+	int getNumShotElements()const
+	{
+		return int(m_elements.size());
+	}
+
 
 
 	virtual void render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera )
@@ -122,6 +127,7 @@ struct Shot
 		{
 			context->setView( overrideCamera->m_worldToView, overrideCamera->m_viewToWorld, overrideCamera->m_viewToNDC );
 		}else
+		if( m_camera )
 			// set view from our own camera
 			context->setView( m_camera->xform->evaluate(time), m_camera->projectionMatrix->evaluate(time)  );
 

@@ -316,6 +316,7 @@ namespace math
 	Vec3f slerp( Vec3f v0, Vec3f v1, float t  );
 	float clamp( float x, float left, float right );
 	float smoothstep( float x );
+	float smoothstep(float edge0, float edge1, float x);
 	void evalCatmullRom( const float *keyPos, const float *keyT, int num, int dim, float t, float *v );
 	void evalLinear( const float *keyPos, const float *keyT, int num, int dim, float t, float *v );
 

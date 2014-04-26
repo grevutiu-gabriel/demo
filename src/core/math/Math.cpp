@@ -428,7 +428,13 @@ namespace math
 		return (x) * (x) * (3 - 2 * (x));
 	}
 
-
+	float smoothstep(float edge0, float edge1, float x)
+	{
+		// Scale, and clamp x to 0..1 range
+		x = clamp((x - edge0)/(edge1 - edge0), 0.0f, 1.0f);
+		// Evaluate polynomial
+		return x*x*x*(x*(x*6.0f - 15.0f) + 10.0f);
+	}
 
 	static signed char coefs[16] = {
 		-1, 2,-1, 0,
