@@ -627,6 +627,15 @@ namespace base
 		return result;
 	}
 
+	TextureCubePtr TextureCube::createSRGBA8(int xres, int yres)
+	{
+		TextureCubePtr result = TextureCubePtr(new TextureCube());
+
+		result->m_textureFormat = GL_SRGB8;
+
+		return result;
+	}
+
 	TextureCube::TextureCube()
 	{
 

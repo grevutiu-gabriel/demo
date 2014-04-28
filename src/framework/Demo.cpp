@@ -3,6 +3,7 @@
 #include "elements/postprocess/PostProcess.h"
 #include "elements/stars/Stars.h"
 #include "elements/FlareShop/FlareShop.h"
+#include "elements/Nebulae/Nebulae.h"
 
 Demo::Demo( bool doAudio )
 {
@@ -40,6 +41,8 @@ void Demo::load( const std::string& filename )
 	stars->setFixedRotationEnabled(true);
 	stars->setFixedRotation( math::V3f(1.0f, 1.0f, 0.0f).normalized(), math::degToRad(5.0f) );
 	stars->setMotionblurScale(1.0f);
+	stars->setDomeBrightnessScale(0.0061f);
+	stars->setStarBrightnessScale(0.7f);
 	// volume
 	Volume::Ptr volume = Volume::create();
 	volume->load( basePathData + "/artifix_resized_moved.bgeo" );
@@ -53,6 +56,10 @@ void Demo::load( const std::string& filename )
 	post->setGlareEnabled(true);
 	post->setGlareBlurIterations(3);
 	post->setGlareAmount(0.1f);
+	post->setVignetteEnabled(true);
+	post->setVignetteStrength(1.0f);
+	post->setVignetteSoftness( 1.0f );
+	post->setVignetteScale(0.7f);
 
 	// manix shot ---------
 	{
@@ -77,6 +84,7 @@ void Demo::load( const std::string& filename )
 		Shot::ShotElement::Ptr se = Shot::ShotElement::create(post);
 		// ------------
 		base::Geometry::Ptr geo = houdini::HouGeoIO::importGeometry(basePathData + "/test.bgeo");
+		//base::Geometry::Ptr geo = houdini::HouGeoIO::importGeometry(basePathData + "/mountain.bgeo");
 
 //		base::Shader::Ptr shader = base::Shader::loadFromFile( basePathSrc + "/core/glsl/genericShader" );
 //		shader->setUniform("l", math::V3f(1.0f).normalized());
@@ -89,6 +97,8 @@ void Demo::load( const std::string& filename )
 		//base::Texture2d::Ptr tex = base::Texture2d::load( basePathData + "/droplet_01.png", GL_SRGB8 );
 		//base::Texture2d::Ptr tex = base::Texture2d::load( basePathData + "/00ZBrush_RedWax.png", GL_SRGB8 );
 		base::Texture2d::Ptr tex = base::Texture2d::load( basePathData + "/scary-light.jpg", GL_SRGB8 );
+		//base::Texture2d::Ptr tex = base::Texture2d::load( basePathData + "/bronze1.jpg", GL_SRGB8 );
+		//base::Texture2d::Ptr tex = base::Texture2d::load( basePathData + "/night2.jpg", GL_SRGB8 );
 
 		base::Context::getCurrentContext()->addTexture2d("droplet_01.png", tex);
 		shader->setUniform("tex", tex);
@@ -108,12 +118,31 @@ void Demo::load( const std::string& filename )
 		addShot(shot);
 	}
 
+	// Nebulae
+	{
+		Shot::Ptr shot = Shot::create( scene_test->getCamera("cam1") );
+
+
+		Shot::ShotElement::Ptr se = Shot::ShotElement::create(post);
+		Nebulae::Ptr nebulae = Nebulae::create();
+		nebulae->generate();
+
+		se->addChild(black);
+		se->addChild(stars);
+		se->addChild(nebulae);
+
+		shot->addElement(se);
+
+		addShot(shot);
+	}
+
 
 
 	// add clips
 	// clips define when on the global timeline which shot will be rendered
-	//addClip( 0, 0.0f, 24.0f, 24.0f );
+	addClip( 0, 0.0f, 24.0f, 24.0f );
 	addClip( 1, 24.0f, 48.0f, 24.0f );
+	addClip( 2, 36.0f, 72.0f, 24.0f );
 	//*/
 
 //	// TEMP ----------
@@ -130,7 +159,7 @@ void Demo::load( const std::string& filename )
 
 	// load audio ----
 	if(m_audio)
-		m_audio->load("c:\\projects\\demo\\git\\bin\\data\\heart_of_courage.ogg");
+		m_audio->load(basePathData + "/heart_of_courage.ogg");
 }
 
 

@@ -153,6 +153,7 @@ namespace base
 		int                                                                  m_textureFormat; // format of texture in gpu memory
 
 		static TextureCubePtr                      createRGBA8(int xres = 64, int yres = 64);
+		static TextureCubePtr                      createSRGBA8(int xres = 64, int yres = 64);
 	};
 
 }
