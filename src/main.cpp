@@ -234,7 +234,7 @@ int main(int argc, char ** argv)
 	glviewer->getOrbitNavigator().update();
 	//glviewer->setMouseMoveCallback( onMouseMove );
 	glviewer->show();
-	glviewer->setFullscreen(true);
+	//glviewer->setFullscreen(true);
 	return app.exec();
 	//*/
 

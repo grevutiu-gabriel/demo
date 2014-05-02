@@ -64,13 +64,15 @@ void Demo::load( const std::string& filename )
 	// manix shot ---------
 	{
 		// create shot
-		SwitchedShot::Ptr shot = SwitchedShot::create( scene->getSwitcher("switcher1") );
+		Shot::Ptr shot = Shot::create();
+		shot->m_cameraController = scene->getCamera("switcher1");
 
-		Shot::ShotElement::Ptr se = Shot::ShotElement::create(post);
+
+		ShotElement::Ptr se = ShotElement::create(post);
 		se->addChild(black);
-		Shot::ShotElement::Ptr volumese = se->addChild(volume);
-		volumese->setController("PointLightPosition", scene->getLocator("null1")->xform->translation);
-		volumese->setController("PointLightIntensity", scene->getChannel("ch1.x"));
+		se->addChild(volume);
+		shot->setController(volume, "PointLightPosition", scene->getLocator("null1")->getProperty("translation"));
+		shot->setController(volume, "PointLightIntensity", scene->getChannel("ch1.x"));
 		//volumese->setController(volume->m_transferFunction->getNode(1), "density", scene->getChannel("tfnode.density"));
 		//se->addChild(stars);
 		shot->addElement(se);
@@ -79,9 +81,10 @@ void Demo::load( const std::string& filename )
 
 	// geometry --------
 	{
-		SwitchedShot::Ptr shot = SwitchedShot::create( scene_test->getSwitcher("switcher1") );
+		Shot::Ptr shot = Shot::create();
+		shot->m_cameraController = scene_test->getCamera("switcher1");
 
-		Shot::ShotElement::Ptr se = Shot::ShotElement::create(post);
+		ShotElement::Ptr se = ShotElement::create(post);
 		// ------------
 		base::Geometry::Ptr geo = houdini::HouGeoIO::importGeometry(basePathData + "/test.bgeo");
 		//base::Geometry::Ptr geo = houdini::HouGeoIO::importGeometry(basePathData + "/mountain.bgeo");
@@ -120,10 +123,11 @@ void Demo::load( const std::string& filename )
 
 	// Nebulae
 	{
-		Shot::Ptr shot = Shot::create( scene_test->getCamera("cam1") );
+		Shot::Ptr shot = Shot::create();
+		shot->m_cameraController = scene_test->getCamera("cam1");
 
 
-		Shot::ShotElement::Ptr se = Shot::ShotElement::create(post);
+		ShotElement::Ptr se = ShotElement::create(post);
 		Nebulae::Ptr nebulae = Nebulae::create();
 		nebulae->generate();
 
@@ -142,7 +146,7 @@ void Demo::load( const std::string& filename )
 	// clips define when on the global timeline which shot will be rendered
 	addClip( 0, 0.0f, 24.0f, 24.0f );
 	addClip( 1, 24.0f, 48.0f, 24.0f );
-	addClip( 2, 36.0f, 72.0f, 24.0f );
+	//addClip( 2, 36.0f, 72.0f, 24.0f );
 	//*/
 
 //	// TEMP ----------

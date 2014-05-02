@@ -217,16 +217,14 @@ void PostProcess::setInput( base::Texture2dPtr input )
 	}
 }
 
-void PostProcess::begin(base::Context::Ptr context)
+void PostProcess::begin(base::Context::Ptr context, float time)
 {
 	m_inputFBO->begin();
 }
-void PostProcess::end(base::Context::Ptr context)
+void PostProcess::end(base::Context::Ptr context, float time)
 {
 	m_inputFBO->end();
-}
-void PostProcess::render(base::Context::Ptr context, float time)
-{
+
 	glDisable(GL_DEPTH_TEST);
 	///*
 	if( m_glare )
@@ -273,6 +271,7 @@ void PostProcess::render(base::Context::Ptr context, float time)
 	//context->renderScreen(m_bloomDownsampleOut[0]);
 	//*/
 }
+
 
 // GLARE =============================================
 

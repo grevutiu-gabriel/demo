@@ -30,9 +30,8 @@ struct PostProcess : public Element
 	static Ptr              create();
 
 	// onherited from Element
-	virtual void            begin(base::Context::Ptr context)override;
-	virtual void            end(base::Context::Ptr context)override;
-	virtual void            render(base::Context::Ptr context, float time)override;
+	virtual void            begin(base::Context::Ptr context, float time)override;
+	virtual void            end(base::Context::Ptr context, float time)override;
 
 	void                    setupShader();
 	void                    setInput( base::Texture2dPtr input );

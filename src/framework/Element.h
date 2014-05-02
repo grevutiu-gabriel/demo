@@ -11,10 +11,10 @@ struct Element : public Object
 	typedef std::shared_ptr<Element> Ptr;
 
 
-	virtual void begin(base::Context::Ptr context)
+	virtual void begin(base::Context::Ptr context, float time)
 	{
 	}
-	virtual void end(base::Context::Ptr context)
+	virtual void end(base::Context::Ptr context, float time)
 	{
 	}
 	virtual void render(base::Context::Ptr context, float time)

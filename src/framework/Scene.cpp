@@ -42,12 +42,6 @@ void Scene::load( const std::string& filename )
 			m_locators[name] = loadLocator(locator);
 		}
 	}
-
-
-
-
-
-
 	if(root && root->hasKey("cameras"))
 	{
 		houdini::json::ObjectPtr cameras = root->getObject("cameras");
@@ -73,7 +67,7 @@ void Scene::load( const std::string& filename )
 		{
 			std::string name = *it;
 			houdini::json::ObjectPtr switcher = switchers->getObject(name);
-			m_switchers[name] = loadSwitcher(switcher);
+			m_cameras[name] = loadSwitcher(switcher);
 		}
 	}
 	if(root && root->hasKey("channels"))
@@ -144,7 +138,7 @@ FloatController::Ptr Scene::loadTrack( houdini::json::ObjectPtr track )
 	return CurveFloatController::create( plf );
 }
 
-void Scene::loadTransform( houdini::json::ObjectPtr transform, Transform::Ptr xform )
+M44fController::Ptr Scene::loadTransform( houdini::json::ObjectPtr transform )
 {
 	houdini::json::ObjectPtr channels = transform->getObject("channels");
 	V3fController::Ptr translation;
@@ -205,22 +199,18 @@ void Scene::loadTransform( houdini::json::ObjectPtr transform, Transform::Ptr xf
 			rotation = ConstantV3fController::create(math::V3f(math::V3f(transform->get<float>("transform.rx"), transform->get<float>("transform.ry"), transform->get<float>("transform.rz"))));
 	}
 	V3fController::Ptr scale = ConstantV3fController::create(math::V3f(1.0f));
-	xform->xform = PRSController::create( translation, rotation, scale );
+	return PRSController::create( translation, rotation, scale );
 }
 
-Transform::Ptr Scene::loadLocator( houdini::json::ObjectPtr transform )
+M44fController::Ptr Scene::loadLocator( houdini::json::ObjectPtr transform )
 {
-	Transform::Ptr xform = Transform::create();
-
-	loadTransform( transform, xform );
-
-	return xform;
+	return loadTransform( transform );
 }
 
-Camera::Ptr Scene::loadCamera( houdini::json::ObjectPtr camera )
+CameraController::Ptr Scene::loadCamera( houdini::json::ObjectPtr camera )
 {
 	houdini::json::ObjectPtr channels = camera->getObject("channels");
-	Camera::Ptr cam = Camera::create();
+	PerspectiveCameraController::Ptr cam = PerspectiveCameraController::create();
 
 	math::V2i res(int(camera->getValue("resx").as<float>()), int(camera->getValue("resy").as<float>()));
 	float asp = 1.0f; // pixel aspect
@@ -236,16 +226,14 @@ Camera::Ptr Scene::loadCamera( houdini::json::ObjectPtr camera )
 
 	cam->fov = ConstantFloatController::create( fovy );
 	cam->aspect = ConstantFloatController::create( fovx/fovy );
-	cam->projectionMatrix = ProjectionMatrixController::create( cam->fov, cam->aspect );
-
-	loadTransform( camera, cam );
+	cam->xform = loadTransform( camera);
 
 	return cam;
 }
 
-Switcher::Ptr Scene::loadSwitcher( houdini::json::ObjectPtr switcher )
+CameraController::Ptr Scene::loadSwitcher( houdini::json::ObjectPtr switcher )
 {
-	Switcher::Ptr s = Switcher::create();
+	CameraSwitchController::Ptr s = CameraSwitchController::create();
 	houdini::json::ObjectPtr channels = switcher->getObject("channels");
 	if(channels->hasKey("camswitch"))
 	{
@@ -259,7 +247,7 @@ Switcher::Ptr Scene::loadSwitcher( houdini::json::ObjectPtr switcher )
 		for( int i=0;i<numItems;++i )
 		{
 			std::string cameraName = cameras->get<std::string>(i);
-			Camera::Ptr cam = getCamera( cameraName );
+			CameraController::Ptr cam = getCamera( cameraName );
 			if( cam )
 				s->m_cameras.push_back( cam );
 		}

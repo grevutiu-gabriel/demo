@@ -23,36 +23,71 @@ struct Transform
 };
 
 
-struct Camera : public Transform
+struct PerspectiveCameraController : public CameraController
 {
-	typedef std::shared_ptr<Camera> Ptr;
-	Camera() : Transform()
+	typedef std::shared_ptr<PerspectiveCameraController> Ptr;
+	PerspectiveCameraController() : CameraController()
 	{
+		m_camera = std::make_shared<base::Camera>();
+		// TODO, make sure proj is not rebuild all the time when fov is not animated
+		m_fovIsAnimated = true;
+		m_xformIsAnimated = true;
 	}
 	static Ptr create()
 	{
-		return std::make_shared<Camera>();
+		return std::make_shared<PerspectiveCameraController>();
+	}
+	virtual base::Camera::Ptr evaluate(float time)override
+	{
+		// assemble camera ----
+
+		// projectionMatrix changes
+		if( m_fovIsAnimated )
+			m_camera->setProjection(math::projectionMatrix( fov->evaluate(time), aspect->evaluate(time), m_camera->m_znear, m_camera->m_zfar ));
+		// transform changes
+		if( m_xformIsAnimated )
+			m_camera->setViewToWorld( xform->evaluate(time) );
+
+		return m_camera;
+	}
+
+	virtual bool isAnimated()const override
+	{
+		return fov->isAnimated()||xform->isAnimated();
 	}
 
 
-	FloatController::Ptr fov;
+	FloatController::Ptr fov; // in radians
 	FloatController::Ptr aspect;
-	M44fController::Ptr projectionMatrix;
+	M44fController::Ptr  xform;
+
+private:
+	base::Camera::Ptr m_camera;
+	bool m_fovIsAnimated;
+	bool m_xformIsAnimated;
 };
 
-struct Switcher
+struct CameraSwitchController : public CameraController
 {
-	typedef std::shared_ptr<Switcher> Ptr;
-	Switcher()
+	typedef std::shared_ptr<CameraSwitchController> Ptr;
+	CameraSwitchController() : CameraController()
 	{
 	}
 	static Ptr create()
 	{
-		return std::make_shared<Switcher>();
+		return std::make_shared<CameraSwitchController>();
 	}
-
-	FloatController::Ptr m_switch;
-	std::vector<Camera::Ptr> m_cameras;
+	virtual base::Camera::Ptr evaluate(float time)override
+	{
+		int sw = int(m_switch->evaluate(time));
+		return m_cameras[ sw ]->evaluate(time);
+	}
+	virtual bool isAnimated()const override
+	{
+		return m_switch->isAnimated();
+	}
+	FloatController::Ptr               m_switch;
+	std::vector<CameraController::Ptr> m_cameras;
 };
 
 
@@ -71,26 +106,19 @@ struct Scene
 
 	void load( const std::string& filename );
 
-	Camera::Ptr getCamera( const std::string& name )
+	CameraController::Ptr getCamera( const std::string& name )
 	{
 		auto it = m_cameras.find(name);
 		if( it!=m_cameras.end() )
 			return it->second;
-		return Camera::Ptr();
+		return CameraController::Ptr();
 	}
-	Switcher::Ptr getSwitcher( const std::string& name )
-	{
-		auto it = m_switchers.find(name);
-		if( it!=m_switchers.end() )
-			return it->second;
-		return Switcher::Ptr();
-	}
-	Transform::Ptr getLocator( const std::string& name )
+	M44fController::Ptr getLocator( const std::string& name )
 	{
 		auto it = m_locators.find(name);
 		if( it!=m_locators.end() )
 			return it->second;
-		return Transform::Ptr();
+		return M44fController::Ptr();
 	}
 	Controller::Ptr getChannel( const std::string& name )
 	{
@@ -100,16 +128,15 @@ struct Scene
 		return Controller::Ptr();
 	}
 
-	std::map<std::string, Camera::Ptr> m_cameras;
-	std::map<std::string, Switcher::Ptr> m_switchers;
-	std::map<std::string, Transform::Ptr> m_locators;
-	std::map<std::string, Controller::Ptr> m_channels; // generic animations
+	std::map<std::string, CameraController::Ptr> m_cameras;
+	std::map<std::string, M44fController::Ptr>   m_locators;
+	std::map<std::string, Controller::Ptr>       m_channels; // generic animations
 
 private:
-	void loadTransform( houdini::json::ObjectPtr transform, Transform::Ptr xform );
-	Transform::Ptr loadLocator( houdini::json::ObjectPtr transform );
-	Camera::Ptr loadCamera( houdini::json::ObjectPtr camera );
-	Switcher::Ptr loadSwitcher( houdini::json::ObjectPtr switcher );
+	M44fController::Ptr loadTransform( houdini::json::ObjectPtr transform );
+	M44fController::Ptr loadLocator( houdini::json::ObjectPtr transform );
+	CameraController::Ptr loadCamera( houdini::json::ObjectPtr camera );
+	CameraController::Ptr loadSwitcher( houdini::json::ObjectPtr switcher );
 	void loadChannel( const std::string& name, houdini::json::ObjectPtr channel );
 	FloatController::Ptr loadTrack( houdini::json::ObjectPtr track );
 };

@@ -2,20 +2,27 @@
 
 #include <math/Math.h>
 #include <util/PiecewiseLinearFunction.h>
-#include "Property.h"
+#include "Object.h"
+
+
+#include <gfx/Camera.h>
 
 
 
 
 
-
-
-
-struct Controller
+struct Controller : public Object
 {
 	typedef std::shared_ptr<Controller> Ptr;
 	virtual void update( Property::Ptr prop, float time)=0;
 	virtual bool isAnimated()const=0;
+
+	/*
+
+	  set( "name", Controller::Ptr );
+
+
+	*/
 };
 
 template<typename T>
@@ -41,6 +48,7 @@ struct ControllerT : public Controller
 typedef ControllerT<float> FloatController;
 typedef ControllerT<math::V3f> V3fController;
 typedef ControllerT<math::M44f> M44fController;
+typedef ControllerT<base::Camera::Ptr> CameraController;
 
 template<typename T>
 struct ConstantController : public ControllerT<T>
@@ -72,6 +80,7 @@ private:
 typedef ConstantController<float> ConstantFloatController;
 typedef ConstantController<math::V3f> ConstantV3fController;
 typedef ConstantController<math::M44f> ConstantM44fController;
+typedef ConstantController<base::Camera::Ptr> ConstantCameraController;
 
 
 template<typename T>
@@ -111,13 +120,8 @@ struct PRSController : public M44fController
 {
 	typedef std::shared_ptr<PRSController> Ptr;
 
-	PRSController( V3fController::Ptr translation, V3fController::Ptr rotation, V3fController::Ptr scale ) :
-		M44fController(),
-		translation(translation),
-		rotation(rotation),
-		scale(scale)
-	{
-	}
+	PRSController( V3fController::Ptr translation, V3fController::Ptr rotation, V3fController::Ptr scale );
+
 	static Ptr create(V3fController::Ptr translation, V3fController::Ptr rotation, V3fController::Ptr scale)
 	{
 		return std::make_shared<PRSController>(translation, rotation, scale);
@@ -140,6 +144,10 @@ struct PRSController : public M44fController
 	V3fController::Ptr translation;
 	V3fController::Ptr rotation;
 	V3fController::Ptr scale;
+
+public:
+	V3fController::Ptr getTranslation() const;
+	void setTranslation(const V3fController::Ptr &value);
 };
 
 struct SinusController : public FloatController
@@ -219,3 +227,5 @@ struct FloatToV3fController : public V3fController
 
 	FloatController::Ptr m_x,m_y,m_z;
 };
+
+

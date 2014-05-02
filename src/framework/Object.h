@@ -5,13 +5,19 @@
 
 
 
-struct Object
+class Object
 {
+public:
 	typedef std::shared_ptr<Object> Ptr;
+	typedef std::vector<Ptr> ChildList;
 
 	Object()
 	{
 	}
+	virtual ~Object()
+	{
+	}
+
 
 
 	template<typename T>
@@ -27,6 +33,20 @@ struct Object
 			// if property exists already, we do what?
 		}
 	}
+	template<typename T>
+	void addRefProperty( const std::string& name, typename RefPropertyT<T>::Getter get, typename RefPropertyT<T>::Setter set)
+	{
+		RefPropertyT<T>::Ptr prop = RefPropertyT<T>::create(name, get, set);
+
+		if( !hasProperty(name) )
+		{
+			m_props[name] = prop;
+		}else
+		{
+			// if property exists already, we do what?
+		}
+	}
+
 
 	Property::Ptr getProperty( const std::string& name )
 	{
@@ -41,6 +61,10 @@ struct Object
 		return m_props.find( name ) != m_props.end();
 	}
 
+	ChildList& getChildren()
+	{
+		return m_childs;
+	}
 
 	void print( std::ostream& out )const
 	{
@@ -50,5 +74,6 @@ struct Object
 
 private:
 	std::map<std::string, Property::Ptr> m_props;
+	std::vector<Ptr>                     m_childs;
 };
 
