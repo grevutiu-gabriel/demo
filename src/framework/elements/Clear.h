@@ -4,18 +4,27 @@
 #include "../Element.h"
 
 
-struct Clear : public Element
+class Clear : public Element
 {
+	OBJECT
+public:
 	typedef std::shared_ptr<Clear> Ptr;
 
-	Clear( math::V3f color ) : Element(), m_color(color)
+	Clear() :
+		Element(),
+		m_color(math::V3f(0.0f))
 	{
 		addProperty<math::V3f>( "color", std::bind( &Clear::getColor, this ), std::bind( &Clear::setColor, this, std::placeholders::_1 ) );
 	}
 
-	static Ptr create( math::V3f color )
+//	Clear( math::V3f color ) : Element(), m_color(color)
+//	{
+//		addProperty<math::V3f>( "color", std::bind( &Clear::getColor, this ), std::bind( &Clear::setColor, this, std::placeholders::_1 ) );
+//	}
+
+	static Ptr create()
 	{
-		return std::make_shared<Clear>(color);
+		return std::make_shared<Clear>();
 	}
 
 	math::V3f getColor()const
@@ -30,6 +39,7 @@ struct Clear : public Element
 
 	virtual void render(base::Context::Ptr context, float time)override
 	{
+		//std::cout << m_color.x << " " << m_color.y << " " << m_color.z << std::endl;
 		glClearColor(m_color.x, m_color.y, m_color.z, 1.0f);
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}

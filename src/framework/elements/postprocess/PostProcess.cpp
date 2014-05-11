@@ -471,3 +471,5 @@ float PostProcess::getVignetteSoftness()const
 {
 	return m_vignetteSoftness;
 }
+
+REGISTERCLASS( PostProcess )

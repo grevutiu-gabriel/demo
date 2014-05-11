@@ -22,3 +22,6 @@ void PRSController::setTranslation(const V3fController::Ptr &value)
 {
 	translation = value;
 }
+
+REGISTERCLASS( SinusController )
+REGISTERCLASS( FloatToV3fController )

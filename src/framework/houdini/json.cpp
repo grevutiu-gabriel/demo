@@ -956,12 +956,27 @@ namespace houdini
 			v.m_array = ArrayPtr( new Array() );
 			return v;
 		}
+		Value Value::createArray(ArrayPtr array)
+		{
+			Value v;
+			v.m_type = TYPE_ARRAY;
+			v.m_array = array;
+			return v;
+		}
 
 		Value Value::createObject()
 		{
 			Value v;
 			v.m_type = TYPE_OBJECT;
 			v.m_object = Object::create();
+			return v;
+		}
+
+		Value Value::createObject(ObjectPtr obj)
+		{
+			Value v;
+			v.m_type = TYPE_OBJECT;
+			v.m_object = obj;
 			return v;
 		}
 
@@ -976,6 +991,11 @@ namespace houdini
 				free(m_uniformdata);
 		}
 
+		ArrayPtr Array::create()
+		{
+			return std::make_shared<Array>();
+		}
+
 		bool Array::isUniform()const
 		{
 			return m_isUniform;
@@ -984,6 +1004,14 @@ namespace houdini
 		void Array::append( Value &value )
 		{
 			m_values.push_back( value );
+		}
+
+		void Array::append(ObjectPtr &object)
+		{
+			Value v;
+			v.m_type = Value::TYPE_OBJECT;
+			v.m_object = object;
+			append(v);
 		}
 
 		sint64 Array::size()const
@@ -1093,6 +1121,14 @@ namespace houdini
 			Value v;
 			v.m_type = Value::TYPE_OBJECT;
 			v.m_object = object;
+			m_values.insert( std::make_pair(key, v) );
+		}
+
+		void Object::append(const std::string &key, ArrayPtr array)
+		{
+			Value v;
+			v.m_type = Value::TYPE_ARRAY;
+			v.m_array = array;
 			m_values.insert( std::make_pair(key, v) );
 		}
 

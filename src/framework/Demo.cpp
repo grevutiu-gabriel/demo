@@ -5,11 +5,237 @@
 #include "elements/FlareShop/FlareShop.h"
 #include "elements/Nebulae/Nebulae.h"
 
+#include <stack>
+
+
+
+struct JSONWriter
+{
+	JSONWriter( std::ostream *out )
+	{
+		m_writer= new houdini::json::ASCIIWriter( out );
+	}
+	~JSONWriter()
+	{
+		delete m_writer;
+	}
+
+	void writeValue( houdini::json::Value value )
+	{
+		if( value.isArray() )
+		{
+			houdini::json::ArrayPtr array = value.asArray();
+			int numElements = array->size();
+			m_writer->jsonBeginArray();
+			for( int i=0;i<numElements;++i )
+			{
+				houdini::json::Value v = array->getValue(i);
+				writeValue(v);
+			}
+			m_writer->jsonEndArray();
+		}else
+		if( value.isObject() )
+		{
+			houdini::json::ObjectPtr obj = value.asObject();
+			std::vector<std::string> keys;
+			obj->getKeys(keys);
+			m_writer->jsonBeginMap();
+			for( auto it = keys.begin(), end=keys.end();it!=end;++it )
+			{
+				std::string key = *it;
+				m_writer->jsonKey( key );
+				writeValue( obj->getValue(key) );
+			}
+			m_writer->jsonEndMap();
+		}else
+		{
+			houdini::json::Value::Variant variant = value.getVariant();
+			ttl::var::apply_visitor(*this, variant);
+		}
+	}
+	void operator()( bool value )
+	{
+		m_writer->jsonBool(value);
+	}
+	void operator()( float value )
+	{
+		m_writer->jsonReal32(value);
+	}
+	void operator()( double value )
+	{
+		m_writer->jsonReal64(value);
+	}
+	void operator()( int value )
+	{
+		m_writer->jsonInt32(value);
+	}
+	void operator()( sint64 value )
+	{
+		m_writer->jsonInt64(value);
+	}
+	void operator()( ubyte value )
+	{
+		m_writer->jsonUInt8(value);
+	}
+	void operator()( std::string value )
+	{
+		m_writer->jsonString(value);
+	}
+private:
+	houdini::json::ASCIIWriter* m_writer;
+};
+
+
+
+
+struct DemoSerializer : public Serializer
+{
+	struct SerializedObject
+	{
+		int id;
+		houdini::json::Value value;
+	};
+
+	DemoSerializer( Demo* demo, std::ostream *out )
+	{
+		m_writer= new JSONWriter( out );
+
+		houdini::json::ObjectPtr root = houdini::json::Object::create();
+		m_jsonObjectStack.push( root );
+
+		demo->serialize(*this);
+	}
+	~DemoSerializer()
+	{
+		houdini::json::ObjectPtr root = m_jsonObjectStack.top();
+		m_jsonObjectStack.pop();
+
+		// objects
+		{
+			int numObjects = int(m_serializeMap.size());
+			houdini::json::ArrayPtr objects = houdini::json::Array::create();
+			std::vector<Object::Ptr> sorted(numObjects);
+			for( auto it=m_serializeMap.begin(),end=m_serializeMap.end();it!=end;++it )
+				sorted[it->second.id] = it->first;
+
+			for( auto it=sorted.begin(),end=sorted.end();it!=end;++it )
+			{
+				Object::Ptr obj = *it;
+				objects->append( m_serializeMap[obj].value );
+			}
+			root->append( "objects", objects );
+		}
+
+		// now, finally write out the json object hierarchy
+		m_writer->writeValue( houdini::json::Value::createObject(root) );
+		delete m_writer;
+	}
+
+	// overrides from Serializer ---
+	virtual void write( const std::string& key, unsigned char value )override
+	{
+		m_jsonObjectStack.top()->appendValue<unsigned char>( key, value );
+	}
+
+	virtual void write( const std::string& key, const std::string& value )override
+	{
+		m_jsonObjectStack.top()->appendValue<std::string>( key, value );
+	}
+
+	virtual void write( const std::string& key, float value )override
+	{
+		m_jsonObjectStack.top()->appendValue<float>( key, value );
+	}
+
+	virtual void write( const std::string& key, int value )override
+	{
+		m_jsonObjectStack.top()->appendValue<int>( key, value );
+	}
+
+	virtual void write( const std::string& key, Object::Ptr object )override
+	{
+		m_jsonObjectStack.top()->append( key, serialize(object) );
+	}
+
+	virtual void write( const std::string& key, houdini::json::ObjectPtr jsonObject )
+	{
+		m_jsonObjectStack.top()->append( key, jsonObject );
+	}
+
+	virtual void write( const std::string& key, houdini::json::ArrayPtr array )
+	{
+		m_jsonObjectStack.top()->append( key, array );
+	}
+
+	virtual void write( const std::string& key, houdini::json::Value value )override
+	{
+		m_jsonObjectStack.top()->append( key, value );
+	}
+
+	virtual houdini::json::Value serialize( Object::Ptr object )override
+	{
+		auto it = m_serializeMap.find( object );
+		if( it != m_serializeMap.end() )
+			return houdini::json::Value::create<int>(it->second.id);
+
+		// object has not been serialized yet --- so serialize it now
+		SerializedObject so;
+		// get id
+		so.id = int(m_serializeMap.size());
+		houdini::json::ObjectPtr json = houdini::json::Object::create();
+		so.value = houdini::json::Value::createObject(json);
+		// store object for serialization
+		// this is done before serialization because otherwise the ids wont
+		// get incremented
+		m_serializeMap.insert(std::make_pair(object, so));
+
+
+		// push json object onto stack which will hold serialized data from object
+		m_jsonObjectStack.push( json );
+		// now serialize object...everything goes into the object  on the object stack
+		object->serialize(*this);
+		m_jsonObjectStack.pop();
+
+
+		// done - return reference
+		return houdini::json::Value::create<int>(so.id);
+	}
+
+
+private:
+
+
+
+
+	JSONWriter* m_writer;
+	std::map<Object::Ptr, SerializedObject>           m_serializeMap; // objects to be serialized with their associated id
+	std::stack<houdini::json::ObjectPtr>              m_jsonObjectStack;
+
+};
+
+
+
+
+
+
+
+
+
 Demo::Demo( bool doAudio )
 {
+	base::setVariable("$DATA", base::path("data").str());
 	if(doAudio)
 		m_audio = std::make_shared<Audio>();
 }
+
+
+
+//void Demo::addElement(Element::Ptr element)
+//{
+//	if(!element)
+//		throw std::runtime_error( "Demo::addElement: nullptr" );
+//	m_elements.push_back(element);
+//}
 
 Shot::Ptr Demo::getShot( int index )
 {
@@ -21,18 +247,73 @@ int Demo::getNumShots() const
 	return int(m_shots.size());
 }
 
+void Demo::loadScene( const std::string& filename )
+{
+	Scene::Ptr scene = Scene::create();
+	scene->load(filename);
+	m_scenes.push_back(scene);
+}
+
 void Demo::load( const std::string& filename )
 {
 	std::string basePathData = base::path("data");
 	std::string basePathSrc = base::path("src");
 
-	///*
-	// load scenes ------
-	Scene::Ptr scene = Scene::create();
-	scene->load(basePathData + "/artifix.scn");
-	Scene::Ptr scene_test = Scene::create();
-	scene_test->load(basePathData + "/test.scn");
 
+	// load scenes ------
+	loadScene("$DATA/artifix.scn");
+	loadScene("$DATA/test.scn");
+/*
+	// create all object instances ---
+	m_deserializeMap[0] = ObjectFactory::create("Clear");
+
+	m_deserializeMap[1] = ObjectFactory::create("Stars");
+	m_deserializeMap[2] = ObjectFactory::create("Volume");
+	m_deserializeMap[3] = ObjectFactory::create("PostProcess");
+	m_deserializeMap[4] = ObjectFactory::create("Nebulae");
+	m_deserializeMap[5] = ObjectFactory::create("RenderGeometry");
+	m_deserializeMap[6] = ObjectFactory::create("FlareShop");
+	m_deserializeMap[7] = ObjectFactory::create("Shot");
+
+	// deserialize all objects in a second pass (allows objects to reference each other in their serialization) ---
+	//...
+
+	// deserialize shots ---
+	addShot( std::dynamic_pointer_cast<Shot>(m_deserializeMap[7]) );
+*/
+
+	Shot::Ptr shot = Shot::create();
+	addShot(shot);
+
+	Element::Ptr clear = ObjectFactory::create<Element>("Clear");
+	shot->addElement( clear );
+
+	Controller::Ptr toV3f = ObjectFactory::create<Controller>("FloatToV3fController");
+	Controller::Ptr test = ObjectFactory::create<Controller>("SinusController");
+	shot->setPropertyController( clear, "color", toV3f );
+	//shot->setPropertyController( toV3f, "x", test );
+	//shot->setPropertyController( toV3f, "y", test );
+	//shot->setPropertyController( toV3f, "z", test );
+
+	SceneController::Ptr ch1 = SceneController::create(m_scenes[0],"ch1.x");
+	shot->setPropertyController( toV3f, "y", ch1 );
+
+	shot->prepareForRendering();
+
+
+//	// load elements ------
+//	addElement( ObjectFactory::create<Element>("Clear") );
+//	addElement( ObjectFactory::create<Element>("Stars") );
+//	addElement( ObjectFactory::create<Element>("Volume") );
+//	addElement( ObjectFactory::create<Element>("PostProcess") );
+//	addElement( ObjectFactory::create<Element>("Nebulae") );
+//	addElement( ObjectFactory::create<Element>("RenderGeometry") );
+//	addElement( ObjectFactory::create<Element>("FlareShop") );
+
+	// load shots -----
+
+
+	/*
 	// load elements ----
 	// black background
 	Element::Ptr black = Clear::create(math::V3f(0.0f, 0.0f, 0.0f));
@@ -147,7 +428,6 @@ void Demo::load( const std::string& filename )
 	addClip( 0, 0.0f, 24.0f, 24.0f );
 	addClip( 1, 24.0f, 48.0f, 24.0f );
 	//addClip( 2, 36.0f, 72.0f, 24.0f );
-	//*/
 
 //	// TEMP ----------
 //	{
@@ -159,16 +439,17 @@ void Demo::load( const std::string& filename )
 //		this->addShot(shot);
 //		addClip( 0, 0.0f, 1.0f, 1.0f );
 //	}
-
+	*/
 
 	// load audio ----
-	if(m_audio)
-		m_audio->load(basePathData + "/heart_of_courage.ogg");
+	//if(m_audio)
+	//	m_audio->load(basePathData + "/heart_of_courage.ogg");
 }
 
 
 void Demo::render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera )
 {
+/*
 	//std::cout << "Demo::render\n";
 
 	//TODO: update time controller
@@ -178,10 +459,46 @@ void Demo::render( base::Context::Ptr context, float time, base::Camera::Ptr ove
 	int newShotIndex = clip.shotIndex;
 //	//std::cout << time << " rendering shot " << newShotIndex << std::endl;
 
-	Shot::Ptr shot = m_shots[newShotIndex];
-	shot->render(context, clip.toShotTime(time), overrideCamera);
-
+*/
+	if( !m_shots.empty() )
+	{
+		int newShotIndex = 0;
+		Shot::Ptr shot = m_shots[newShotIndex];
+		shot->render(context, time, overrideCamera);
+	}
 }
+
+void Demo::serialize(Serializer &out)
+{
+	// scenes
+	{
+		houdini::json::ArrayPtr scenes = houdini::json::Array::create();
+		for( auto it = m_scenes.begin(), end=m_scenes.end();it!=end;++it )
+		{
+			Scene::Ptr scene = *it;
+			//scenes->append( houdini::json::Value::create<std::string>(scene->getFilename()) );
+			scenes->append( out.serialize(scene) );
+		}
+		out.write( "scenes", scenes );
+	}
+
+	// shots
+	{
+		houdini::json::ArrayPtr shots = houdini::json::Array::create();
+		for( auto it = m_shots.begin(), end=m_shots.end();it!=end;++it )
+		{
+			Shot::Ptr shot = *it;
+			shots->append( out.serialize(shot) );
+		}
+		out.write( "shots", shots );
+	}
+}
+
+void Demo::store(const std::string &filename)
+{
+	DemoSerializer de( this, &std::cout );
+}
+
 
 int Demo::addShot( Shot::Ptr shot )
 {
@@ -209,3 +526,6 @@ void Demo::addClip(int shotIndex, float shotStart , float shotEnd, float clipDur
 		lastEnd += c.duration;
 	}
 }
+
+
+REGISTERCLASS(Demo)

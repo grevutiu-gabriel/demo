@@ -39,8 +39,10 @@ private:
 
 
 
-struct FlareShop : public Element
+class FlareShop : public Element
 {
+	OBJECT
+public:
 	typedef std::shared_ptr<FlareShop> Ptr;
 
 	FlareShop();

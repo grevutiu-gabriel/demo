@@ -213,4 +213,4 @@ void ChromaticRing::updateGeometry()
 	}
 }
 
-
+REGISTERCLASS( FlareShop )

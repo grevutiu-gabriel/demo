@@ -6,8 +6,10 @@
 
 
 
-struct Element : public Object
+class Element : public Object
 {
+	OBJECT
+public:
 	typedef std::shared_ptr<Element> Ptr;
 
 
@@ -20,6 +22,4 @@ struct Element : public Object
 	virtual void render(base::Context::Ptr context, float time)
 	{
 	}
-
-
 };

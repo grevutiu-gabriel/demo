@@ -8,8 +8,10 @@
 
 #include "../../Element.h"
 
-struct PostProcess : public Element
+class PostProcess : public Element
 {
+	OBJECT
+public:
 	typedef std::shared_ptr<PostProcess> Ptr;
 
 	// parameters for filmic tonemapping

@@ -11,23 +11,18 @@
 
 
 
-struct Controller : public Object
+class Controller : public Object
 {
+public:
 	typedef std::shared_ptr<Controller> Ptr;
 	virtual void update( Property::Ptr prop, float time)=0;
 	virtual bool isAnimated()const=0;
-
-	/*
-
-	  set( "name", Controller::Ptr );
-
-
-	*/
 };
 
 template<typename T>
-struct ControllerT : public Controller
+class ControllerT : public Controller
 {
+public:
 	typedef std::shared_ptr<ControllerT<T>> Ptr;
 
 	ControllerT() : Controller()
@@ -38,7 +33,9 @@ struct ControllerT : public Controller
 	{
 		PropertyT<T>::Ptr propt = std::dynamic_pointer_cast<PropertyT<T>>(prop);
 		if(propt)
+		{
 			propt->set(evaluate(time));
+		}
 	}
 
 	virtual T evaluate(float time)=0;
@@ -51,8 +48,9 @@ typedef ControllerT<math::M44f> M44fController;
 typedef ControllerT<base::Camera::Ptr> CameraController;
 
 template<typename T>
-struct ConstantController : public ControllerT<T>
+class ConstantController : public ControllerT<T>
 {
+public:
 	typedef std::shared_ptr<ConstantController<T>> Ptr;
 
 	ConstantController( T value ) : ControllerT<T>(), m_value(value)
@@ -84,10 +82,47 @@ typedef ConstantController<base::Camera::Ptr> ConstantCameraController;
 
 
 template<typename T>
-struct CurveControllerT : public ControllerT<T>
+class CurveControllerTOld : public ControllerT<T>
 {
+public:
+	typedef std::shared_ptr<CurveControllerTOld> Ptr;
+	CurveControllerTOld( base::PiecewiseLinearFunction<T>& curve ) : ControllerT<T>(), curve(curve), m_isAnimated(false)
+	{
+		float miny, maxy;
+		curve.getValueRange(miny, maxy);
+		if( abs(miny-maxy)>0.0f )
+			m_isAnimated = true;
+	}
+	static Ptr create( base::PiecewiseLinearFunction<T>& curve )
+	{
+		return std::make_shared<CurveControllerTOld<T>>(curve);
+	}
+	T evaluate(float time)override
+	{
+		return curve.evaluate(time);
+	}
+	virtual bool isAnimated()const override
+	{
+		return m_isAnimated;
+	}
+
+	base::PiecewiseLinearFunction<T> curve;
+
+private:
+	bool m_isAnimated;
+};
+
+typedef CurveControllerTOld<float> CurveFloatControllerOld;
+
+template<typename T>
+class CurveControllerT : public ControllerT<T>
+{
+public:
 	typedef std::shared_ptr<CurveControllerT> Ptr;
-	CurveControllerT( base::PiecewiseLinearFunction<T>& curve ) : ControllerT<T>(), curve(curve), m_isAnimated(false)
+	CurveControllerT( base::PiecewiseLinearFunction<T>& curve ) :
+		ControllerT<T>(),
+		curve(curve),
+		m_isAnimated(false)
 	{
 		float miny, maxy;
 		curve.getValueRange(miny, maxy);
@@ -116,8 +151,9 @@ private:
 typedef CurveControllerT<float> CurveFloatController;
 
 
-struct PRSController : public M44fController
+class PRSController : public M44fController
 {
+public:
 	typedef std::shared_ptr<PRSController> Ptr;
 
 	PRSController( V3fController::Ptr translation, V3fController::Ptr rotation, V3fController::Ptr scale );
@@ -150,8 +186,10 @@ public:
 	void setTranslation(const V3fController::Ptr &value);
 };
 
-struct SinusController : public FloatController
+class SinusController : public FloatController
 {
+	OBJECT
+public:
 	typedef std::shared_ptr<SinusController> Ptr;
 
 	SinusController() : FloatController()
@@ -172,8 +210,9 @@ struct SinusController : public FloatController
 	}
 };
 
-struct ProjectionMatrixController : public M44fController
+class ProjectionMatrixController : public M44fController
 {
+public:
 	typedef std::shared_ptr<ProjectionMatrixController> Ptr;
 
 	ProjectionMatrixController( FloatController::Ptr fovy, FloatController::Ptr aspect ) : M44fController(), fovy(fovy), aspect(aspect)
@@ -198,11 +237,12 @@ struct ProjectionMatrixController : public M44fController
 
 };
 
-struct FloatToV3fController : public V3fController
+class FloatToV3fControllerOld : public V3fController
 {
-	typedef std::shared_ptr<FloatToV3fController> Ptr;
+public:
+	typedef std::shared_ptr<FloatToV3fControllerOld> Ptr;
 
-	FloatToV3fController(FloatController::Ptr x, FloatController::Ptr y, FloatController::Ptr z) : V3fController(), m_x(x), m_y(y), m_z(z)
+	FloatToV3fControllerOld(FloatController::Ptr x, FloatController::Ptr y, FloatController::Ptr z) : V3fController(), m_x(x), m_y(y), m_z(z)
 	{
 		if(!m_x)
 			m_x = ConstantFloatController::create(0.0f);
@@ -213,7 +253,7 @@ struct FloatToV3fController : public V3fController
 	}
 	static Ptr create( FloatController::Ptr x, FloatController::Ptr y, FloatController::Ptr z )
 	{
-		return std::make_shared<FloatToV3fController>(x,y,z);
+		return std::make_shared<FloatToV3fControllerOld>(x,y,z);
 	}
 
 	math::V3f evaluate(float time)override
@@ -228,4 +268,44 @@ struct FloatToV3fController : public V3fController
 	FloatController::Ptr m_x,m_y,m_z;
 };
 
+
+class FloatToV3fController : public V3fController
+{
+	OBJECT
+public:
+	typedef std::shared_ptr<FloatToV3fController> Ptr;
+
+	FloatToV3fController() :
+		V3fController(),
+		m_x(0.0f),
+		m_y(0.0f),
+		m_z(0.0f)
+	{
+		addProperty<float>( "x", std::bind( &FloatToV3fController::getX, this ), std::bind( &FloatToV3fController::setX, this, std::placeholders::_1 ) );
+		addProperty<float>( "y", std::bind( &FloatToV3fController::getY, this ), std::bind( &FloatToV3fController::setY, this, std::placeholders::_1 ) );
+		addProperty<float>( "z", std::bind( &FloatToV3fController::getZ, this ), std::bind( &FloatToV3fController::setZ, this, std::placeholders::_1 ) );
+	}
+	static Ptr create()
+	{
+		return std::make_shared<FloatToV3fController>();
+	}
+
+	math::V3f evaluate(float time)override
+	{
+		return math::V3f(m_x, m_y, m_z);
+	}
+	virtual bool isAnimated()const override
+	{
+		return true;
+	}
+
+	void setX( float x ){m_x = x;}
+	float getX()const{return m_x;}
+	void setY( float y ){m_y = y;}
+	float getY()const{return m_y;}
+	void setZ( float z ){m_z = z;}
+	float getZ()const{return m_z;}
+
+	float m_x, m_y, m_z;
+};
 

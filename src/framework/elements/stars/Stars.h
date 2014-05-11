@@ -17,8 +17,10 @@
 
 #include <math/Half/half.h>
 
-struct Stars : public Element
+class Stars : public Element
 {
+	OBJECT
+public:
 	typedef std::shared_ptr<Stars> Ptr;
 
 

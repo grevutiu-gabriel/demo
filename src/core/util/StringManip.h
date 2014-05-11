@@ -20,7 +20,7 @@ namespace base
 
 	inline std::string trim (const std::string & s, const std::string & t = " \t\r\n");
 
-
+	std::string replace(std::string &s, const std::string& toReplace, const std::string& replaceWith);
 	// split a line into the first word, and rest-of-the-line
 	std::string getWord (std::string & s, const std::string delim = " ",const bool trim_spaces = true);
 

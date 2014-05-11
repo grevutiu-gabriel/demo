@@ -782,3 +782,6 @@ base::GeometryPtr Nebulae::getParticleGeometry()
 	//writePRT( filename, attrs, 1 );
 	*/
 }
+
+
+REGISTERCLASS( Nebulae )

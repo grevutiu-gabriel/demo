@@ -322,9 +322,9 @@ Volume::Volume() : Element()
 
 	// artifix tf
 	m_transferFunction->addNode( 0.0f, math::V4f(160.0f/255.0f, 160.0f/255.0f, 164.0f/255.0f, 0.0f*scale) );
-	m_transferFunction->addNode( 0.266535, math::V4f(68.0f/255.0f, 0.0f/255.0f, 0.0f/255.0f, 0.0f*scale) );
-	m_transferFunction->addNode( 0.310104, math::V4f(143.0f/255.0f, 104.0f/255.0f, 54.0f/255.0f, 0.059f*scale) );
-	m_transferFunction->addNode( 0.453057, math::V4f(18.0f/255.0f, 9.0f/255.0f, 0.0f/255.0f, 1.0f*scale) );
+	m_transferFunction->addNode( 0.266535f, math::V4f(68.0f/255.0f, 0.0f/255.0f, 0.0f/255.0f, 0.0f*scale) );
+	m_transferFunction->addNode( 0.310104f, math::V4f(143.0f/255.0f, 104.0f/255.0f, 54.0f/255.0f, 0.059f*scale) );
+	m_transferFunction->addNode( 0.453057f, math::V4f(18.0f/255.0f, 9.0f/255.0f, 0.0f/255.0f, 1.0f*scale) );
 	m_transferFunction->addNode( 1.0f, math::V4f(160.0f/255.0f, 160.0f/255.0f, 164.0f/255.0f, 1.0f*scale) );
 
 	volumeShader->setUniform( "transferFunction", m_transferFunction->m_texture->getUniform() );
@@ -353,7 +353,7 @@ Volume::Volume() : Element()
 	math::M44f areaLightTransform = math::M44f::Identity();
 	//areaLightTransform = math::M44f::TranslationMatrix(0.0f, 1.0f, 0.0f)*math::M44f::RotationMatrixX( MATH_PI*0.5 );
 	//areaLightTransform = math::M44f::TranslationMatrix(0.0f, 0.0f, 1.0f)*math::M44f::RotationMatrixX( MATH_PI*0.5 );
-	areaLightTransform = math::M44f::RotationMatrixX( -MATH_PI*0.5 )*math::M44f::TranslationMatrix(0.0f, 1.3f, 0.0f);
+	areaLightTransform = math::M44f::RotationMatrixX( -MATH_PIf*0.5f )*math::M44f::TranslationMatrix(0.0f, 1.3f, 0.0f);
 	volumeShader->setUniform( "areaLightTransform", areaLightTransform );
 
 	setPointLightPosition( math::V3f(1.0f, 13.4f, -13.4f) );
@@ -617,9 +617,9 @@ void Volume::render(base::Context::Ptr context, float time)
 
 
 
-VolumePtr Volume::create()
+Volume::Ptr Volume::create()
 {
-	VolumePtr v = std::make_shared<Volume>();
+	Volume::Ptr v = std::make_shared<Volume>();
 	return v;
 }
 
@@ -630,3 +630,6 @@ void Volume::reload()
 	//volumeShader->reload();
 	//dctCompute->reload();
 }
+
+
+REGISTERCLASS( Volume )

@@ -22,9 +22,11 @@
 
 
 
-BASE_DECL_SMARTPTR_STRUCT(Volume);
-struct Volume : public Element
+
+class Volume : public Element
 {
+	OBJECT
+public:
 	typedef std::shared_ptr<Volume> Ptr;
 	struct Light
 	{
@@ -36,8 +38,8 @@ struct Volume : public Element
 		float    exposure;
 	};
 
-	static VolumePtr            create();
-	static VolumePtr            create( const base::Path dataSourceGLSLPath ); // create volume with custom data source glsl module (file be be loaded from base::fs)
+	static Volume::Ptr            create();
+	static Volume::Ptr            create( const base::Path dataSourceGLSLPath ); // create volume with custom data source glsl module (file be be loaded from base::fs)
 
 	virtual void render(base::Context::Ptr context, float time)override;
 	void                        load( const std::string& filename );

@@ -6,6 +6,7 @@
 
 #include "Scene.h"
 #include "Element.h"
+#include "Controller.h"
 
 #include <iostream>
 
@@ -33,6 +34,18 @@ struct ShotElement
 		return se;
 	}
 
+	// propagates the given vector with own element and all child elements
+	// used by shot::prepareForRendering to find the root nodes of the updategraph
+	void getAllChildElements( std::vector<Element::Ptr>& elements )
+	{
+		elements.push_back(m_element);
+		for( auto it = m_childs.begin(), end=m_childs.end();it!=end;++it )
+		{
+			ShotElement::Ptr child = *it;
+			child->getAllChildElements(elements);
+		}
+	}
+
 	void render(base::Context::Ptr context, float time)
 	{
 		m_element->begin( context, time );
@@ -45,6 +58,8 @@ struct ShotElement
 		m_element->render( context, time );
 	}
 
+	houdini::json::Value serialize(Serializer &out);
+
 
 	Element::Ptr m_element;
 	std::vector<ShotElement::Ptr> m_childs;
@@ -52,8 +67,83 @@ struct ShotElement
 
 
 
-struct Shot
+struct UpdateGraph
 {
+	typedef std::map<Property::Ptr, Controller::Ptr> ObjectBindings;
+	void update( float time )
+	{
+		// iterate and execute all update commands
+		for( auto it = m_updateCommands.begin(),end=m_updateCommands.end();it!=end;++it )
+		{
+			Controller::Ptr controller = it->first;
+			Property::Ptr prop = it->second;
+			controller->update(prop, time);
+		}
+	}
+
+	ObjectBindings* getObjectBindings(Object::Ptr object)
+	{
+		auto it = m_graph.find(object);
+		if(it != m_graph.end())
+			return it->second;
+		return 0;
+	}
+
+	void addConnection( Controller::Ptr controller, Object::Ptr object, const std::string& propName )
+	{
+		ObjectBindings* ob = getObjectBindings( object );
+		// create, if objectbindings dont exist
+		if(!ob)
+		{
+			ob = new ObjectBindings();
+			m_graph[object] = ob;
+		}
+		Property::Ptr prop = object->getProperty(propName);
+		if(prop)
+			(*ob)[prop] = controller;
+	}
+
+	void gatherUpdateCommands( Object::Ptr object )
+	{
+		ObjectBindings* ob = getObjectBindings( object );
+		if(ob)
+		{
+			for( auto it = ob->begin(), end=ob->end();it!=end;++it )
+			{
+				Property::Ptr property = it->first;
+				Controller::Ptr controller = it->second;
+
+				// recurse down the tree
+				gatherUpdateCommands( controller );
+
+				// now, since all leave nodes have been processed, add current binding
+				m_updateCommands.push_back(std::make_pair(controller, property));
+			}
+		}
+	}
+
+	void compile(std::vector<Object::Ptr> rootObjects)
+	{
+		m_updateCommands.clear();
+		for( auto it=rootObjects.begin(), end=rootObjects.end();it!=end;++it )
+		{
+			Object::Ptr obj = *it;
+			gatherUpdateCommands( obj );
+		}
+	}
+
+	houdini::json::Value serialize(Serializer &out);
+
+private:
+	std::map<Object::Ptr, ObjectBindings* > m_graph; // the graph
+	std::vector<std::pair<Controller::Ptr, Property::Ptr>> m_updateCommands; // this is the final list of update commands which is being compiled from the graph
+};
+
+
+class Shot : public Object
+{
+	OBJECT
+public:
 	typedef std::shared_ptr<Shot> Ptr;
 
 
@@ -86,32 +176,25 @@ struct Shot
 	}
 
 
+	virtual void prepareForRendering();
 
-	virtual void render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera )
+	virtual void render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera );
+
+	void setPropertyController(Object::Ptr object, const std::string& name, Controller::Ptr controller)
 	{
-		// update animated properties
-		for(auto it=m_constantProperties.begin(),end=m_constantProperties.end();it!=end;++it)
-			it->second->update( it->first, time);
-		for(auto it=m_animatedProperties.begin(),end=m_animatedProperties.end();it!=end;++it)
-			it->second->update( it->first, time);
-
-		base::Camera::Ptr camera;
-		if( overrideCamera )
-			camera = overrideCamera;
-		else
-		if( m_cameraController )
-			camera = m_cameraController->evaluate(time);
-
-		context->setView( camera->m_worldToView, camera->m_viewToWorld, camera->m_viewToNDC );
-
-		// render elements
-		for( auto it = m_elements.begin(), end=m_elements.end();it!=end;++it )
-		{
-			ShotElement::Ptr shotElement = *it;
-			shotElement->render(context, time);
-		}
+		m_updateGraph.addConnection( controller, object, name );
 	}
 
+
+
+	virtual void serialize(Serializer &out);
+
+	CameraController::Ptr                    m_cameraController;
+	std::vector<ShotElement::Ptr>            m_elements;
+
+	UpdateGraph                              m_updateGraph;
+
+	// deprecated
 	void setController( Object::Ptr object, const std::string& name, Controller::Ptr controller )
 	{
 		Property::Ptr prop = object->getProperty( name );
@@ -137,9 +220,6 @@ struct Shot
 			}
 		}
 	}
-
-	CameraController::Ptr                    m_cameraController;
-	std::vector<ShotElement::Ptr>            m_elements;
 	std::map<Property::Ptr, Controller::Ptr> m_constantProperties;
 	std::map<Property::Ptr, Controller::Ptr> m_animatedProperties;
 };

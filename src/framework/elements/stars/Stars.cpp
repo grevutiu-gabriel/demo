@@ -223,6 +223,6 @@ void Stars::setFixedRotation( const math::Vec3f &rotationAxis, const float &rota
 }
 
 
-
+REGISTERCLASS( Stars )
 
 

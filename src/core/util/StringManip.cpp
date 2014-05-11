@@ -157,4 +157,10 @@ namespace base
 			return fileName.substr( idx, std::string::npos );
 		}
 	}
+
+	std::string replace(std::string &s, const std::string &toReplace, const std::string &replaceWith)
+	{
+		return(s.replace(s.find(toReplace), toReplace.length(), replaceWith));
+	}
+
 } // namespace base

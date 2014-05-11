@@ -236,9 +236,12 @@ typedef unsigned long UInt32;
 	// the following code allows registration of different path's which will be used 
 	// at other places. e.g. "ops_src"
 
-	void pathRegister( const std::string &key, Path p ); // stores a specific path in registry using the given key
-	bool     pathIsRegistered( const std::string &key ); // returns true if a path has been registered already under the given key
+	void                 pathRegister( const std::string &key, Path p ); // stores a specific path in registry using the given key
+	bool                 pathIsRegistered( const std::string &key ); // returns true if a path has been registered already under the given key
 	Path                 path( const std::string &key ); // path lookup within registry
+
+	void                 setVariable( const std::string& key, const std::string& value );
+	std::string          expand( const std::string& path );
 
 
 } // namespace base

@@ -86,8 +86,10 @@ struct Clip
 	}
 };
 
-struct Demo
+class Demo : public Object
 {
+	OBJECT
+public:
 	typedef std::shared_ptr<Demo> Ptr;
 
 	Demo( bool doAudio = false );
@@ -97,12 +99,15 @@ struct Demo
 		return std::make_shared<Demo>(doAudio);
 	}
 
-	void load( const std::string& filename);
 
 	Audio::Ptr getAudio()
 	{
 		return m_audio;
 	}
+
+	virtual void serialize(Serializer &out)override;
+
+	//void addElement( Element::Ptr element );
 
 	void addClip( int shotIndex, float shotStart, float shotEnd, float clipDuration );
 	int addShot( Shot::Ptr shot );
@@ -111,10 +116,17 @@ struct Demo
 
 	void render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera = base::Camera::Ptr() );
 
+	void load( const std::string& filename );
+	void loadScene(const std::string &filename);
+	void store( const std::string& filename );
+
 	std::vector<Scene::Ptr>              m_scenes;
+	//std::vector<Element::Ptr>            m_elements;
 	std::vector<Shot::Ptr>               m_shots;
 	std::vector<Clip>                    m_clips;
 	PiecewiseConstantFunction<int>       m_clipIndex; // tells which shot to render when (should cover the range [0, m_duration])
 	Audio::Ptr                           m_audio;
+
+
 };
 

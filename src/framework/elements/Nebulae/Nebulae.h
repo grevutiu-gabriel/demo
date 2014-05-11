@@ -158,6 +158,7 @@ struct Billboards
 
 class Nebulae : public Element
 {
+	OBJECT
 public:
 	typedef std::shared_ptr<Nebulae> Ptr;
 

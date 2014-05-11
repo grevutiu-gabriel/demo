@@ -1,5 +1,5 @@
 #include "Scene.h"
-
+#include <util/Path.h>
 
 
 #include <QJsonDocument>
@@ -17,9 +17,11 @@
 
 void Scene::load( const std::string& filename )
 {
+	m_filename = filename;
+	std::cout << "Scene::load " << filename << std::endl;
 	//houdini::HouGeoIO::makeLog(filename, &std::cout);
 
-	std::ifstream in( filename.c_str(), std::ios_base::in | std::ios_base::binary );
+	std::ifstream in( base::expand(filename).c_str(), std::ios_base::in | std::ios_base::binary );
 	houdini::json::JSONLogger logger(std::cout);
 	houdini::json::JSONReader reader;
 	houdini::json::Parser p;
@@ -94,7 +96,18 @@ void Scene::load( const std::string& filename )
 //	m_cameras["cam1"] = cam1;
 
 	// add some dummy channel
-	m_channels["color"] = FloatToV3fController::create( ConstantFloatController::create(1.0f), SinusController::create(), ConstantFloatController::create(0.0f) );
+	m_channels["color"] = FloatToV3fControllerOld::create( ConstantFloatController::create(1.0f), SinusController::create(), ConstantFloatController::create(0.0f) );
+}
+
+const std::string &Scene::getFilename() const
+{
+	return m_filename;
+}
+
+void Scene::serialize(Serializer &out)
+{
+	Object::serialize(out);
+	out.write("filename", m_filename);
 }
 
 //{
@@ -135,7 +148,7 @@ FloatController::Ptr Scene::loadTrack( houdini::json::ObjectPtr track )
 	base::PiecewiseLinearFunction<float> plf;
 	for(int i=0;i<numSamples;++i)
 		plf.addSample(float(i)/fps, data->get<float>(i));
-	return CurveFloatController::create( plf );
+	return CurveFloatControllerOld::create( plf );
 }
 
 M44fController::Ptr Scene::loadTransform( houdini::json::ObjectPtr transform )
@@ -170,7 +183,7 @@ M44fController::Ptr Scene::loadTransform( houdini::json::ObjectPtr transform )
 				translationZ = ConstantFloatController::create(transform->get<float>("transform.tz"));
 			else
 				translationZ = ConstantFloatController::create(0.0f);
-			translation = FloatToV3fController::create( translationX, translationY, translationZ );
+			translation = FloatToV3fControllerOld::create( translationX, translationY, translationZ );
 		}else
 			translation = ConstantV3fController::create(math::V3f(transform->get<float>("transform.tx"), transform->get<float>("transform.ty"), transform->get<float>("transform.tz")));
 	}
@@ -194,7 +207,7 @@ M44fController::Ptr Scene::loadTransform( houdini::json::ObjectPtr transform )
 				rotationZ = loadTrack( channels->getObject("transform.rz") );
 			else
 				rotationZ = ConstantFloatController::create(0.0f);
-			rotation = FloatToV3fController::create( rotationX, rotationY, rotationZ );
+			rotation = FloatToV3fControllerOld::create( rotationX, rotationY, rotationZ );
 		}else
 			rotation = ConstantV3fController::create(math::V3f(math::V3f(transform->get<float>("transform.rx"), transform->get<float>("transform.ry"), transform->get<float>("transform.rz"))));
 	}
@@ -266,6 +279,8 @@ void Scene::loadChannel( const std::string& channelName, houdini::json::ObjectPt
 		std::cout << "loading " << name << std::endl;
 		FloatController::Ptr track = loadTrack( channel->getObject(trackName) );
 		m_channels[name] = track;
+
+		m_controller[name] = track;
 	}
 }
 
@@ -301,3 +316,25 @@ Camera::Ptr HouScene::loadCamera( QJsonObject &obj )
 	return camera;
 }
 */
+
+
+void SceneController::update(Property::Ptr prop, float time)
+{
+	m_controller->update( prop, time );
+}
+
+void SceneController::serialize(Serializer &out)
+{
+	Controller::serialize(out);
+	out.write( "scene", out.serialize(m_scene) );
+	out.write( "controller", m_controllerId );
+}
+
+void SceneController::getController()
+{
+	// get Controller from scene
+	m_controller = m_scene->getController(m_controllerId);
+}
+
+REGISTERCLASS( SceneController )
+REGISTERCLASS( Scene )

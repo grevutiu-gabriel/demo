@@ -90,10 +90,56 @@ struct CameraSwitchController : public CameraController
 	std::vector<CameraController::Ptr> m_cameras;
 };
 
-
-
-struct Scene
+class Scene;
+class SceneController : public Controller
 {
+	OBJECT
+public:
+	typedef std::shared_ptr<Scene> ScenePtr;
+	typedef std::shared_ptr<SceneController> Ptr;
+
+	SceneController() : Controller()
+	{
+	}
+
+	SceneController( ScenePtr scene, const std::string& controllerId )
+		:Controller(),
+		 m_scene(scene),
+		 m_controllerId(controllerId)
+	{
+		getController();
+	}
+
+	static Ptr create( ScenePtr scene, const std::string& controllerId )
+	{
+		return std::make_shared<SceneController>( scene, controllerId );
+	}
+
+	virtual void update( Property::Ptr prop, float time)override;
+
+
+	virtual bool isAnimated()const override
+	{
+		return true;
+	}
+
+	virtual void serialize(Serializer &out)override;
+
+private:
+	void getController();
+
+
+	ScenePtr        m_scene;
+	std::string     m_controllerId;
+	Controller::Ptr m_controller;
+};
+
+
+
+class Scene : public Object
+{
+	OBJECT
+public:
 	typedef std::shared_ptr<Scene> Ptr;
 
 	Scene()
@@ -105,6 +151,7 @@ struct Scene
 	}
 
 	void load( const std::string& filename );
+	const std::string& getFilename()const;
 
 	CameraController::Ptr getCamera( const std::string& name )
 	{
@@ -128,10 +175,21 @@ struct Scene
 		return Controller::Ptr();
 	}
 
+	Controller::Ptr getController( const std::string& name )
+	{
+		auto it = m_controller.find(name);
+		if( it!=m_controller.end() )
+			return it->second;
+		return Controller::Ptr();
+	}
+
 	std::map<std::string, CameraController::Ptr> m_cameras;
 	std::map<std::string, M44fController::Ptr>   m_locators;
 	std::map<std::string, Controller::Ptr>       m_channels; // generic animations
 
+	std::map<std::string, Controller::Ptr> m_controller;
+
+	virtual void serialize(Serializer &out)override;
 private:
 	M44fController::Ptr loadTransform( houdini::json::ObjectPtr transform );
 	M44fController::Ptr loadLocator( houdini::json::ObjectPtr transform );
@@ -139,4 +197,5 @@ private:
 	CameraController::Ptr loadSwitcher( houdini::json::ObjectPtr switcher );
 	void loadChannel( const std::string& name, houdini::json::ObjectPtr channel );
 	FloatController::Ptr loadTrack( houdini::json::ObjectPtr track );
+	std::string m_filename;
 };

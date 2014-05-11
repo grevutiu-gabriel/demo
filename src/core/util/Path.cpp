@@ -4,6 +4,9 @@
 #include "Path.h"
 #include <vector>
 #include <map>
+
+#include "StringManip.h"
+
     
 #if !defined(_WINDOWS)
     #include <unistd.h>
@@ -647,6 +650,25 @@ namespace base
 			return it->second;
 		return Path();
 	}
+
+	std::map<std::string, std::string> g_variableRegistry;
+	void setVariable( const std::string& key, const std::string& value )
+	{
+		g_variableRegistry[key] = value;
+	}
+
+	std::string expand( const std::string& path )
+	{
+		std::string expanded = path;
+		for( auto it=g_variableRegistry.begin(), end=g_variableRegistry.end(); it!=end;++it)
+		{
+			std::string key = it->first;
+			std::string value = it->second;
+			replace( expanded, key, value );
+		}
+		return expanded;
+	}
+
 
 
 

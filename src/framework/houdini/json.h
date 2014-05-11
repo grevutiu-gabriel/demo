@@ -606,7 +606,9 @@ namespace houdini
 			Variant                        &getVariant();
 
 			static Value                   createArray();
+			static Value     createArray(ArrayPtr array);
 			static Value                  createObject();
+			static Value   createObject( ObjectPtr obj );
 
 			template<typename T>
 			static Value        create( const T &value );
@@ -626,6 +628,7 @@ namespace houdini
 			ArrayPtr                          m_array;
 
 			friend                             Object;
+			friend                             Array;
 		};
 
 
@@ -777,6 +780,8 @@ namespace houdini
 			Array();
 			~Array();
 
+			static ArrayPtr               create();
+
 			template<typename T>
 			const T                  get( const int index );
 			ObjectPtr                getObject( int index );
@@ -791,6 +796,7 @@ namespace houdini
 
 
 			void                     append( Value &value );
+			void                 append(ObjectPtr &object );
 
 		//private:
 			std::vector<Value>                     m_values;
@@ -823,8 +829,11 @@ namespace houdini
 			void                      getKeys( std::vector<std::string> &keys );
 			sint64                                                  size()const;
 
+			template<typename T>
+			void appendValue( const std::string &key, const T& value );
 			void                 append( const std::string &key, Value &value );
 			void             append( const std::string &key, ObjectPtr object );
+			void             append( const std::string &key, ArrayPtr array );
 		//private:
 			std::map<std::string, Value>                               m_values;
 
@@ -839,6 +848,12 @@ namespace houdini
 			if( it != m_values.end())
 				result = it->second.as<T>();
 			return result;
+		}
+
+		template<typename T>
+		void Object::appendValue( const std::string &key, const T& value )
+		{
+			append(key, Value::create<T>(value));
 		}
 
 		// JSONReader ========================================================
