@@ -6,6 +6,7 @@
 #include <string>
 
 #include "houdini/HouGeoIO.h"
+#include "UpdateGraph.h"
 
 struct Transform
 {
@@ -26,12 +27,17 @@ struct Transform
 struct PerspectiveCameraController : public CameraController
 {
 	typedef std::shared_ptr<PerspectiveCameraController> Ptr;
+
 	PerspectiveCameraController() : CameraController()
 	{
 		m_camera = std::make_shared<base::Camera>();
 		// TODO, make sure proj is not rebuild all the time when fov is not animated
 		m_fovIsAnimated = true;
 		m_xformIsAnimated = true;
+
+		addProperty<float>( "fovy", std::bind( &PerspectiveCameraController::getFovy, this ), std::bind( &PerspectiveCameraController::setFovy, this, std::placeholders::_1 ) );
+		addProperty<float>( "aspect", std::bind( &PerspectiveCameraController::getAspect, this ), std::bind( &PerspectiveCameraController::setAspect, this, std::placeholders::_1 ) );
+		addProperty<math::M44f>( "transform", std::bind( &PerspectiveCameraController::getTransform, this ), std::bind( &PerspectiveCameraController::setTransform, this, std::placeholders::_1 ) );
 	}
 	static Ptr create()
 	{
@@ -40,28 +46,55 @@ struct PerspectiveCameraController : public CameraController
 	virtual base::Camera::Ptr evaluate(float time)override
 	{
 		// assemble camera ----
+		std::cout << "PerspectiveCameraController::evaluate\n";
 
 		// projectionMatrix changes
 		if( m_fovIsAnimated )
-			m_camera->setProjection(math::projectionMatrix( fov->evaluate(time), aspect->evaluate(time), m_camera->m_znear, m_camera->m_zfar ));
+			m_camera->setProjection(math::projectionMatrix( m_fovy, m_aspect, m_camera->m_znear, m_camera->m_zfar ));
 		// transform changes
 		if( m_xformIsAnimated )
-			m_camera->setViewToWorld( xform->evaluate(time) );
+			m_camera->setViewToWorld( m_xform );
 
 		return m_camera;
 	}
 
 	virtual bool isAnimated()const override
 	{
-		return fov->isAnimated()||xform->isAnimated();
+		return true;
 	}
 
 
-	FloatController::Ptr fov; // in radians
-	FloatController::Ptr aspect;
-	M44fController::Ptr  xform;
+	float getFovy() const
+	{
+		return m_fovy;
+	}
+	void setFovy(float fovy)
+	{
+		m_fovy = fovy;
+	}
+
+	float getAspect() const
+	{
+		return m_aspect;
+	}
+	void setAspect(float aspect)
+	{
+		m_aspect = aspect;
+	}
+
+	math::M44f getTransform() const
+	{
+		return m_xform;
+	}
+	void setTransform(const math::M44f &xform)
+	{
+		m_xform = xform;
+	}
 
 private:
+	float             m_fovy; // in radians
+	float             m_aspect;
+	math::M44f        m_xform;
 	base::Camera::Ptr m_camera;
 	bool m_fovIsAnimated;
 	bool m_xformIsAnimated;
@@ -79,15 +112,15 @@ struct CameraSwitchController : public CameraController
 	}
 	virtual base::Camera::Ptr evaluate(float time)override
 	{
-		int sw = int(m_switch->evaluate(time));
-		return m_cameras[ sw ]->evaluate(time);
+		int sw = int(m_switch);
+		return m_cameras[ sw ];
 	}
 	virtual bool isAnimated()const override
 	{
-		return m_switch->isAnimated();
+		return true;
 	}
-	FloatController::Ptr               m_switch;
-	std::vector<CameraController::Ptr> m_cameras;
+	float                              m_switch;
+	std::vector<base::Camera::Ptr>     m_cameras;
 };
 
 class Scene;
@@ -132,6 +165,7 @@ private:
 	ScenePtr        m_scene;
 	std::string     m_controllerId;
 	Controller::Ptr m_controller;
+	UpdateGraph     m_updateGraph;
 };
 
 
@@ -153,49 +187,32 @@ public:
 	void load( const std::string& filename );
 	const std::string& getFilename()const;
 
-	CameraController::Ptr getCamera( const std::string& name )
-	{
-		auto it = m_cameras.find(name);
-		if( it!=m_cameras.end() )
-			return it->second;
-		return CameraController::Ptr();
-	}
-	M44fController::Ptr getLocator( const std::string& name )
-	{
-		auto it = m_locators.find(name);
-		if( it!=m_locators.end() )
-			return it->second;
-		return M44fController::Ptr();
-	}
-	Controller::Ptr getChannel( const std::string& name )
-	{
-		auto it = m_channels.find(name);
-		if( it!=m_channels.end() )
-			return it->second;
-		return Controller::Ptr();
-	}
 
-	Controller::Ptr getController( const std::string& name )
+	Controller::Ptr getController( const std::string& name, UpdateGraph& updateGraph )
 	{
+		updateGraph.clear();
+
 		auto it = m_controller.find(name);
 		if( it!=m_controller.end() )
-			return it->second;
+		{
+			Controller::Ptr controller = it->second;
+			updateGraph.copyFrom( m_updateGraph, controller );
+			return controller;
+		}
 		return Controller::Ptr();
 	}
 
-	std::map<std::string, CameraController::Ptr> m_cameras;
-	std::map<std::string, M44fController::Ptr>   m_locators;
-	std::map<std::string, Controller::Ptr>       m_channels; // generic animations
-
-	std::map<std::string, Controller::Ptr> m_controller;
 
 	virtual void serialize(Serializer &out)override;
 private:
-	M44fController::Ptr loadTransform( houdini::json::ObjectPtr transform );
-	M44fController::Ptr loadLocator( houdini::json::ObjectPtr transform );
-	CameraController::Ptr loadCamera( houdini::json::ObjectPtr camera );
-	CameraController::Ptr loadSwitcher( houdini::json::ObjectPtr switcher );
-	void loadChannel( const std::string& name, houdini::json::ObjectPtr channel );
-	FloatController::Ptr loadTrack( houdini::json::ObjectPtr track );
-	std::string m_filename;
+	M44fController::Ptr loadTransform( houdini::json::ObjectPtr transform, const std::string& name );
+	M44fController::Ptr loadLocator( houdini::json::ObjectPtr transform, const std::string& name );
+	CameraController::Ptr loadCamera( houdini::json::ObjectPtr camera, const std::string& name );
+	CameraController::Ptr loadSwitcher( houdini::json::ObjectPtr switcher, const std::string& name );
+	void loadChannel( houdini::json::ObjectPtr channel, const std::string& name );
+	FloatController::Ptr loadTrack( houdini::json::ObjectPtr track, const std::string& name );
+
+	std::string                            m_filename; // scene filename
+	std::map<std::string, Controller::Ptr> m_controller; // contains all channels etc.
+	UpdateGraph                            m_updateGraph; // holds information about how controllers are connected
 };

@@ -6,19 +6,7 @@
 
 void Shot::prepareForRendering()
 {
-	// find all root objects of the updategraph ---
-	std::vector<Element::Ptr> elements;
-	for(auto it = m_elements.begin(),end=m_elements.end();it!=end;++it)
-	{
-		auto shotElement = *it;
-		shotElement->getAllChildElements(elements);
-	}
-	// upcast elements---
-	std::vector<Object::Ptr> rootObjects;
-	for(auto it = elements.begin(),end=elements.end();it!=end;++it)
-		rootObjects.push_back(*it);
-	// now compile the graph with given root objects
-	m_updateGraph.compile(rootObjects);
+	m_updateGraph.compile();
 }
 
 void Shot::render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera )

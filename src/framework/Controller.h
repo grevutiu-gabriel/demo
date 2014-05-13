@@ -153,37 +153,64 @@ typedef CurveControllerT<float> CurveFloatController;
 
 class PRSController : public M44fController
 {
+	OBJECT
 public:
 	typedef std::shared_ptr<PRSController> Ptr;
 
-	PRSController( V3fController::Ptr translation, V3fController::Ptr rotation, V3fController::Ptr scale );
+	PRSController();
 
-	static Ptr create(V3fController::Ptr translation, V3fController::Ptr rotation, V3fController::Ptr scale)
+	static Ptr create()
 	{
-		return std::make_shared<PRSController>(translation, rotation, scale);
+		return std::make_shared<PRSController>();
 	}
+
 	math::M44f evaluate(float time)override
 	{
-		math::M44f t = math::M44f::TranslationMatrix(translation->evaluate(time));
-		math::V3f r = rotation->evaluate(time);
-		math::M44f rotationX = math::M44f::RotationMatrixX( -math::degToRad(r.x) );
-		math::M44f rotationY = math::M44f::RotationMatrixY( -math::degToRad(r.y) );
-		math::M44f rotationZ = math::M44f::RotationMatrixZ( -math::degToRad(r.z) );
+		std::cout << "PRSController::evaluate " << m_tx << " " << m_ty << " " << m_tz << std::endl;
+		math::M44f t = math::M44f::TranslationMatrix(m_tx, m_ty, m_tz);
+		math::M44f rotationX = math::M44f::RotationMatrixX( -math::degToRad(m_rx) );
+		math::M44f rotationY = math::M44f::RotationMatrixY( -math::degToRad(m_ry) );
+		math::M44f rotationZ = math::M44f::RotationMatrixZ( -math::degToRad(m_rz) );
 		//TODO: scale
 		return rotationX*rotationY*rotationZ*t;
 	}
 	virtual bool isAnimated()const override
 	{
-		return translation->isAnimated()||rotation->isAnimated()||scale->isAnimated();
+		return true;
 	}
 
-	V3fController::Ptr translation;
-	V3fController::Ptr rotation;
-	V3fController::Ptr scale;
 
-public:
-	V3fController::Ptr getTranslation() const;
-	void setTranslation(const V3fController::Ptr &value);
+	float getTx() const;
+	void setTx(float tx);
+
+	float getTy() const;
+	void setTy(float ty);
+
+	float getTz() const;
+	void setTz(float tz);
+
+	float getRx() const;
+	void setRx(float rx);
+
+	float getRy() const;
+	void setRy(float ry);
+
+	float getRz() const;
+	void setRz(float rz);
+
+	float getSx() const;
+	void setSx(float sx);
+
+	float getSy() const;
+	void setSy(float sy);
+
+	float getSz() const;
+	void setSz(float sz);
+
+private:
+	float m_tx, m_ty, m_tz; // translation
+	float m_rx, m_ry, m_rz; // rotation
+	float m_sx, m_sy, m_sz; // scale
 };
 
 class SinusController : public FloatController

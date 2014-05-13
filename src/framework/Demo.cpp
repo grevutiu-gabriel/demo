@@ -295,8 +295,10 @@ void Demo::load( const std::string& filename )
 	//shot->setPropertyController( toV3f, "y", test );
 	//shot->setPropertyController( toV3f, "z", test );
 
-	SceneController::Ptr ch1 = SceneController::create(m_scenes[0],"ch1.x");
+	SceneController::Ptr ch1 = SceneController::create(m_scenes[0],"/ch/ch1.x");
+	SceneController::Ptr cam1 = SceneController::create(m_scenes[0],"/obj/cam1");
 	shot->setPropertyController( toV3f, "y", ch1 );
+	shot->setPropertyController( shot, "camera", cam1 );
 
 	shot->prepareForRendering();
 

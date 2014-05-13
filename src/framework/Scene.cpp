@@ -41,7 +41,7 @@ void Scene::load( const std::string& filename )
 		{
 			std::string name = *it;
 			houdini::json::ObjectPtr locator = locators->getObject(name);
-			m_locators[name] = loadLocator(locator);
+			loadLocator(locator, "/obj/" + name);
 		}
 	}
 	if(root && root->hasKey("cameras"))
@@ -55,7 +55,7 @@ void Scene::load( const std::string& filename )
 		{
 			std::string name = *it;
 			houdini::json::ObjectPtr camera = cameras->getObject(name);
-			m_cameras[name] = loadCamera(camera);
+			loadCamera(camera, "/obj/" + name);
 		}
 	}
 	if(root && root->hasKey("switchers"))
@@ -69,7 +69,7 @@ void Scene::load( const std::string& filename )
 		{
 			std::string name = *it;
 			houdini::json::ObjectPtr switcher = switchers->getObject(name);
-			m_cameras[name] = loadSwitcher(switcher);
+			loadSwitcher(switcher, "/obj/" + name);
 		}
 	}
 	if(root && root->hasKey("channels"))
@@ -83,7 +83,7 @@ void Scene::load( const std::string& filename )
 		{
 			std::string name = *it;
 			houdini::json::ObjectPtr channel = channels->getObject(name);
-			loadChannel(name, channel);
+			loadChannel(channel, "/ch/" + name);
 		}
 	}
 
@@ -96,7 +96,7 @@ void Scene::load( const std::string& filename )
 //	m_cameras["cam1"] = cam1;
 
 	// add some dummy channel
-	m_channels["color"] = FloatToV3fControllerOld::create( ConstantFloatController::create(1.0f), SinusController::create(), ConstantFloatController::create(0.0f) );
+	//m_channels["color"] = FloatToV3fControllerOld::create( ConstantFloatController::create(1.0f), SinusController::create(), ConstantFloatController::create(0.0f) );
 }
 
 const std::string &Scene::getFilename() const
@@ -140,7 +140,7 @@ void Scene::serialize(Serializer &out)
 	*/
 //}
 
-FloatController::Ptr Scene::loadTrack( houdini::json::ObjectPtr track )
+FloatController::Ptr Scene::loadTrack( houdini::json::ObjectPtr track, const std::string& name )
 {
 	float fps = 24.0f;
 	int numSamples = track->get<int>("nsamples");
@@ -148,81 +148,102 @@ FloatController::Ptr Scene::loadTrack( houdini::json::ObjectPtr track )
 	base::PiecewiseLinearFunction<float> plf;
 	for(int i=0;i<numSamples;++i)
 		plf.addSample(float(i)/fps, data->get<float>(i));
-	return CurveFloatControllerOld::create( plf );
+	CurveFloatController::Ptr curveController = CurveFloatController::create( plf );
+	m_controller[name] = curveController;
+	return curveController;
 }
 
-M44fController::Ptr Scene::loadTransform( houdini::json::ObjectPtr transform )
+M44fController::Ptr Scene::loadTransform( houdini::json::ObjectPtr transform, const std::string&name )
 {
+	PRSController::Ptr transformController = PRSController::create();
 	houdini::json::ObjectPtr channels = transform->getObject("channels");
-	V3fController::Ptr translation;
 	{
-		bool hasX = channels->hasKey("transform.tx");
-		bool hasY = channels->hasKey("transform.ty");
-		bool hasZ = channels->hasKey("transform.tz");
-		if( hasX||hasY||hasZ )
-		{
-			FloatController::Ptr translationX, translationY, translationZ;
-			if(hasX)
-				translationX = loadTrack( channels->getObject("transform.tx") );
-			else
-			if( transform->hasKey("transform.tx") )
-				translationX = ConstantFloatController::create(transform->get<float>("transform.tx"));
-			else
-				translationX = ConstantFloatController::create(0.0f);
-			if(hasY)
-				translationY = loadTrack( channels->getObject("transform.ty") );
-			else
-			if( transform->hasKey("transform.ty") )
-				translationY = ConstantFloatController::create(transform->get<float>("transform.ty"));
-			else
-				translationY = ConstantFloatController::create(0.0f);
-			if(hasZ)
-				translationZ = loadTrack( channels->getObject("transform.tz") );
-			else
-			if( transform->hasKey("transform.tz") )
-				translationZ = ConstantFloatController::create(transform->get<float>("transform.tz"));
-			else
-				translationZ = ConstantFloatController::create(0.0f);
-			translation = FloatToV3fControllerOld::create( translationX, translationY, translationZ );
-		}else
-			translation = ConstantV3fController::create(math::V3f(transform->get<float>("transform.tx"), transform->get<float>("transform.ty"), transform->get<float>("transform.tz")));
+		bool hasAnimatedX = channels->hasKey("transform.tx");
+		bool hasAnimatedY = channels->hasKey("transform.ty");
+		bool hasAnimatedZ = channels->hasKey("transform.tz");
+		FloatController::Ptr translationX, translationY, translationZ;
+		if(hasAnimatedX)
+			translationX = loadTrack( channels->getObject("transform.tx"), name + ".tx" );
+		else
+		if( transform->hasKey("transform.tx") )
+			translationX = ConstantFloatController::create(transform->get<float>("transform.tx"));
+		else
+			translationX = ConstantFloatController::create(0.0f);
+		m_controller[name + ".tx"] = translationX;
+		m_updateGraph.addConnection( translationX, transformController, "tx" );
+
+		if(hasAnimatedY)
+			translationY = loadTrack( channels->getObject("transform.ty"), name + ".ty" );
+		else
+		if( transform->hasKey("transform.ty") )
+			translationY = ConstantFloatController::create(transform->get<float>("transform.ty"));
+		else
+			translationY = ConstantFloatController::create(0.0f);
+		m_controller[name + ".ty"] = translationY;
+		m_updateGraph.addConnection( translationY, transformController, "ty" );
+
+		if(hasAnimatedZ)
+			translationZ = loadTrack( channels->getObject("transform.tz"), name + ".tz" );
+		else
+		if( transform->hasKey("transform.tz") )
+			translationZ = ConstantFloatController::create(transform->get<float>("transform.tz"));
+		else
+			translationZ = ConstantFloatController::create(0.0f);
+		m_controller[name + ".tz"] = translationZ;
+		m_updateGraph.addConnection( translationZ, transformController, "tz" );
+		//translation = FloatToV3fControllerOld::create( translationX, translationY, translationZ );
+		//m_controller[name + "transform.translation"] = translation;
 	}
 	V3fController::Ptr rotation;
 	{
-		bool hasX = channels->hasKey("transform.rx");
-		bool hasY = channels->hasKey("transform.ry");
-		bool hasZ = channels->hasKey("transform.rz");
-		if( hasX||hasY||hasZ )
-		{
-			FloatController::Ptr rotationX, rotationY, rotationZ;
-			if(hasX)
-				rotationX = loadTrack( channels->getObject("transform.rx") );
-			else
-				rotationX = ConstantFloatController::create(0.0f);
-			if(hasY)
-				rotationY = loadTrack( channels->getObject("transform.ry") );
-			else
-				rotationY = ConstantFloatController::create(0.0f);
-			if(hasZ)
-				rotationZ = loadTrack( channels->getObject("transform.rz") );
-			else
-				rotationZ = ConstantFloatController::create(0.0f);
-			rotation = FloatToV3fControllerOld::create( rotationX, rotationY, rotationZ );
-		}else
-			rotation = ConstantV3fController::create(math::V3f(math::V3f(transform->get<float>("transform.rx"), transform->get<float>("transform.ry"), transform->get<float>("transform.rz"))));
+		bool hasAnimatedX = channels->hasKey("transform.rx");
+		bool hasAnimatedY = channels->hasKey("transform.ry");
+		bool hasAnimatedZ = channels->hasKey("transform.rz");
+		FloatController::Ptr rotationX, rotationY, rotationZ;
+		if(hasAnimatedX)
+			rotationX = loadTrack( channels->getObject("transform.rx"), name + ".rx" );
+		else
+			rotationX = ConstantFloatController::create(0.0f);
+		m_controller[name + ".rx"] = rotationX;
+		m_updateGraph.addConnection( rotationX, transformController, "rx" );
+		if(hasAnimatedY)
+			rotationY = loadTrack( channels->getObject("transform.ry"), name + "transform.ry" );
+		else
+			rotationY = ConstantFloatController::create(0.0f);
+		m_controller[name + ".ry"] = rotationY;
+		m_updateGraph.addConnection( rotationY, transformController, "ry" );
+		if(hasAnimatedZ)
+			rotationZ = loadTrack( channels->getObject("transform.rz"), name + ".rz" );
+		else
+			rotationZ = ConstantFloatController::create(0.0f);
+		m_controller[name + ".rz"] = rotationZ;
+		m_updateGraph.addConnection( rotationZ, transformController, "rz" );
 	}
-	V3fController::Ptr scale = ConstantV3fController::create(math::V3f(1.0f));
-	return PRSController::create( translation, rotation, scale );
+	{
+		FloatController::Ptr scaleX, scaleY, scaleZ;
+		scaleX = ConstantFloatController::create(1.0f);
+		scaleY = ConstantFloatController::create(1.0f);
+		scaleZ = ConstantFloatController::create(1.0f);
+		m_controller[name + ".sx"] = scaleX;
+		m_updateGraph.addConnection( scaleX, transformController, "sx" );
+		m_controller[name + ".sy"] = scaleY;
+		m_updateGraph.addConnection( scaleY, transformController, "sy" );
+		m_controller[name + ".sz"] = scaleZ;
+		m_updateGraph.addConnection( scaleZ, transformController, "sz" );
+	}
+	//V3fController::Ptr scale = ConstantV3fController::create(math::V3f(1.0f));
+	//return PRSController::create( translation, rotation, scale );
+	m_controller[name] = transformController;
+	return transformController;
 }
 
-M44fController::Ptr Scene::loadLocator( houdini::json::ObjectPtr transform )
+M44fController::Ptr Scene::loadLocator( houdini::json::ObjectPtr transform, const std::string& name )
 {
-	return loadTransform( transform );
+	return loadTransform( transform, name + "/transform" );
 }
 
-CameraController::Ptr Scene::loadCamera( houdini::json::ObjectPtr camera )
+CameraController::Ptr Scene::loadCamera( houdini::json::ObjectPtr camera, const std::string& name )
 {
-	houdini::json::ObjectPtr channels = camera->getObject("channels");
 	PerspectiveCameraController::Ptr cam = PerspectiveCameraController::create();
 
 	math::V2i res(int(camera->getValue("resx").as<float>()), int(camera->getValue("resy").as<float>()));
@@ -237,50 +258,74 @@ CameraController::Ptr Scene::loadCamera( houdini::json::ObjectPtr camera )
 	float fovx = 2*atan( (apx/2) / focal );
 	float fovy = 2*atan( (apy/2) / focal );
 
-	cam->fov = ConstantFloatController::create( fovy );
-	cam->aspect = ConstantFloatController::create( fovx/fovy );
-	cam->xform = loadTransform( camera);
+	ConstantFloatController::Ptr fovController = ConstantFloatController::create( fovy );
+	m_controller[name + "/fovy"] = fovController;
+	ConstantFloatController::Ptr aspectController = ConstantFloatController::create( fovx/fovy );
+	m_controller[name + "/aspect"] = aspectController;
+	M44fController::Ptr transformController = loadTransform( camera, name + "/transform");
+	m_controller[name] = cam;
+
+	// set connections
+	m_updateGraph.addConnection( fovController, cam, "fovy" );
+	m_updateGraph.addConnection( aspectController, cam, "aspect" );
+	m_updateGraph.addConnection( transformController, cam, "transform" );
 
 	return cam;
 }
 
-CameraController::Ptr Scene::loadSwitcher( houdini::json::ObjectPtr switcher )
+CameraController::Ptr Scene::loadSwitcher( houdini::json::ObjectPtr switcher, const std::string& name )
 {
 	CameraSwitchController::Ptr s = CameraSwitchController::create();
 	houdini::json::ObjectPtr channels = switcher->getObject("channels");
+
 	if(channels->hasKey("camswitch"))
 	{
-		s->m_switch = loadTrack( channels->getObject("camswitch") );
+		loadTrack( channels->getObject("camswitch"), name + ".camswitch" );
 	}else
-		s->m_switch = ConstantFloatController::create( 0.0f );
+	{
+		m_controller[name + ".camswitch"] = ConstantFloatController::create( 0.0f );
+	}
+
 	if(switcher->hasKey("cameras"))
 	{
 		houdini::json::ArrayPtr cameras = switcher->getArray("cameras");
 		int numItems = cameras->size();
 		for( int i=0;i<numItems;++i )
 		{
-			std::string cameraName = cameras->get<std::string>(i);
-			CameraController::Ptr cam = getCamera( cameraName );
-			if( cam )
-				s->m_cameras.push_back( cam );
+			//TODO
+//			std::string cameraName = cameras->get<std::string>(i);
+//			CameraController::Ptr cam = getCamera( cameraName );
+//			if( cam )
+//				s->m_cameras.push_back( cam );
 		}
 	}
+
+	m_controller[name] = s;
 	return s;
 }
 
-void Scene::loadChannel( const std::string& channelName, houdini::json::ObjectPtr channel )
+void Scene::loadChannel( houdini::json::ObjectPtr channel, const std::string& channelName )
 {
 	std::vector<std::string> tracks;
 	channel->getKeys(tracks);
-	for(auto it = tracks.begin(),end=tracks.end();it!=end;++it)
+	if( int(tracks.size()) == 1 )
 	{
-		const std::string& trackName = *it;
-		std::string name = channelName + "." + trackName;
-		std::cout << "loading " << name << std::endl;
-		FloatController::Ptr track = loadTrack( channel->getObject(trackName) );
-		m_channels[name] = track;
-
-		m_controller[name] = track;
+		const std::string& trackName = tracks[0];
+		std::cout << "loading " << channelName << std::endl;
+		FloatController::Ptr track = loadTrack( channel->getObject(trackName), channelName );
+		m_controller[channelName] = track;
+		m_controller[channelName + "." + trackName] = track;
+	}else
+	{
+		// multi track channel
+		for(auto it = tracks.begin(),end=tracks.end();it!=end;++it)
+		{
+			const std::string& trackName = *it;
+			std::string name = channelName + "." + trackName;
+			std::cout << "loading " << name << std::endl;
+			FloatController::Ptr track = loadTrack( channel->getObject(trackName), channelName + "." + trackName );
+			m_controller[name] = track;
+		}
 	}
 }
 
@@ -320,6 +365,11 @@ Camera::Ptr HouScene::loadCamera( QJsonObject &obj )
 
 void SceneController::update(Property::Ptr prop, float time)
 {
+	std::cout << "SceneController::update " << m_controllerId << " " << prop->getName() << std::endl;
+
+	// since the controller may be driven by other controllers, we have an updategraph
+	m_updateGraph.update( time );
+	// now, due to the udate graph, m_controller is supposed to be up to date...
 	m_controller->update( prop, time );
 }
 
@@ -333,8 +383,12 @@ void SceneController::serialize(Serializer &out)
 void SceneController::getController()
 {
 	// get Controller from scene
-	m_controller = m_scene->getController(m_controllerId);
+	m_controller = m_scene->getController(m_controllerId, m_updateGraph);
+	m_updateGraph.compile();
 }
+
+
+
 
 REGISTERCLASS( SceneController )
 REGISTERCLASS( Scene )

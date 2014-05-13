@@ -7,6 +7,7 @@
 #include "Scene.h"
 #include "Element.h"
 #include "Controller.h"
+#include "UpdateGraph.h"
 
 #include <iostream>
 
@@ -67,77 +68,6 @@ struct ShotElement
 
 
 
-struct UpdateGraph
-{
-	typedef std::map<Property::Ptr, Controller::Ptr> ObjectBindings;
-	void update( float time )
-	{
-		// iterate and execute all update commands
-		for( auto it = m_updateCommands.begin(),end=m_updateCommands.end();it!=end;++it )
-		{
-			Controller::Ptr controller = it->first;
-			Property::Ptr prop = it->second;
-			controller->update(prop, time);
-		}
-	}
-
-	ObjectBindings* getObjectBindings(Object::Ptr object)
-	{
-		auto it = m_graph.find(object);
-		if(it != m_graph.end())
-			return it->second;
-		return 0;
-	}
-
-	void addConnection( Controller::Ptr controller, Object::Ptr object, const std::string& propName )
-	{
-		ObjectBindings* ob = getObjectBindings( object );
-		// create, if objectbindings dont exist
-		if(!ob)
-		{
-			ob = new ObjectBindings();
-			m_graph[object] = ob;
-		}
-		Property::Ptr prop = object->getProperty(propName);
-		if(prop)
-			(*ob)[prop] = controller;
-	}
-
-	void gatherUpdateCommands( Object::Ptr object )
-	{
-		ObjectBindings* ob = getObjectBindings( object );
-		if(ob)
-		{
-			for( auto it = ob->begin(), end=ob->end();it!=end;++it )
-			{
-				Property::Ptr property = it->first;
-				Controller::Ptr controller = it->second;
-
-				// recurse down the tree
-				gatherUpdateCommands( controller );
-
-				// now, since all leave nodes have been processed, add current binding
-				m_updateCommands.push_back(std::make_pair(controller, property));
-			}
-		}
-	}
-
-	void compile(std::vector<Object::Ptr> rootObjects)
-	{
-		m_updateCommands.clear();
-		for( auto it=rootObjects.begin(), end=rootObjects.end();it!=end;++it )
-		{
-			Object::Ptr obj = *it;
-			gatherUpdateCommands( obj );
-		}
-	}
-
-	houdini::json::Value serialize(Serializer &out);
-
-private:
-	std::map<Object::Ptr, ObjectBindings* > m_graph; // the graph
-	std::vector<std::pair<Controller::Ptr, Property::Ptr>> m_updateCommands; // this is the final list of update commands which is being compiled from the graph
-};
 
 
 class Shot : public Object
@@ -147,8 +77,9 @@ public:
 	typedef std::shared_ptr<Shot> Ptr;
 
 
-	Shot()
+	Shot() : Object()
 	{
+		addProperty<base::Camera::Ptr>( "camera", std::bind( &Shot::getCamera, this ), std::bind( &Shot::setCamera, this, std::placeholders::_1 ) );
 	}
 
 	static Ptr create()
@@ -185,11 +116,20 @@ public:
 		m_updateGraph.addConnection( controller, object, name );
 	}
 
+	base::Camera::Ptr getCamera()const
+	{
+		return m_camera;
+	}
+	void setCamera( base::Camera::Ptr camera )
+	{
+		m_camera = camera;
+	}
 
 
 	virtual void serialize(Serializer &out);
 
 	CameraController::Ptr                    m_cameraController;
+	base::Camera::Ptr                        m_camera;
 	std::vector<ShotElement::Ptr>            m_elements;
 
 	UpdateGraph                              m_updateGraph;
