@@ -173,7 +173,7 @@ void init( base::Context::Ptr context )
 	// test: serialize demo ----
 	//houdini::json::Value value;
 	//g_demo->store(value);
-	//g_demo->store("test.json");
+	g_demo->store("test.json");
 
 	{
 		//DemoExporter de(&std::cout);

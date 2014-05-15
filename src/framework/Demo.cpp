@@ -5,6 +5,8 @@
 #include "elements/FlareShop/FlareShop.h"
 #include "elements/Nebulae/Nebulae.h"
 
+#include "controller/LoadGeometry.h"
+
 #include <stack>
 
 
@@ -292,7 +294,10 @@ void Demo::load( const std::string& filename )
 
 	Controller::Ptr toV3f = ObjectFactory::create<Controller>("FloatToV3fController");
 	Controller::Ptr test = ObjectFactory::create<Controller>("SinusController");
+	LoadGeometry::Ptr loadGeometry = ObjectFactory::create<LoadGeometry>("LoadGeometry");
+	loadGeometry->setFilename( "$DATA/test.bgeo" );
 	shot->setPropertyController( clear, "color", toV3f );
+	shot->setPropertyController( renderGeo, "geometry", loadGeometry );
 	//shot->setPropertyController( toV3f, "x", test );
 	//shot->setPropertyController( toV3f, "y", test );
 	//shot->setPropertyController( toV3f, "z", test );

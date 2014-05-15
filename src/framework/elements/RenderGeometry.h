@@ -17,6 +17,8 @@ public:
 
 	virtual void render(base::Context::Ptr context, float time)override;
 
+	base::Geometry::Ptr getGeometry()const;
+	void setGeometry( base::Geometry::Ptr geometry );
 
 private:
 	base::Geometry::Ptr m_geometry;

@@ -6,6 +6,7 @@
 
 
 #include <gfx/Camera.h>
+#include <gfx/Geometry.h>
 
 
 
@@ -46,6 +47,8 @@ typedef ControllerT<float> FloatController;
 typedef ControllerT<math::V3f> V3fController;
 typedef ControllerT<math::M44f> M44fController;
 typedef ControllerT<base::Camera::Ptr> CameraController;
+typedef ControllerT<base::Geometry::Ptr> GeometryController;
+
 
 template<typename T>
 class ConstantController : public ControllerT<T>
