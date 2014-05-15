@@ -4,6 +4,15 @@
 
 
 
+UpdateGraph::UpdateGraph()
+{
+}
+
+UpdateGraph::UpdateGraph(UpdateGraph &graph):
+	m_graph(graph.m_graph)
+{
+
+}
 
 void UpdateGraph::copyFrom( UpdateGraph& graph, Object::Ptr root )
 {

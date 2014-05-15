@@ -278,13 +278,15 @@ CameraController::Ptr Scene::loadSwitcher( houdini::json::ObjectPtr switcher, co
 	CameraSwitchController::Ptr s = CameraSwitchController::create();
 	houdini::json::ObjectPtr channels = switcher->getObject("channels");
 
+	FloatController::Ptr switchController;
 	if(channels->hasKey("camswitch"))
 	{
-		loadTrack( channels->getObject("camswitch"), name + ".camswitch" );
+		switchController = loadTrack( channels->getObject("camswitch"), name + ".camswitch" );
 	}else
 	{
-		m_controller[name + ".camswitch"] = ConstantFloatController::create( 0.0f );
+		switchController = ConstantFloatController::create( 0.0f );
 	}
+	m_controller[name + ".camswitch"] = switchController;
 
 	if(switcher->hasKey("cameras"))
 	{
@@ -292,13 +294,19 @@ CameraController::Ptr Scene::loadSwitcher( houdini::json::ObjectPtr switcher, co
 		int numItems = cameras->size();
 		for( int i=0;i<numItems;++i )
 		{
-			//TODO
-//			std::string cameraName = cameras->get<std::string>(i);
-//			CameraController::Ptr cam = getCamera( cameraName );
-//			if( cam )
-//				s->m_cameras.push_back( cam );
+			std::string cameraName = cameras->get<std::string>(i);
+			CameraSwitchController::Item item;
+			item.second = new UpdateGraph();
+			item.first = std::dynamic_pointer_cast<CameraController>(getController( "/obj/" + cameraName, *item.second ));
+			if( item.first )
+			{
+				item.second->compile();
+				s->m_cameras.push_back( item );
+			}
 		}
 	}
+
+	m_updateGraph.addConnection(switchController, s, "switch");
 
 	m_controller[name] = s;
 	return s;
@@ -365,7 +373,7 @@ Camera::Ptr HouScene::loadCamera( QJsonObject &obj )
 
 void SceneController::update(Property::Ptr prop, float time)
 {
-	std::cout << "SceneController::update " << m_controllerId << " " << prop->getName() << std::endl;
+	//std::cout << "SceneController::update " << m_controllerId << " " << prop->getName() << std::endl;
 
 	// since the controller may be driven by other controllers, we have an updategraph
 	m_updateGraph.update( time );

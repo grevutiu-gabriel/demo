@@ -166,7 +166,7 @@ public:
 
 	math::M44f evaluate(float time)override
 	{
-		std::cout << "PRSController::evaluate " << m_tx << " " << m_ty << " " << m_tz << std::endl;
+		//std::cout << "PRSController::evaluate " << m_tx << " " << m_ty << " " << m_tz << std::endl;
 		math::M44f t = math::M44f::TranslationMatrix(m_tx, m_ty, m_tz);
 		math::M44f rotationX = math::M44f::RotationMatrixX( -math::degToRad(m_rx) );
 		math::M44f rotationY = math::M44f::RotationMatrixY( -math::degToRad(m_ry) );

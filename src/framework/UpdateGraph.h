@@ -12,6 +12,9 @@ struct UpdateGraph
 {
 	typedef std::map<Property::Ptr, Controller::Ptr> ObjectBindings;
 
+	UpdateGraph();
+	UpdateGraph( UpdateGraph& graph );
+
 	void copyFrom( UpdateGraph& graph, Object::Ptr root );
 
 	void clear()

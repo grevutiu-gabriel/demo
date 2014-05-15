@@ -11,22 +11,13 @@ void Shot::prepareForRendering()
 
 void Shot::render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera )
 {
-//		// update animated properties
-//		for(auto it=m_constantProperties.begin(),end=m_constantProperties.end();it!=end;++it)
-//			it->second->update( it->first, time);
-//		for(auto it=m_animatedProperties.begin(),end=m_animatedProperties.end();it!=end;++it)
-//			it->second->update( it->first, time);
-
 	// update all properties ---
 	m_updateGraph.update(time);
 
 	// get camera ---
-	base::Camera::Ptr camera;
+	base::Camera::Ptr camera = m_camera;
 	if( overrideCamera )
 		camera = overrideCamera;
-	else
-	if( m_cameraController )
-		camera = m_cameraController->evaluate(time);
 
 	context->setView( camera->m_worldToView, camera->m_viewToWorld, camera->m_viewToNDC );
 

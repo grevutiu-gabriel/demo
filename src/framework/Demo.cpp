@@ -287,6 +287,8 @@ void Demo::load( const std::string& filename )
 
 	Element::Ptr clear = ObjectFactory::create<Element>("Clear");
 	shot->addElement( clear );
+	Element::Ptr renderGeo = ObjectFactory::create<Element>("RenderGeometry");
+	shot->addElement( renderGeo );
 
 	Controller::Ptr toV3f = ObjectFactory::create<Controller>("FloatToV3fController");
 	Controller::Ptr test = ObjectFactory::create<Controller>("SinusController");
@@ -297,8 +299,9 @@ void Demo::load( const std::string& filename )
 
 	SceneController::Ptr ch1 = SceneController::create(m_scenes[0],"/ch/ch1.x");
 	SceneController::Ptr cam1 = SceneController::create(m_scenes[0],"/obj/cam1");
+	SceneController::Ptr switch1 = SceneController::create(m_scenes[1],"/obj/switcher1");
 	shot->setPropertyController( toV3f, "y", ch1 );
-	shot->setPropertyController( shot, "camera", cam1 );
+	shot->setPropertyController( shot, "camera", switch1 );
 
 	shot->prepareForRendering();
 

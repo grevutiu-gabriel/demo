@@ -128,40 +128,10 @@ public:
 
 	virtual void serialize(Serializer &out);
 
-	CameraController::Ptr                    m_cameraController;
 	base::Camera::Ptr                        m_camera;
 	std::vector<ShotElement::Ptr>            m_elements;
 
 	UpdateGraph                              m_updateGraph;
-
-	// deprecated
-	void setController( Object::Ptr object, const std::string& name, Controller::Ptr controller )
-	{
-		Property::Ptr prop = object->getProperty( name );
-		if(prop)
-		{
-			if(controller->isAnimated())
-				m_animatedProperties[prop] = controller;
-			else
-				m_constantProperties[prop] = controller;
-		}
-	}
-
-	void setController( Object::Ptr object, const std::string& name, Property::Ptr controllerProp )
-	{
-		RefProperty::Ptr refcontrlprop = std::dynamic_pointer_cast<RefProperty>( controllerProp );
-		if( refcontrlprop)
-		{
-			Object::Ptr obj = refcontrlprop->getRef();
-			Controller::Ptr controller = std::dynamic_pointer_cast<Controller>(obj);
-			if(controller)
-			{
-				setController( object, name, controller );
-			}
-		}
-	}
-	std::map<Property::Ptr, Controller::Ptr> m_constantProperties;
-	std::map<Property::Ptr, Controller::Ptr> m_animatedProperties;
 };
 
 

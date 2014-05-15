@@ -46,7 +46,7 @@ struct PerspectiveCameraController : public CameraController
 	virtual base::Camera::Ptr evaluate(float time)override
 	{
 		// assemble camera ----
-		std::cout << "PerspectiveCameraController::evaluate\n";
+		//std::cout << "PerspectiveCameraController::evaluate\n";
 
 		// projectionMatrix changes
 		if( m_fovIsAnimated )
@@ -103,8 +103,10 @@ private:
 struct CameraSwitchController : public CameraController
 {
 	typedef std::shared_ptr<CameraSwitchController> Ptr;
+	typedef std::pair<CameraController::Ptr, UpdateGraph*> Item;
 	CameraSwitchController() : CameraController()
 	{
+		addProperty<float>( "switch", std::bind( &CameraSwitchController::getSwitch, this ), std::bind( &CameraSwitchController::setSwitch, this, std::placeholders::_1 ) );
 	}
 	static Ptr create()
 	{
@@ -112,15 +114,32 @@ struct CameraSwitchController : public CameraController
 	}
 	virtual base::Camera::Ptr evaluate(float time)override
 	{
+		//std::cout << "CameraSwitchController::evaluate"<<std::endl;
 		int sw = int(m_switch);
-		return m_cameras[ sw ];
+		//std::cout << "CameraSwitchController::evaluate switch: "<< sw << std::endl;
+		if(sw < int(m_cameras.size()))
+		{
+			Item& item = m_cameras[ sw ];
+			item.second->update(time);
+			return item.first->evaluate( time );
+		}
+		return base::Camera::Ptr();
 	}
 	virtual bool isAnimated()const override
 	{
 		return true;
 	}
-	float                              m_switch;
-	std::vector<base::Camera::Ptr>     m_cameras;
+	float getSwitch()const
+	{
+		return m_switch;
+	}
+	void setSwitch( float camSwitch )
+	{
+		m_switch = camSwitch;
+	}
+
+	float                 m_switch;
+	std::vector<Item>     m_cameras;
 };
 
 class Scene;
