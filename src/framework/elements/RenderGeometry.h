@@ -19,7 +19,8 @@ public:
 
 	base::Geometry::Ptr getGeometry()const;
 	void setGeometry( base::Geometry::Ptr geometry );
-
+	base::Shader::Ptr getShader()const;
+	void setShader( base::Shader::Ptr shader );
 private:
 	base::Geometry::Ptr m_geometry;
 	base::Shader::Ptr   m_shader;

@@ -42,19 +42,7 @@ public:
 			// if property exists already, we do what?
 		}
 	}
-	template<typename T>
-	void addRefProperty( const std::string& name, typename RefPropertyT<T>::Getter get, typename RefPropertyT<T>::Setter set)
-	{
-		RefPropertyT<T>::Ptr prop = RefPropertyT<T>::create(name, get, set);
 
-		if( !hasProperty(name) )
-		{
-			m_props[name] = prop;
-		}else
-		{
-			// if property exists already, we do what?
-		}
-	}
 
 
 	Property::Ptr getProperty( const std::string& name )

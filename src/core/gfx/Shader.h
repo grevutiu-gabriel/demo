@@ -21,6 +21,14 @@ namespace base
 		struct ShaderSource;
 		typedef std::shared_ptr<ShaderSource> ShaderSourcePtr;
 
+		enum EUniformType
+		{
+			EUNKNOWN,
+			EFLOAT,
+			ESAMPLER1D,
+			ESAMPLER2D,
+			ESAMPLER3D
+		};
 
 		struct ShaderLoader
 		{
@@ -77,6 +85,8 @@ namespace base
 		bool                                             isOk();
 		void                                             finalize();
 		void                                             getAttributeNames( std::vector<std::string> &names );
+		void                                             getUniformNames( std::vector<std::string> &names );
+		EUniformType                                     getUniformType( const std::string& name );
 
 
 
@@ -128,6 +138,7 @@ namespace base
 		static Shader::Ptr                               createSimpleConstantShader( float r = 1.0f, float g = 1.0f, float b = 1.0f );
 		static Shader::Ptr                               createSimpleColorShader(); // creates a shader which uses varying Cd attribute
 		static Shader::Ptr                               createSimpleTextureShader( Texture2d::Ptr texture = Texture2d::createUVRefTexture() );
+		static std::string                               uniformTypeAsString( EUniformType utype );
 	};
 
 

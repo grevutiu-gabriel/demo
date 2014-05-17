@@ -285,6 +285,34 @@ namespace base
 			names.push_back(it->first);
 	}
 
+	void Shader::getUniformNames(std::vector<std::string> &names)
+	{
+		names.clear();
+		for( std::map<std::string, int>::iterator it = m_activeUniforms.begin(), end = m_activeUniforms.end(); it != end; ++it )
+			names.push_back(it->first);
+	}
+
+	Shader::EUniformType Shader::getUniformType(const std::string &name)
+	{
+		// get uniform index
+		std::map<std::string, int>::iterator it = m_activeUniforms.find( name );
+		if(it == m_activeUniforms.end())
+			return EUNKNOWN;
+		unsigned int index = it->second;
+		int param;
+		glGetActiveUniformsiv(m_glProgram, 1,  &index, GL_UNIFORM_TYPE,  &param);
+		switch( param )
+		{
+			case GL_FLOAT:return EFLOAT;break;
+			case GL_SAMPLER_1D:return ESAMPLER1D;break;
+			case GL_SAMPLER_2D:return ESAMPLER2D;break;
+			case GL_SAMPLER_3D:return ESAMPLER3D;break;
+			default:return EUNKNOWN;
+		};
+
+		return EUNKNOWN;
+	}
+
 	void Shader::finalize()
 	{
 		char text[1000];
@@ -598,6 +626,19 @@ namespace base
 		if(texture)
 			shader->setUniform( "texture", texture->getUniform() );
 		return shader;
+	}
+
+	std::string Shader::uniformTypeAsString(Shader::EUniformType utype)
+	{
+		switch( utype )
+		{
+			case EUNKNOWN:return "unknown";break;
+			case EFLOAT:return "float";break;
+			case ESAMPLER1D:return "sampler1D";break;
+			case ESAMPLER2D:return "sampler2D";break;
+			case ESAMPLER3D:return "sampler3D";break;
+		};
+		return "unknown";
 	}
 }
 
