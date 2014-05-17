@@ -10,12 +10,15 @@ namespace houdini
 		//static void      exportGeo( const std::string &path, Geometry::Ptr geo );
 		static HouGeo::Ptr                      import( std::istream *in );
 		static base::Geometry::Ptr              importGeometry( const std::string &path );
+		static base::ScalarField::Ptr           importVolume(const std::string &path);
 		static bool                             xport(std::ostream *out, HouGeoAdapter::Ptr geo , bool binary = true);
 		static void                             makeLog( const std::string &path, std::ostream *out );
 
 		static base::Geometry::Ptr              convertToGeometry( HouGeo::Ptr houGeo, int prim ); // converts primitive with the given index to geometry
 
 		static bool                             xport( const std::string& filename, base::ScalarField::Ptr volume ); // convinience funcion for quickly saving volume to bgeo
+
+
 
 	private:
 		static bool                             exportAttribute( HouGeoAdapter::Attribute::Ptr attr );

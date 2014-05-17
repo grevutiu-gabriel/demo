@@ -49,6 +49,26 @@ namespace houdini
 		return result;
 	}
 
+	base::ScalarField::Ptr HouGeoIO::importVolume( const std::string &path )
+	{
+		base::ScalarField::Ptr result;
+		std::ifstream in( path.c_str(), std::ios_base::in | std::ios_base::binary );
+		HouGeo::Ptr hgeo = HouGeoIO::import( &in );
+		if( hgeo )
+		{
+			int primIndex = 0;
+			houdini::HouGeo::Primitive::Ptr prim = hgeo->getPrimitive(primIndex);
+
+			//volume
+			if(std::dynamic_pointer_cast<HouGeo::HouVolume>(prim) )
+			{
+				HouGeo::HouVolume::Ptr houVolume = std::dynamic_pointer_cast<HouGeo::HouVolume>(prim);
+				result = houVolume->field;
+			}
+		}
+		return result;
+	}
+
 	// prim -1 means we will get a simple pointsgeometry
 	base::Geometry::Ptr HouGeoIO::convertToGeometry(HouGeo::Ptr houGeo, int prim )
 	{
