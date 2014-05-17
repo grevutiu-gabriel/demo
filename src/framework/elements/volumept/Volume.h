@@ -52,6 +52,8 @@ public:
 	math::V3f getPointLightPosition()const;
 	void setPointLightIntensity( float intensity );
 	float getPointLightIntensity()const;
+	void setLocalToWorld(const math::M44f& localToWorld);
+	math::M44f getLocalToWorld()const;
 
 	Volume();
 

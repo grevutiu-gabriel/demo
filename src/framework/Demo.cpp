@@ -8,6 +8,7 @@
 #include "controller/LoadGeometry.h"
 #include "controller/LoadShader.h"
 #include "controller/LoadTexture.h"
+#include "controller/LoadVolume.h"
 
 #include <stack>
 
@@ -327,10 +328,17 @@ void Demo::load( const std::string& filename )
 	Element::Ptr clear = ObjectFactory::create<Element>("Clear");
 	shot->addElement( clear );
 	Volume::Ptr volume = ObjectFactory::create<Volume>("Volume");
-	volume->load( base::expand("$DATA/artifix_resized_moved.bgeo") );
+	//volume->load( base::expand("$DATA/artifix_resized_moved.bgeo") );
+	LoadVolume::Ptr loadVolume = ObjectFactory::create<LoadVolume>("LoadVolume");
+	loadVolume->setFilename("$DATA/artifix_resized_moved.bgeo");
 	shot->addElement( volume );
 
 	shot->setPropertyController( shot, "camera", SceneController::create(m_scenes[0],"/obj/switcher1") );
+	shot->setPropertyController( volume, "normalizedDensity", loadVolume);
+	shot->setPropertyController( volume, "localToWorld", loadVolume);
+	shot->setPropertyController( volume, "PointLightPosition", SceneController::create(m_scenes[0],"/obj/null1/transform.translation"));
+	shot->setPropertyController( volume, "PointLightIntensity", SceneController::create(m_scenes[0],"/ch/ch1"));
+
 
 	shot->prepareForRendering();
 

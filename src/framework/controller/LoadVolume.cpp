@@ -6,6 +6,12 @@
 
 
 
+LoadVolume::LoadVolume() : Controller()
+{
+	m_texture3d = base::Texture3d::createFloat32();
+}
+
+
 base::Texture3d::Ptr LoadVolume::evaluateTexture3d(float time)
 {
 	return m_texture3d;
@@ -36,6 +42,7 @@ void LoadVolume::update(Property::Ptr prop, float time)
 	}
 }
 
+
 bool LoadVolume::isAnimated()const
 {
 	return false;
@@ -46,23 +53,8 @@ void LoadVolume::setFilename( const std::string& filename )
 	// load the file immediately
 	m_filename = filename;
 
-	m_field = base::ScalarField::Ptr();
-
 	// load houdini file ================
-	std::ifstream in( base::expand(m_filename).c_str(), std::ios_base::in | std::ios_base::binary );
-	houdini::HouGeo::Ptr hgeo = houdini::HouGeoIO::import( &in );
-	if( hgeo )
-	{
-		int primIndex = 0;
-		houdini::HouGeo::Primitive::Ptr prim = hgeo->getPrimitive(primIndex);
-
-		//Volume
-		if(std::dynamic_pointer_cast<houdini::HouGeo::HouVolume>(prim) )
-		{
-			houdini::HouGeo::HouVolume::Ptr volprim = std::dynamic_pointer_cast<houdini::HouGeo::HouVolume>(prim);
-			m_normalizedDensity = volprim->field;
-		}
-	}
+	m_field = houdini::HouGeoIO::importVolume( base::expand(m_filename));
 
 	if(!m_field)
 		std::cerr << "unable to load " << filename << std::endl;
@@ -81,9 +73,9 @@ void LoadVolume::setFilename( const std::string& filename )
 			}
 
 	// normalize density ---
-	for( int k = 0; k<m_normalizedDensity->m_resolution.z;++k )
-		for( int j = 0; j<m_normalizedDensity->m_resolution.y;++j )
-			for( int i = 0; i<m_normalizedDensity->m_resolution.x;++i )
+	for( int k = 0; k<m_field->m_resolution.z;++k )
+		for( int j = 0; j<m_field->m_resolution.y;++j )
+			for( int i = 0; i<m_field->m_resolution.x;++i )
 			{
 				float value = math::mapValueTo0_1(densityMin, densityMax, m_field->lvalue(i,j,k));
 				m_field->lvalue(i,j,k) = value;

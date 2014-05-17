@@ -22,8 +22,10 @@ class LoadVolume : public Controller
 public:
 	typedef std::shared_ptr<LoadVolume> Ptr;
 
+	LoadVolume();
+
 	// overrides from Controller
-	virtual void update( Property::Ptr prop, float time)=0;
+	virtual void update( Property::Ptr prop, float time)override;
 	virtual bool isAnimated()const;
 
 	void setFilename( const std::string& filename );

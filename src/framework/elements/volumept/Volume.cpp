@@ -362,6 +362,8 @@ Volume::Volume() : Element()
 	// register properties -----
 	addProperty<math::V3f>( "PointLightPosition", std::bind( &Volume::getPointLightPosition, this ), std::bind( &Volume::setPointLightPosition, this, std::placeholders::_1 ) );
 	addProperty<float>( "PointLightIntensity", std::bind( &Volume::getPointLightIntensity, this ), std::bind( &Volume::setPointLightIntensity, this, std::placeholders::_1 ) );
+	addProperty<base::Texture3d::Ptr>( "normalizedDensity", PropertyT<base::Texture3d::Ptr>::Getter(), std::bind( static_cast<void(base::Shader::*)(const std::string& name, base::Texture3d::Ptr)>(&base::Shader::setUniform), volumeShader, "normalizedDensity", std::placeholders::_1 ) );
+	addProperty<math::M44f>( "localToWorld", std::bind( &Volume::getLocalToWorld, this ), std::bind( &Volume::setLocalToWorld, this, std::placeholders::_1 ) );
 
 }
 
@@ -383,6 +385,33 @@ void Volume::setPointLightIntensity( float intensity )
 float Volume::getPointLightIntensity()const
 {
 	return volumeShader->getUniform("pointLightIntensity")->get<float>(0);
+}
+
+void Volume::setLocalToWorld(const math::M44f& localToWorld)
+{
+	localToWorldAttr->set<math::M44f>( 0, localToWorld );
+	worldToLocalAttr->set<math::M44f>( 0, localToWorld.inverted() );
+
+	math::V3f bmin = math::transform( math::V3f(0.0f, 0.0f, 0.0f), localToWorld );
+	//std::cout << "bmin " << bmin.x << " " << bmin.y << " " << bmin.z << " " << std::endl;
+	math::V3f bmax = math::transform( math::V3f(1.0f, 1.0f, 1.0f), localToWorld );
+	//std::cout << "bmax " << bmax.x << " " << bmax.y << " " << bmax.z << " " << std::endl;
+
+	// get aabb from transformed (and therefore potentially non-axis aligned) bounding box
+	math::V3f aabb_min;
+	math::V3f aabb_max;
+	aabb_min.x = std::min( bmin.x, bmax.x );
+	aabb_min.y = std::min( bmin.y, bmax.y );
+	aabb_min.z = std::min( bmin.z, bmax.z );
+	aabb_max.x = std::max( bmin.x, bmax.x );
+	aabb_max.y = std::max( bmin.y, bmax.y );
+	aabb_max.z = std::max( bmin.z, bmax.z );
+	volumeShader->setUniform( "aabb_min", aabb_min );
+	volumeShader->setUniform( "aabb_max", aabb_max );
+}
+math::M44f Volume::getLocalToWorld()const
+{
+	return localToWorldAttr->get<math::M44f>(0);
 }
 
 void Volume::load( const std::string& filename )
@@ -544,7 +573,7 @@ void Volume::render(base::Context::Ptr context, float time)
 
 	base::Context::TransformState ts;
 	context->getTransformState(ts);
-	context->setModelMatrix(m_normalizedDensity->m_localToWorld);
+	context->setModelMatrix(localToWorldAttr->get<math::M44f>(0));
 
 	// render back faces
 	volumeBackFBO->begin();

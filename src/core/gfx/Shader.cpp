@@ -505,6 +505,11 @@ namespace base
 	{
 		setUniform( name, texture->getUniform() );
 	}
+	// convinience function
+	void Shader::setUniform( const std::string &name, base::Texture3d::Ptr texture )
+	{
+		setUniform( name, texture->getUniform() );
+	}
 
 
 /*

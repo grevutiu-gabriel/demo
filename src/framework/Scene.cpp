@@ -97,6 +97,10 @@ void Scene::load( const std::string& filename )
 
 	// add some dummy channel
 	//m_channels["color"] = FloatToV3fControllerOld::create( ConstantFloatController::create(1.0f), SinusController::create(), ConstantFloatController::create(0.0f) );
+	for( auto it:m_controller )
+	{
+		std::cout << it.first << std::endl;
+	}
 }
 
 const std::string &Scene::getFilename() const
@@ -191,8 +195,12 @@ M44fController::Ptr Scene::loadTransform( houdini::json::ObjectPtr transform, co
 			translationZ = ConstantFloatController::create(0.0f);
 		m_controller[name + ".tz"] = translationZ;
 		m_updateGraph.addConnection( translationZ, transformController, "tz" );
-		//translation = FloatToV3fControllerOld::create( translationX, translationY, translationZ );
-		//m_controller[name + "transform.translation"] = translation;
+
+		FloatToV3fController::Ptr translationController = FloatToV3fController::create();
+		m_controller[name + ".translation"] = translationController;
+		m_updateGraph.addConnection( translationX, translationController, "x" );
+		m_updateGraph.addConnection( translationY, translationController, "y" );
+		m_updateGraph.addConnection( translationZ, translationController, "z" );
 	}
 	V3fController::Ptr rotation;
 	{
@@ -207,7 +215,7 @@ M44fController::Ptr Scene::loadTransform( houdini::json::ObjectPtr transform, co
 		m_controller[name + ".rx"] = rotationX;
 		m_updateGraph.addConnection( rotationX, transformController, "rx" );
 		if(hasAnimatedY)
-			rotationY = loadTrack( channels->getObject("transform.ry"), name + "transform.ry" );
+			rotationY = loadTrack( channels->getObject("transform.ry"), name + ".ry" );
 		else
 			rotationY = ConstantFloatController::create(0.0f);
 		m_controller[name + ".ry"] = rotationY;

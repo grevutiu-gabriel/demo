@@ -134,8 +134,8 @@ void render( base::Context::Ptr context, base::Camera::Ptr cam )
 
 	// render demo
 	glEnable(GL_DEPTH_TEST);
-	g_demo->render( context, g_timer.elapsedSeconds(), cam );
-	//g_demo->render( context, g_timer.elapsedSeconds() );
+	//g_demo->render( context, g_timer.elapsedSeconds(), cam );
+	g_demo->render( context, g_timer.elapsedSeconds() );
 
 	//glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	//glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
