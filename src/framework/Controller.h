@@ -7,6 +7,8 @@
 
 #include <gfx/Camera.h>
 #include <gfx/Geometry.h>
+#include <gfx/Shader.h>
+#include <gfx/Texture.h>
 
 
 
@@ -48,6 +50,8 @@ typedef ControllerT<math::V3f> V3fController;
 typedef ControllerT<math::M44f> M44fController;
 typedef ControllerT<base::Camera::Ptr> CameraController;
 typedef ControllerT<base::Geometry::Ptr> GeometryController;
+typedef ControllerT<base::Shader::Ptr> ShaderController;
+typedef ControllerT<base::Texture2d::Ptr> TextureController;
 
 
 template<typename T>

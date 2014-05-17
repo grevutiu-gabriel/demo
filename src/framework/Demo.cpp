@@ -6,6 +6,8 @@
 #include "elements/Nebulae/Nebulae.h"
 
 #include "controller/LoadGeometry.h"
+#include "controller/LoadShader.h"
+#include "controller/LoadTexture.h"
 
 #include <stack>
 
@@ -295,9 +297,15 @@ void Demo::load( const std::string& filename )
 	Controller::Ptr toV3f = ObjectFactory::create<Controller>("FloatToV3fController");
 	Controller::Ptr test = ObjectFactory::create<Controller>("SinusController");
 	LoadGeometry::Ptr loadGeometry = ObjectFactory::create<LoadGeometry>("LoadGeometry");
+	LoadShader::Ptr loadShader = ObjectFactory::create<LoadShader>("LoadShader");
+	LoadTexture::Ptr loadTexture = ObjectFactory::create<LoadTexture>("LoadTexture");
 	loadGeometry->setFilename( "$DATA/test.bgeo" );
+	loadShader->setFilename( "$DATA/matcap" );
+	loadTexture->setFilename( "$DATA/scary-light.jpg" );
 	shot->setPropertyController( clear, "color", toV3f );
 	shot->setPropertyController( renderGeo, "geometry", loadGeometry );
+	shot->setPropertyController( renderGeo, "shader", loadShader );
+	shot->setPropertyController( loadShader, "tex", loadTexture );
 	//shot->setPropertyController( toV3f, "x", test );
 	//shot->setPropertyController( toV3f, "y", test );
 	//shot->setPropertyController( toV3f, "z", test );
