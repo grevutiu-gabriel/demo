@@ -387,8 +387,6 @@ float Volume::getPointLightIntensity()const
 
 void Volume::load( const std::string& filename )
 {
-
-	//base::ScalarField::Ptr density;
 	m_normalizedDensity = base::ScalarField::Ptr();
 
 	// load houdini file ================
@@ -410,7 +408,6 @@ void Volume::load( const std::string& filename )
 	if(!m_normalizedDensity)
 		std::cerr << "unable to load " << filename << std::endl;
 
-	//m_density->setLocalToWorld(math::M44f());
 
 	// find density value range ---
 	float densityMin=std::numeric_limits<float>::infinity();
@@ -436,7 +433,6 @@ void Volume::load( const std::string& filename )
 	std::cout << "Volume::load: densityMax " << densityMax << std::endl;
 	m_normalizedDensityTexture->uploadFloat32( m_normalizedDensity->m_resolution.x, m_normalizedDensity->m_resolution.y, m_normalizedDensity->m_resolution.z, m_normalizedDensity->getRawPointer() );
 	volumeShader->setUniform( "normalizedDensity", m_normalizedDensityTexture->getUniform() );
-	//volumeShader->setUniform( "sigma_t_max", densityMax );
 
 
 	localToWorldAttr->set<math::M44f>( 0, m_normalizedDensity->m_localToWorld );

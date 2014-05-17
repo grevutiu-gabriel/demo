@@ -286,6 +286,7 @@ void Demo::load( const std::string& filename )
 	addShot( std::dynamic_pointer_cast<Shot>(m_deserializeMap[7]) );
 */
 
+	/*
 	Shot::Ptr shot = Shot::create();
 	addShot(shot);
 
@@ -317,7 +318,21 @@ void Demo::load( const std::string& filename )
 	shot->setPropertyController( shot, "camera", switch1 );
 
 	shot->prepareForRendering();
+	*/
 
+	// volume -------
+	Shot::Ptr shot = Shot::create();
+	addShot(shot);
+
+	Element::Ptr clear = ObjectFactory::create<Element>("Clear");
+	shot->addElement( clear );
+	Volume::Ptr volume = ObjectFactory::create<Volume>("Volume");
+	volume->load( base::expand("$DATA/artifix_resized_moved.bgeo") );
+	shot->addElement( volume );
+
+	shot->setPropertyController( shot, "camera", SceneController::create(m_scenes[0],"/obj/switcher1") );
+
+	shot->prepareForRendering();
 
 //	// load elements ------
 //	addElement( ObjectFactory::create<Element>("Clear") );

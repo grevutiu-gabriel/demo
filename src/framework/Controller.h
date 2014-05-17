@@ -51,7 +51,8 @@ typedef ControllerT<math::M44f> M44fController;
 typedef ControllerT<base::Camera::Ptr> CameraController;
 typedef ControllerT<base::Geometry::Ptr> GeometryController;
 typedef ControllerT<base::Shader::Ptr> ShaderController;
-typedef ControllerT<base::Texture2d::Ptr> TextureController;
+typedef ControllerT<base::Texture2d::Ptr> Texture2dController;
+typedef ControllerT<base::Texture3d::Ptr> Texture3dController;
 
 
 template<typename T>
