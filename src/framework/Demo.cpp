@@ -287,7 +287,7 @@ void Demo::load( const std::string& filename )
 	addShot( std::dynamic_pointer_cast<Shot>(m_deserializeMap[7]) );
 */
 
-	/*
+	///*
 	Shot::Ptr shot = Shot::create();
 	addShot(shot);
 
@@ -300,11 +300,12 @@ void Demo::load( const std::string& filename )
 	Controller::Ptr test = ObjectFactory::create<Controller>("SinusController");
 	LoadGeometry::Ptr loadGeometry = ObjectFactory::create<LoadGeometry>("LoadGeometry");
 	LoadShader::Ptr loadShader = ObjectFactory::create<LoadShader>("LoadShader");
-	LoadTexture::Ptr loadTexture = ObjectFactory::create<LoadTexture>("LoadTexture");
+	LoadTexture2d::Ptr loadTexture = ObjectFactory::create<LoadTexture2d>("LoadTexture2d");
 	loadGeometry->setFilename( "$DATA/test.bgeo" );
 	loadShader->setFilename( "$DATA/matcap" );
-	loadTexture->setFilename( "$DATA/scary-light.jpg" );
-	shot->setPropertyController( clear, "color", toV3f );
+	//loadTexture->setFilename( "$DATA/scary-light.jpg" );
+	loadTexture->setFilename( "$DATA/00ZBrush_RedWax.png" );
+	//shot->setPropertyController( clear, "color", toV3f );
 	shot->setPropertyController( renderGeo, "geometry", loadGeometry );
 	shot->setPropertyController( renderGeo, "shader", loadShader );
 	shot->setPropertyController( loadShader, "tex", loadTexture );
@@ -319,8 +320,8 @@ void Demo::load( const std::string& filename )
 	shot->setPropertyController( shot, "camera", switch1 );
 
 	shot->prepareForRendering();
-	*/
-
+	//*/
+/*
 	// volume -------
 	Shot::Ptr shot = Shot::create();
 	addShot(shot);
@@ -328,20 +329,22 @@ void Demo::load( const std::string& filename )
 	Element::Ptr clear = ObjectFactory::create<Element>("Clear");
 	shot->addElement( clear );
 	Volume::Ptr volume = ObjectFactory::create<Volume>("Volume");
-	//volume->load( base::expand("$DATA/artifix_resized_moved.bgeo") );
-	LoadVolume::Ptr loadVolume = ObjectFactory::create<LoadVolume>("LoadVolume");
-	loadVolume->setFilename("$DATA/artifix_resized_moved.bgeo");
-	shot->addElement( volume );
+	FlareShop::Ptr flareshop = ObjectFactory::create<FlareShop>("FlareShop");
+	shot->addElement( flareshop );
+
+//	LoadVolume::Ptr loadVolume = ObjectFactory::create<LoadVolume>("LoadVolume");
+//	loadVolume->setFilename("$DATA/artifix_resized_moved.bgeo");
+//	shot->addElement( volume );
 
 	shot->setPropertyController( shot, "camera", SceneController::create(m_scenes[0],"/obj/switcher1") );
-	shot->setPropertyController( volume, "normalizedDensity", loadVolume);
-	shot->setPropertyController( volume, "localToWorld", loadVolume);
-	shot->setPropertyController( volume, "PointLightPosition", SceneController::create(m_scenes[0],"/obj/null1/transform.translation"));
-	shot->setPropertyController( volume, "PointLightIntensity", SceneController::create(m_scenes[0],"/ch/ch1"));
+//	shot->setPropertyController( volume, "normalizedDensity", loadVolume);
+//	shot->setPropertyController( volume, "localToWorld", loadVolume);
+//	shot->setPropertyController( volume, "PointLightPosition", SceneController::create(m_scenes[0],"/obj/null1/transform.translation"));
+//	shot->setPropertyController( volume, "PointLightIntensity", SceneController::create(m_scenes[0],"/ch/ch1"));
 
 
 	shot->prepareForRendering();
-
+*/
 //	// load elements ------
 //	addElement( ObjectFactory::create<Element>("Clear") );
 //	addElement( ObjectFactory::create<Element>("Stars") );

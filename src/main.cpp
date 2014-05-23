@@ -134,8 +134,8 @@ void render( base::Context::Ptr context, base::Camera::Ptr cam )
 
 	// render demo
 	glEnable(GL_DEPTH_TEST);
-	//g_demo->render( context, g_timer.elapsedSeconds(), cam );
-	g_demo->render( context, g_timer.elapsedSeconds() );
+	g_demo->render( context, g_timer.elapsedSeconds(), cam );
+	//g_demo->render( context, g_timer.elapsedSeconds() );
 
 	//glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	//glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -282,20 +282,20 @@ int main(int argc, char ** argv)
 
 
 	gui::FlareShopWrapper::Ptr fsw;
-	Volume::Ptr volume = std::dynamic_pointer_cast<Volume>(g_demo->getShot(0)->getShotElement(0)->getChild(1)->getElement());
-	gui::VolumeWrapper::Ptr volumeWrapper = std::make_shared<gui::VolumeWrapper>( volume );
-	gui::TFEWidget tfe(volumeWrapper);
-	tfe.show();
-	volumeWrapper->connect( volumeWrapper.get(), SIGNAL(changed()), app.getGlViewer(), SLOT(updateGL()) );
+	//Volume::Ptr volume = std::dynamic_pointer_cast<Volume>(g_demo->getShot(0)->getShotElement(0)->getChild(1)->getElement());
+	//gui::VolumeWrapper::Ptr volumeWrapper = std::make_shared<gui::VolumeWrapper>( volume );
+	//gui::TFEWidget tfe(volumeWrapper);
+	//tfe.show();
+	//volumeWrapper->connect( volumeWrapper.get(), SIGNAL(changed()), app.getGlViewer(), SLOT(updateGL()) );
 
-	/*
+	///*
 	if( g_demo->getNumShots()>0 )
 	{
 		Shot::Ptr shot = g_demo->getShot(0);
 		int numShotElements = shot->getNumShotElements();
 		for( int i=0;i<numShotElements;++i )
 		{
-			Shot::ShotElement::Ptr shotElement = shot->getShotElement(i);
+			ShotElement::Ptr shotElement = shot->getShotElement(i);
 			FlareShop::Ptr fs = std::dynamic_pointer_cast<FlareShop>(shotElement->getElement());
 			if( fs )
 			{
@@ -304,7 +304,7 @@ int main(int argc, char ** argv)
 			}
 		}
 	}
-*/
+//*/
 
 	return app.exec();
 #endif

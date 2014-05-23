@@ -30,6 +30,16 @@ void Shot::render( base::Context::Ptr context, float time, base::Camera::Ptr ove
 	}
 }
 
+int Shot::getNumShotElements() const
+{
+	return int(m_elements.size());
+}
+
+ShotElement::Ptr Shot::getShotElement( int index )
+{
+	return m_elements[index];
+}
+
 
 
 void Shot::serialize(Serializer &out)

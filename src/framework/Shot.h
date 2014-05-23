@@ -59,6 +59,11 @@ struct ShotElement
 		m_element->render( context, time );
 	}
 
+	Element::Ptr getElement()
+	{
+		return m_element;
+	}
+
 	houdini::json::Value serialize(Serializer &out);
 
 
@@ -124,6 +129,9 @@ public:
 	{
 		m_camera = camera;
 	}
+
+	int getNumShotElements()const;
+	ShotElement::Ptr getShotElement( int index );
 
 
 	virtual void serialize(Serializer &out);
