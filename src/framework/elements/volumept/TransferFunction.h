@@ -74,24 +74,40 @@ private:
 struct AnimatedTransferFunction
 {
 	typedef std::shared_ptr<AnimatedTransferFunction> Ptr;
-	typedef base::PiecewiseLinearFunction<math::V4f> PLF;
 
-	AnimatedTransferFunction();
-	//AnimatedTransferFunction( const AnimatedTransferFunction& other );
+	AnimatedTransferFunction()
+	{
+	}
 
-	void                                   clear();
-	void                                   addPLF( float time, PLF plf );
-	void                                   updateTexture(); // bakes pfl into texture
+	AnimatedTransferFunction( base::Texture2d::Ptr texture, float timeMin, float timeMax, float densityScale )
+		: m_texture(texture),
+		  m_timeMin(timeMin),
+		  m_timeMax(timeMax),
+		  m_densityScale(densityScale)
+	{
+	}
 
-	std::vector<float>                     m_time;
-	std::vector<PLF>                       m_values;
 
-	float                                  m_time_min;
-	float                                  m_time_max;
 
-	int                                    m_numSamplesTime;
-	int                                    m_numSamplesDomain;
-	std::vector<math::V4f>                 m_samples;
+	float getNormalizedTime( float time )
+	{
+		return (time-m_timeMin)/(m_timeMax-m_timeMin);
+	}
+
+	base::Texture2d::Ptr getTexture()
+	{
+		return m_texture;
+	}
+
+	float getDensityScale()
+	{
+		return m_densityScale;
+	}
+
+private:
+	float                                  m_timeMin;
+	float                                  m_timeMax;
+	float                                  m_densityScale;
 	base::Texture2d::Ptr                   m_texture;
 };
 

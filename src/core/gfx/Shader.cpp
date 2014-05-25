@@ -624,7 +624,7 @@ namespace base
 				"layout(location = 0) out vec4 frag_color;"
 				"void main()"
 				"{"
-				"    frag_color = texture2D(texture,uv);"
+				"    frag_color = texture2D(texture,uv).rgba;"
 				"}";
 		Shader::Ptr shader;
 		shader = Shader::create("Shader::simpleTextureShader").attachPS(g_ps).attachVS(g_vs);

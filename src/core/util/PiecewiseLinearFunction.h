@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 #include <algorithm>
 
 
@@ -13,7 +14,10 @@ namespace base
 	template<typename T>
 	struct PiecewiseLinearFunction
 	{
+		typedef  std::shared_ptr<PiecewiseLinearFunction<T>> Ptr;
+
 		PiecewiseLinearFunction()
+			: m_numSamples(0)
 		{
 		}
 
@@ -61,12 +65,29 @@ namespace base
 			m_numSamples = 0;
 		}
 
+		int getNumPoints()const
+		{
+			return m_numSamples;
+		}
+
 		void addSample( float x, T y )
 		{
 			m_domain.push_back(x);
 			m_values.push_back(y);
 			m_numSamples = (int)m_domain.size();
 		}
+
+		void setPosition( int pointIndex, float x )
+		{
+			std::cout << "setting position " << pointIndex << "  " << x << std::endl;
+			m_domain[pointIndex] = x;
+		}
+
+		void setValue( int pointIndex, T y )
+		{
+			m_values[pointIndex] = y;
+		}
+
 
 		T evaluate( float x )
 		{

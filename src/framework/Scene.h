@@ -2,6 +2,7 @@
 
 #include <util/shared_ptr.h>
 #include "Controller.h"
+#include "controller/PLFController.h"
 #include <map>
 #include <string>
 
@@ -195,7 +196,10 @@ class Scene : public Object
 public:
 	typedef std::shared_ptr<Scene> Ptr;
 
-	Scene()
+	Scene() : Object(),
+		m_fps(24.0f),
+		m_startTime(0.0f),
+		m_endTime(10.0f)
 	{
 	}
 	static Ptr create()
@@ -226,12 +230,21 @@ public:
 private:
 	M44fController::Ptr loadTransform( houdini::json::ObjectPtr transform, const std::string& name );
 	M44fController::Ptr loadLocator( houdini::json::ObjectPtr transform, const std::string& name );
+	void loadGeometry( houdini::json::ObjectPtr geometry, const std::string& name );
+	void loadSOP( houdini::json::ObjectPtr sop, const std::string& name );
 	CameraController::Ptr loadCamera( houdini::json::ObjectPtr camera, const std::string& name );
 	CameraController::Ptr loadSwitcher( houdini::json::ObjectPtr switcher, const std::string& name );
 	void loadChannel( houdini::json::ObjectPtr channel, const std::string& name );
 	FloatController::Ptr loadTrack( houdini::json::ObjectPtr track, const std::string& name );
+	FloatController::Ptr loadFloatParameter( houdini::json::ObjectPtr container, const std::string &parmName, const std::string &outName );
+	bool hasFloatParameter( houdini::json::ObjectPtr container, const std::string &parmName );
+	FloatPLFController::Ptr loadScalarRamp( houdini::json::ObjectPtr container, const std::string &parmName, const std::string &outName );
+	V3fPLFController::Ptr loadColorRamp( houdini::json::ObjectPtr container, const std::string &parmName, const std::string &outName );
 
 	std::string                            m_filename; // scene filename
+	float                                  m_fps; // needed for converting animation data (in frame) to time
+	float                                  m_startTime;// in s
+	float                                  m_endTime;  // in s
 	std::map<std::string, Controller::Ptr> m_controller; // contains all channels etc.
 	UpdateGraph                            m_updateGraph; // holds information about how controllers are connected
 };

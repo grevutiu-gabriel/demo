@@ -24,7 +24,7 @@ uniform mat4      worldToLocal;
 uniform vec3      aabb_min; // worldspace
 uniform vec3      aabb_max;
 uniform float     sigma_t_scale;
-uniform float     shotLocalTime;
+uniform float     normalizedTime;
 
 
 // ------------------------ MATH --------------------------------
@@ -126,7 +126,7 @@ vec3 sampleHemisphere( out float pdf )
 vec4 sampleVolume( in vec3 localP )
 {
 	return texture(transferFunction, texture(normalizedDensity,localP).r);
-	//return texture(transferFunction2, vec2(texture(normalizedDensity,localP).r, shotLocalTime));
+	//return texture(transferFunction2, vec2(texture(normalizedDensity,localP).r, normalizedTime));
 }
 
 //----------------------------- RAYTRACING -------------------------------------

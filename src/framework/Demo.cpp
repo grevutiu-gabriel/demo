@@ -4,6 +4,7 @@
 #include "elements/stars/Stars.h"
 #include "elements/FlareShop/FlareShop.h"
 #include "elements/Nebulae/Nebulae.h"
+#include "elements/basic.h"
 
 #include "controller/LoadGeometry.h"
 #include "controller/LoadShader.h"
@@ -268,6 +269,7 @@ void Demo::load( const std::string& filename )
 	// load scenes ------
 	loadScene("$DATA/artifix.scn");
 	loadScene("$DATA/test.scn");
+	loadScene("$DATA/animated_transfer_function.scn");
 /*
 	// create all object instances ---
 	m_deserializeMap[0] = ObjectFactory::create("Clear");
@@ -294,14 +296,16 @@ void Demo::load( const std::string& filename )
 	Element::Ptr clear = ObjectFactory::create<Element>("Clear");
 	shot->addElement( clear );
 	Element::Ptr renderGeo = ObjectFactory::create<Element>("RenderGeometry");
-	shot->addElement( renderGeo );
+	//shot->addElement( renderGeo );
+	Element::Ptr renderTex = ObjectFactory::create<Element>("RenderTexture");
+	shot->addElement( renderTex );
 
 	Controller::Ptr toV3f = ObjectFactory::create<Controller>("FloatToV3fController");
 	Controller::Ptr test = ObjectFactory::create<Controller>("SinusController");
 	LoadGeometry::Ptr loadGeometry = ObjectFactory::create<LoadGeometry>("LoadGeometry");
 	LoadShader::Ptr loadShader = ObjectFactory::create<LoadShader>("LoadShader");
 	LoadTexture2d::Ptr loadTexture = ObjectFactory::create<LoadTexture2d>("LoadTexture2d");
-	loadGeometry->setFilename( "$DATA/test.bgeo" );
+	//loadGeometry->setFilename( "$DATA/test.bgeo" );
 	loadShader->setFilename( "$DATA/matcap" );
 	//loadTexture->setFilename( "$DATA/scary-light.jpg" );
 	loadTexture->setFilename( "$DATA/00ZBrush_RedWax.png" );
@@ -312,6 +316,10 @@ void Demo::load( const std::string& filename )
 	//shot->setPropertyController( toV3f, "x", test );
 	//shot->setPropertyController( toV3f, "y", test );
 	//shot->setPropertyController( toV3f, "z", test );
+
+	//shot->setPropertyController( renderTex, "texture", loadTexture );
+	shot->setPropertyController( renderTex, "texture", SceneController::create(m_scenes[2],"/obj/geo1/volumeramp1/baked") );
+
 
 	SceneController::Ptr ch1 = SceneController::create(m_scenes[0],"/ch/ch1.x");
 	SceneController::Ptr cam1 = SceneController::create(m_scenes[0],"/obj/cam1");

@@ -1,5 +1,6 @@
 #include "Scene.h"
 #include <util/Path.h>
+#include <util/StringManip.h>
 
 
 #include <QJsonDocument>
@@ -31,6 +32,22 @@ void Scene::load( const std::string& filename )
 
 	//
 	houdini::json::ObjectPtr root = reader.getRoot().asObject();
+
+	// scene info
+	if(root && root->hasKey("info"))
+	{
+		houdini::json::ObjectPtr info = root->getObject("info");
+		m_fps = 24.0f;
+		if(info->hasKey("startFrame"))
+		{
+			m_startTime = float(info->get<int>("startFrame"))/m_fps;
+		}
+		if(info->hasKey("endFrame"))
+		{
+			m_endTime = float(info->get<int>("endFrame"))/m_fps;
+		}
+	}
+
 	if(root && root->hasKey("locators"))
 	{
 		houdini::json::ObjectPtr locators = root->getObject("locators");
@@ -86,7 +103,19 @@ void Scene::load( const std::string& filename )
 			loadChannel(channel, "/ch/" + name);
 		}
 	}
+	if(root && root->hasKey("geometries"))
+	{
+		houdini::json::ObjectPtr geometries = root->getObject("geometries");
+		std::vector<std::string> keys;
+		geometries->getKeys(keys);
 
+		for(auto it = keys.begin(), end=keys.end();it!=end;++it)
+		{
+			std::string name = *it;
+			houdini::json::ObjectPtr geometry = geometries->getObject(name);
+			loadGeometry(geometry, "/obj/" + name);
+		}
+	}
 //	//get content from json object
 //	Camera::Ptr cam1 = Camera::create();
 //	cam1->xformMatrix = ConstantM44fController::create( math::M44f::TranslationMatrix(0.0f, 1.0f, 2.0f) );
@@ -146,7 +175,7 @@ void Scene::serialize(Serializer &out)
 
 FloatController::Ptr Scene::loadTrack( houdini::json::ObjectPtr track, const std::string& name )
 {
-	float fps = 24.0f;
+	float fps = m_fps;
 	int numSamples = track->get<int>("nsamples");
 	houdini::json::ArrayPtr data = track->getArray("data");
 	base::PiecewiseLinearFunction<float> plf;
@@ -155,6 +184,108 @@ FloatController::Ptr Scene::loadTrack( houdini::json::ObjectPtr track, const std
 	CurveFloatController::Ptr curveController = CurveFloatController::create( plf );
 	m_controller[name] = curveController;
 	return curveController;
+}
+
+FloatController::Ptr Scene::loadFloatParameter(houdini::json::ObjectPtr container, const std::string &parmName, const std::string &outName)
+{
+	FloatController::Ptr controller;
+	houdini::json::ObjectPtr channels;
+
+	bool isAnimated = false;
+
+	if( container->hasKey("channels"))
+	{
+		channels = container->getObject("channels");
+		isAnimated = channels->hasKey(parmName);
+	}
+
+
+	if(isAnimated)
+		controller = loadTrack( channels->getObject(parmName), outName );
+	else
+	if( container->hasKey(parmName) )
+		controller = ConstantFloatController::create(container->get<float>(parmName));
+	else
+		controller = ConstantFloatController::create(0.0f);
+
+	m_controller[outName] = controller;
+
+	return controller;
+}
+
+bool Scene::hasFloatParameter(houdini::json::ObjectPtr container, const std::string &parmName)
+{
+	if( container->hasKey(parmName) )
+		return true;
+	else
+	if( container->hasKey("channels"))
+	{
+		if(container->getObject("channels")->hasKey(parmName))
+			return true;
+	}
+	return false;
+}
+
+FloatPLFController::Ptr Scene::loadScalarRamp(houdini::json::ObjectPtr container, const std::string &parmName, const std::string &outName)
+{
+	FloatPLFController::Ptr controller = std::make_shared<FloatPLFController>();
+
+	int current = 1;
+	std::string nextPointName = parmName+base::toString(current);
+	while( hasFloatParameter(container, nextPointName+"pos")&&
+		   hasFloatParameter(container, nextPointName+"value"))
+	{
+		FloatController::Ptr posController = loadFloatParameter(container, nextPointName+"pos", outName + "/" + nextPointName+"pos");
+		FloatController::Ptr valueController = loadFloatParameter(container, nextPointName+"value", outName + "/" + nextPointName+"value");
+		controller->addPoint( posController->evaluate(0.0f), valueController->evaluate(0.0f) );
+		m_updateGraph.addConnection( posController, controller, "point"+base::toString(current-1)+".x" );
+		m_updateGraph.addConnection( valueController, controller, "point"+base::toString(current-1)+".y" );
+
+		++current;
+		nextPointName = parmName+base::toString(current);
+	}
+
+	m_controller[outName] = controller;
+
+	return controller;
+}
+
+V3fPLFController::Ptr Scene::loadColorRamp(houdini::json::ObjectPtr container, const std::string &parmName, const std::string &outName)
+{
+	V3fPLFController::Ptr controller = std::make_shared<V3fPLFController>();
+
+	int current = 1;
+	std::string nextPointName = parmName+base::toString(current);
+	while( hasFloatParameter(container, nextPointName+"pos")&&
+		   hasFloatParameter(container, nextPointName+"cr")&&
+		   hasFloatParameter(container, nextPointName+"cg")&&
+		   hasFloatParameter(container, nextPointName+"cb"))
+	{
+		FloatController::Ptr posController = loadFloatParameter(container, nextPointName+"pos", outName + "/" + nextPointName+"pos");
+		FloatController::Ptr valueRController = loadFloatParameter(container, nextPointName+"cr", outName + "/" + nextPointName+"cr");
+		FloatController::Ptr valueGController = loadFloatParameter(container, nextPointName+"cg", outName + "/" + nextPointName+"cg");
+		FloatController::Ptr valueBController = loadFloatParameter(container, nextPointName+"cb", outName + "/" + nextPointName+"cb");
+		controller->addPoint( posController->evaluate(0.0f), math::V3f(valueRController->evaluate(0.0f),
+																	   valueGController->evaluate(0.0f),
+																	   valueBController->evaluate(0.0f)) );
+
+		FloatToV3fController::Ptr tovec3 = FloatToV3fController::create();
+
+
+		m_updateGraph.addConnection( posController, controller, "point"+base::toString(current-1)+".x" );
+		m_updateGraph.addConnection( valueRController, tovec3, "x" );
+		m_updateGraph.addConnection( valueGController, tovec3, "y" );
+		m_updateGraph.addConnection( valueBController, tovec3, "z" );
+		m_updateGraph.addConnection( tovec3, controller, "point"+base::toString(current-1)+".value" );
+
+		++current;
+		nextPointName = parmName+base::toString(current);
+	}
+
+	m_controller[outName] = controller;
+
+	return controller;
+
 }
 
 M44fController::Ptr Scene::loadTransform( houdini::json::ObjectPtr transform, const std::string&name )
@@ -248,6 +379,87 @@ M44fController::Ptr Scene::loadTransform( houdini::json::ObjectPtr transform, co
 M44fController::Ptr Scene::loadLocator( houdini::json::ObjectPtr transform, const std::string& name )
 {
 	return loadTransform( transform, name + "/transform" );
+}
+
+void Scene::loadGeometry(houdini::json::ObjectPtr geometry, const std::string &name)
+{
+	loadTransform( geometry, name + "/transform" );
+
+	// sops
+	if(geometry->hasKey("sops"))
+	{
+		houdini::json::ObjectPtr sops = geometry->getObject("sops");
+		std::vector<std::string> keys;
+		sops->getKeys(keys);
+
+		for(auto it = keys.begin(), end=keys.end();it!=end;++it)
+		{
+			std::string sopName = *it;
+			houdini::json::ObjectPtr sop = sops->getObject(sopName);
+			loadSOP(sop, name + "/" + sopName);
+		}
+	}
+}
+
+void Scene::loadSOP(houdini::json::ObjectPtr sop, const std::string &name)
+{
+	std::string sopType = sop->get<std::string>("soptype");
+
+	if( sopType == "volumeramp" )
+	{
+		std::cout << "loading sop: " << name << std::endl;
+		FloatPLFController::Ptr scalarRamp = loadScalarRamp( sop, "scalarramp", name + "/scalarramp" );
+		V3fPLFController::Ptr colorRamp = loadColorRamp( sop, "colorramp", name + "/colorramp" );
+
+		// now we bake animated scalar and color transfer function into
+		// a 2d texture (1 dimension for time and the second dimension for scalar and color (V4f))
+		int numTimeSamples = 10;
+		int numRangeSamples = 10;
+
+		base::Texture2d::Ptr texture = base::Texture2d::createRGBAFloat32( numRangeSamples, numTimeSamples );
+
+		std::vector<math::V4f> textureValues;
+		textureValues.resize(numRangeSamples*numTimeSamples);
+
+
+		float startTime = m_startTime;
+		float endTime = m_endTime;
+
+		// get updategraph for our 2 controllers
+		UpdateGraph ug;
+		ug.copyFrom( m_updateGraph, scalarRamp, colorRamp );
+
+		// time dimension
+		for(int i=0;i<numTimeSamples;++i)
+		{
+			float time = startTime + (float(i)/float(numTimeSamples-1))*(endTime-startTime);
+
+			// update ramps
+			ug.update(time);
+
+			// evaluate ramps
+			FloatPLFController::PLFPTR density = scalarRamp->evaluate(time);
+			V3fPLFController::PLFPTR color = colorRamp->evaluate(time);
+
+			// sample ramps across range dimension
+			// which we know, goes from 0 to 1
+			for(int j=0;j<numRangeSamples;++j)
+			{
+				float t = float(j)/float(numRangeSamples-1);
+				float newDensity = density->evaluate(t);
+				math::V3f newColor = color->evaluate(t);
+				//textureValues[i*numRangeSamples+j] = math::V4f(newColor.x, newColor.y, newColor.z, newDensity);
+				textureValues[i*numRangeSamples+j] = math::V4f(newDensity, newDensity, newDensity, newDensity);
+
+				std::cout << "timesample " << i << " time: " << time <<  "   rangeSample: " << j << " density:" << newDensity << std::endl;
+			}
+		}
+
+		texture->uploadRGBAFloat32( numRangeSamples, numTimeSamples, (float*)&textureValues[0] );
+
+		ConstantTexture2dController::Ptr temp = ConstantTexture2dController::create(texture);
+		m_controller[name + "/baked"] = temp;
+	}
 }
 
 CameraController::Ptr Scene::loadCamera( houdini::json::ObjectPtr camera, const std::string& name )
@@ -400,7 +612,6 @@ void SceneController::getController()
 {
 	// get Controller from scene
 	m_controller = m_scene->getController(m_controllerId, m_updateGraph);
-	m_updateGraph.compile();
 }
 
 

@@ -58,9 +58,11 @@ typedef ControllerT<base::Texture3d::Ptr> Texture3dController;
 template<typename T>
 class ConstantController : public ControllerT<T>
 {
+	OBJECT
 public:
 	typedef std::shared_ptr<ConstantController<T>> Ptr;
 
+	ConstantController(){}
 	ConstantController( T value ) : ControllerT<T>(), m_value(value)
 	{
 	}
@@ -87,6 +89,7 @@ typedef ConstantController<float> ConstantFloatController;
 typedef ConstantController<math::V3f> ConstantV3fController;
 typedef ConstantController<math::M44f> ConstantM44fController;
 typedef ConstantController<base::Camera::Ptr> ConstantCameraController;
+typedef ConstantController<base::Texture2d::Ptr> ConstantTexture2dController;
 
 
 template<typename T>
@@ -125,8 +128,11 @@ typedef CurveControllerTOld<float> CurveFloatControllerOld;
 template<typename T>
 class CurveControllerT : public ControllerT<T>
 {
+	OBJECT
 public:
 	typedef std::shared_ptr<CurveControllerT> Ptr;
+
+	CurveControllerT(){}
 	CurveControllerT( base::PiecewiseLinearFunction<T>& curve ) :
 		ControllerT<T>(),
 		curve(curve),

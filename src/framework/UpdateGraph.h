@@ -15,7 +15,9 @@ struct UpdateGraph
 	UpdateGraph();
 	UpdateGraph( UpdateGraph& graph );
 
+	void copyFrom( UpdateGraph& graph, std::vector<Object::Ptr>& roots );
 	void copyFrom( UpdateGraph& graph, Object::Ptr root );
+	void copyFrom( UpdateGraph& graph, Object::Ptr root1, Object::Ptr root2 );
 
 	void clear()
 	{
@@ -28,16 +30,7 @@ struct UpdateGraph
 		m_graph.clear();
 	}
 
-	void update( float time )
-	{
-		// iterate and execute all update commands
-		for( auto it = m_updateCommands.begin(),end=m_updateCommands.end();it!=end;++it )
-		{
-			Controller::Ptr controller = it->first;
-			Property::Ptr prop = it->second;
-			controller->update(prop, time);
-		}
-	}
+	void update( float time );
 
 	ObjectBindings* getObjectBindings(Object::Ptr object)
 	{
@@ -80,42 +73,7 @@ struct UpdateGraph
 		}
 	}
 
-	void compile()
-	{
-		m_updateCommands.clear();
-
-		// find root objects ---
-		std::vector<Object::Ptr> rootObjects;
-
-		// iterate all graph nodes
-		std::map<Object::Ptr, bool>  isChild;
-		for( auto it = m_graph.begin(), end=m_graph.end();it!=end;++it )
-		{
-			Object::Ptr obj = it->first;
-			if( isChild.find(obj)==isChild.end() )
-				isChild[obj] = false;
-			ObjectBindings* bindings = it->second;
-			for( auto it2 = bindings->begin(),end2 = bindings->end();it2!=end2;++it2 )
-			{
-				Object::Ptr child = it2->second;
-				isChild[child] = true;
-			}
-		}
-		for( auto it = isChild.begin(), end=isChild.end();it!=end;++it )
-		{
-			Object::Ptr obj = it->first;
-			bool objIsChild = it->second;
-			if(!objIsChild)
-				rootObjects.push_back(obj);
-		}
-
-		// now gather update commands in the correct order ---
-		for( auto it=rootObjects.begin(), end=rootObjects.end();it!=end;++it )
-		{
-			Object::Ptr obj = *it;
-			gatherUpdateCommands( obj );
-		}
-	}
+	void compile();
 
 	houdini::json::Value serialize(Serializer &out);
 

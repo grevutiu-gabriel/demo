@@ -328,7 +328,7 @@ Volume::Volume() : Element()
 	m_transferFunction->addNode( 1.0f, math::V4f(160.0f/255.0f, 160.0f/255.0f, 164.0f/255.0f, 1.0f*scale) );
 
 	volumeShader->setUniform( "transferFunction", m_transferFunction->m_texture->getUniform() );
-	volumeShader->setUniform( "transferFunction2", m_transferFunction2->m_texture->getUniform() );
+	volumeShader->setUniform( "transferFunction2", m_transferFunction2->getTexture()->getUniform() );
 	volumeShader->setUniform( "sigma_t_scale", 100.0f );
 	volumeShader->setUniform( "shotLocalTime", 0.5f );
 	//std::cout << "sigma_t_scale " << m_transferFunction->m_st_max << std::endl;
@@ -560,10 +560,8 @@ base::GeometryPtr Volume::createProxyGeometry()
 void Volume::render(base::Context::Ptr context, float time)
 {
 	m_transferFunction->updateTexture();
-	float normalizedTime = time;
-	if( m_transferFunction2->m_time.size()>1 )
-		normalizedTime = (time - m_transferFunction2->m_time_min)/(m_transferFunction2->m_time_max-m_transferFunction2->m_time_min);
-	volumeShader->setUniform( "shotLocalTime", normalizedTime );
+	float normalizedTime = m_transferFunction2->getNormalizedTime(time);
+	volumeShader->setUniform( "normalizedTime", normalizedTime );
 	//std::cout << time << "->" << normalizedTime  << std::endl;
 	float znear = 0.1f;
 	glDisable(GL_DEPTH_TEST);
