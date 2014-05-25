@@ -111,6 +111,7 @@ class ExportScene:
 		writer = binary_json.Writer( outfile, False, 6 )
 
 		writer.jsonBeginMap()
+		self.exportInfo(writer)
 		self.exportGeometries( writer )
 		self.exportCameras( writer )
 		self.exportSwitchers( writer )
@@ -131,7 +132,14 @@ class ExportScene:
 		# revert to initial frame
 		hou.setFrame(self.frameScriptStart)
 
- 
+	def exportInfo(self, writer):
+		writer.jsonKeyToken("info")
+		writer.jsonBeginMap()
+		writer.jsonKeyToken("startFrame")
+		writer.jsonInt(self.startFrame)
+		writer.jsonKeyToken("endFrame")
+		writer.jsonInt(self.endFrame)
+		writer.jsonEndMap()
 
 	def showParameterWindow(self):
 
@@ -426,6 +434,11 @@ class ExportScene:
 				writer.jsonReal32( thisValue )
 			elif type(thisValue) is StringType:
 				writer.jsonString( thisValue )
+			elif type(thisValue) is hou.Ramp:
+				if thisValue.isColor():
+					writer.jsonString( "colorramp" )
+				else:
+					writer.jsonString( "scalarramp" )
 			else:
 				writer.jsonString( "error" )
 				
@@ -485,7 +498,9 @@ class ExportScene:
 					self.exportSOP(child, sopChannelMatch, startF, endF, writer)
 			writer.jsonEndMap() #sops
 			
-			
+		if isinstance( object, hou.SopNode ) :
+			writer.jsonKey("soptype")
+			writer.jsonString( objectType )
 		
 	
 		# write animated channels into channels ---
