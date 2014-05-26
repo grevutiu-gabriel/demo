@@ -125,8 +125,8 @@ vec3 sampleHemisphere( out float pdf )
 
 vec4 sampleVolume( in vec3 localP )
 {
-	return texture(transferFunction, texture(normalizedDensity,localP).r);
-	//return texture(transferFunction2, vec2(texture(normalizedDensity,localP).r, normalizedTime));
+	//return texture(transferFunction, texture(normalizedDensity,localP).r);
+	return texture(transferFunction2, vec2(texture(normalizedDensity,localP).r, normalizedTime));
 }
 
 //----------------------------- RAYTRACING -------------------------------------

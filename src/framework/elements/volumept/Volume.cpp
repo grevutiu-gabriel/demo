@@ -328,9 +328,9 @@ Volume::Volume() : Element()
 	m_transferFunction->addNode( 1.0f, math::V4f(160.0f/255.0f, 160.0f/255.0f, 164.0f/255.0f, 1.0f*scale) );
 
 	volumeShader->setUniform( "transferFunction", m_transferFunction->m_texture->getUniform() );
-	volumeShader->setUniform( "transferFunction2", m_transferFunction2->getTexture()->getUniform() );
+	//volumeShader->setUniform( "transferFunction2", m_transferFunction2->getTexture()->getUniform() );
 	volumeShader->setUniform( "sigma_t_scale", 100.0f );
-	volumeShader->setUniform( "shotLocalTime", 0.5f );
+	//volumeShader->setUniform( "shotLocalTime", 0.5f );
 	//std::cout << "sigma_t_scale " << m_transferFunction->m_st_max << std::endl;
 
 
@@ -364,6 +364,7 @@ Volume::Volume() : Element()
 	addProperty<float>( "PointLightIntensity", std::bind( &Volume::getPointLightIntensity, this ), std::bind( &Volume::setPointLightIntensity, this, std::placeholders::_1 ) );
 	addProperty<base::Texture3d::Ptr>( "normalizedDensity", PropertyT<base::Texture3d::Ptr>::Getter(), std::bind( static_cast<void(base::Shader::*)(const std::string& name, base::Texture3d::Ptr)>(&base::Shader::setUniform), volumeShader, "normalizedDensity", std::placeholders::_1 ) );
 	addProperty<math::M44f>( "localToWorld", std::bind( &Volume::getLocalToWorld, this ), std::bind( &Volume::setLocalToWorld, this, std::placeholders::_1 ) );
+	addProperty<AnimatedTransferFunction::Ptr>( "transferfunction", std::bind( &Volume::getTransferFunction, this ), std::bind( &Volume::setTransferFunction, this, std::placeholders::_1 ) );
 
 }
 
@@ -412,6 +413,18 @@ void Volume::setLocalToWorld(const math::M44f& localToWorld)
 math::M44f Volume::getLocalToWorld()const
 {
 	return localToWorldAttr->get<math::M44f>(0);
+}
+
+void Volume::setTransferFunction(AnimatedTransferFunction::Ptr transferFunction)
+{
+	m_transferFunction2 = transferFunction;
+	volumeShader->setUniform( "transferFunction2", m_transferFunction2->getTexture()->getUniform() );
+	volumeShader->setUniform( "sigma_t_scale", m_transferFunction2->getDensityScale() );
+}
+
+AnimatedTransferFunction::Ptr Volume::getTransferFunction()
+{
+	return m_transferFunction2;
 }
 
 void Volume::load( const std::string& filename )

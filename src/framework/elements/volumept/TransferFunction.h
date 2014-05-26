@@ -15,6 +15,7 @@
 #include <gfx/Field.h>
 
 #include "../../Object.h"
+#include "../../Controller.h"
 
 
 struct TransferFunction;
@@ -110,4 +111,6 @@ private:
 	float                                  m_densityScale;
 	base::Texture2d::Ptr                   m_texture;
 };
+
+typedef ConstantController<AnimatedTransferFunction::Ptr> ConstantAnimatedTransferFunctionController;
 

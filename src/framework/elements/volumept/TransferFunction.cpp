@@ -122,5 +122,7 @@ math::V3f TransferFunctionNode::getColor()const
 }
 
 
+REGISTERCLASS(ConstantAnimatedTransferFunctionController)
+
 
 

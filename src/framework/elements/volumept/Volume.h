@@ -54,6 +54,8 @@ public:
 	float getPointLightIntensity()const;
 	void setLocalToWorld(const math::M44f& localToWorld);
 	math::M44f getLocalToWorld()const;
+	void setTransferFunction( AnimatedTransferFunction::Ptr transferFunction );
+	AnimatedTransferFunction::Ptr getTransferFunction();
 
 	Volume();
 

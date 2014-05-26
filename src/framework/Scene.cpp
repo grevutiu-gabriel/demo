@@ -11,6 +11,7 @@
 #include <QDebug>
 #include <QVariantMap>
 
+#include "elements/volumept/TransferFunction.h"
 
 
 
@@ -410,11 +411,12 @@ void Scene::loadSOP(houdini::json::ObjectPtr sop, const std::string &name)
 		std::cout << "loading sop: " << name << std::endl;
 		FloatPLFController::Ptr scalarRamp = loadScalarRamp( sop, "scalarramp", name + "/scalarramp" );
 		V3fPLFController::Ptr colorRamp = loadColorRamp( sop, "colorramp", name + "/colorramp" );
+		FloatController::Ptr destMax = loadFloatParameter( sop, "destmax", name + "/destmax" );
 
 		// now we bake animated scalar and color transfer function into
 		// a 2d texture (1 dimension for time and the second dimension for scalar and color (V4f))
-		int numTimeSamples = 10;
-		int numRangeSamples = 10;
+		int numTimeSamples = 512;
+		int numRangeSamples = 256;
 
 		base::Texture2d::Ptr texture = base::Texture2d::createRGBAFloat32( numRangeSamples, numTimeSamples );
 
@@ -448,17 +450,19 @@ void Scene::loadSOP(houdini::json::ObjectPtr sop, const std::string &name)
 				float t = float(j)/float(numRangeSamples-1);
 				float newDensity = density->evaluate(t);
 				math::V3f newColor = color->evaluate(t);
-				//textureValues[i*numRangeSamples+j] = math::V4f(newColor.x, newColor.y, newColor.z, newDensity);
-				textureValues[i*numRangeSamples+j] = math::V4f(newDensity, newDensity, newDensity, newDensity);
+				textureValues[i*numRangeSamples+j] = math::V4f(newColor.x, newColor.y, newColor.z, newDensity);
+				//textureValues[i*numRangeSamples+j] = math::V4f(newDensity, newDensity, newDensity, newDensity);
 
-				std::cout << "timesample " << i << " time: " << time <<  "   rangeSample: " << j << " density:" << newDensity << std::endl;
+				//std::cout << "timesample " << i << " time: " << time <<  "   rangeSample: " << j << " density:" << newDensity << std::endl;
 			}
 		}
 
 		texture->uploadRGBAFloat32( numRangeSamples, numTimeSamples, (float*)&textureValues[0] );
 
-		ConstantTexture2dController::Ptr temp = ConstantTexture2dController::create(texture);
-		m_controller[name + "/baked"] = temp;
+		//ConstantTexture2dController::Ptr temp = ConstantTexture2dController::create(texture);
+		//m_controller[name + "/baked"] = temp;
+		ConstantAnimatedTransferFunctionController::Ptr catfc = std::make_shared<ConstantAnimatedTransferFunctionController>(std::make_shared<AnimatedTransferFunction>(texture, m_startTime,m_endTime, destMax->evaluate(0.0f)));
+		m_controller[name + "/baked"] = catfc;
 	}
 }
 
