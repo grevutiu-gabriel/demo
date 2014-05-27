@@ -138,6 +138,11 @@ const std::string &Scene::getFilename() const
 	return m_filename;
 }
 
+float Scene::getEndTime() const
+{
+	return m_endTime;
+}
+
 void Scene::serialize(Serializer &out)
 {
 	Object::serialize(out);

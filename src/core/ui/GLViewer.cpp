@@ -34,24 +34,24 @@ namespace base
 		if(ie.keyb.press[KEY_ESCAPE])
 			Application::quit();
 
-		// if a mousebutton had been pressed
-		if( ie.mouse.buttons[0] || ie.mouse.buttons[1] || ie.mouse.buttons[2] )
-		{
-			if( ie.mouse.buttons[0] )
-			{
-				m_orbitNavigator.orbitView( (float)(ie.mouse.dx)*0.5f,(float) (ie.mouse.dy)*0.5f );
-			}else
-			if( ie.mouse.buttons[1] )
-			{
-				// Alt + RMB => move camera along lookat vector
-				m_orbitNavigator.zoomView( -ie.mouse.dx*m_orbitNavigator.getDistance()*0.005f );
-			}else
-			{// MMBUTTON
-				m_orbitNavigator.panView( (float)ie.mouse.dx, (float)-ie.mouse.dy );
-			}
+//		// if a mousebutton had been pressed
+//		if( ie.mouse.buttons[0] || ie.mouse.buttons[1] || ie.mouse.buttons[2] )
+//		{
+//			if( ie.mouse.buttons[0] )
+//			{
+//				m_orbitNavigator.orbitView( (float)(ie.mouse.dx)*0.5f,(float) (ie.mouse.dy)*0.5f );
+//			}else
+//			if( ie.mouse.buttons[1] )
+//			{
+//				// Alt + RMB => move camera along lookat vector
+//				m_orbitNavigator.zoomView( -ie.mouse.dx*m_orbitNavigator.getDistance()*0.005f );
+//			}else
+//			{// MMBUTTON
+//				m_orbitNavigator.panView( (float)ie.mouse.dx, (float)-ie.mouse.dy );
+//			}
 
-			//printf( "%f  %f   %f\n", dbgNav.azimuth, dbgNav.elevation, cam->focalLength );
-		}
+//			//printf( "%f  %f   %f\n", dbgNav.azimuth, dbgNav.elevation, cam->focalLength );
+//		}
 
 		if(m_render)
 			m_render( base::Context::getCurrentContext(), m_orbitNavigator.m_camera );
@@ -78,6 +78,38 @@ namespace base
 			glMatrixMode( GL_MODELVIEW );
 			glPopMatrix();
 			*/
+		}
+	}
+
+	void GLViewer::mouseMove(MouseState &mouse)
+	{
+		bool accepted = false;
+		if( m_mouseMove )
+			accepted = m_mouseMove(mouse);
+
+		if(!accepted)
+		{
+	//		std::cout << "testo: " << mouse.ox << " " << mouse.oy << std::endl;std::flush(std::cout);
+	//		std::cout << "testp: " << mouse.x << " " << mouse.y << std::endl;std::flush(std::cout);
+	//		std::cout << "testd: " << mouse.dx << " " << mouse.dy << std::endl;std::flush(std::cout);
+			// if a mousebutton had been pressed
+			if( mouse.buttons[0] || mouse.buttons[1] || mouse.buttons[2] )
+			{
+				if( mouse.buttons[0] )
+				{
+					m_orbitNavigator.orbitView( (float)(mouse.dx)*0.5f,(float) (mouse.dy)*0.5f );
+				}else
+				if( mouse.buttons[1] )
+				{
+					// Alt + RMB => move camera along lookat vector
+					m_orbitNavigator.zoomView( -mouse.dx*m_orbitNavigator.getDistance()*0.005f );
+				}else
+				{// MMBUTTON
+					m_orbitNavigator.panView( (float)mouse.dx, (float)-mouse.dy );
+				}
+
+				//printf( "%f  %f   %f\n", dbgNav.azimuth, dbgNav.elevation, cam->focalLength );
+			}
 		}
 	}
 

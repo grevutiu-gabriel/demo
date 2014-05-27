@@ -113,6 +113,12 @@ namespace base
 #endif
 	}
 
+	void StopWatch::setElapsed( float seconds )
+	{
+		// convert to ms
+		m_elapsed = seconds*1000.0f;
+	}
+
 	bool StopWatch::isRunning()const
 	{
 		return m_running;

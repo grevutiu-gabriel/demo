@@ -107,6 +107,7 @@ namespace base
 		return m_eventInfo;
 	}
 
+
 	void Application::updateEventInfo()
 	{
 		POINT   p;
@@ -159,6 +160,7 @@ namespace base
 		m_eventInfo.mouse.dbuttons[0] = m_eventInfo.mouse.buttons[0] - m_eventInfo.mouse.obuttons[0];
 		m_eventInfo.mouse.dbuttons[1] = m_eventInfo.mouse.buttons[1] - m_eventInfo.mouse.obuttons[1];
 	}
+
 
 	bool Application::getKeyState( int key )
 	{
@@ -237,19 +239,20 @@ namespace base
 		}break;
 		case WM_MOUSEMOVE :
 		{
-			/*
-			int xPos = GET_X_LPARAM(lParam); 
-			int yPos = GET_Y_LPARAM(lParam);
+//			int xPos = GET_X_LPARAM(lParam);
+//			int yPos = GET_Y_LPARAM(lParam);
 
-			m_eventInfo.mouse.ox = m_eventInfo.mouse.x;
-			m_eventInfo.mouse.oy = m_eventInfo.mouse.y;
-			m_eventInfo.mouse.x = xPos;
-			m_eventInfo.mouse.y = yPos;
-			m_eventInfo.mouse.dx =  m_eventInfo.mouse.x - m_eventInfo.mouse.ox;
-			m_eventInfo.mouse.dy =  m_eventInfo.mouse.y - m_eventInfo.mouse.oy;
-			//w->event();
+//			m_eventInfo.mouse.ox = m_eventInfo.mouse.x;
+//			m_eventInfo.mouse.oy = m_eventInfo.mouse.y;
+//			m_eventInfo.mouse.x = xPos;
+//			m_eventInfo.mouse.y = yPos;
+//			m_eventInfo.mouse.dx =  m_eventInfo.mouse.x - m_eventInfo.mouse.ox;
+//			m_eventInfo.mouse.dy =  m_eventInfo.mouse.y - m_eventInfo.mouse.oy;
+
+			//if(w->m_mouseMove)
+			//	w->m_mouseMove( m_eventInfo.mouse );
+			w->mouseMove(m_eventInfo.mouse);
 			return( DefWindowProc(hWnd,uMsg,wParam,lParam) );
-			*/
 		}break;
 		default:
 			return DefWindowProc( hWnd, uMsg, wParam, lParam );   

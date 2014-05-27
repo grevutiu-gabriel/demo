@@ -8,13 +8,18 @@
 namespace base
 {
 
-	Window::Window() : m_hwnd(0), m_keypress(0)
+	Window::Window() : m_hwnd(0), m_keypress(0), m_mouseMove(0)
 	{
 	}
 
 	void Window::setKeyPressCallback( KeyPressCallback keyPress )
 	{
 		m_keypress = keyPress;
+	}
+
+	void Window::setMouseMoveCallback(Window::MouseMoveCallback mouseMove)
+	{
+		m_mouseMove = mouseMove;
 	}
 
 	Window::~Window()
@@ -63,6 +68,11 @@ namespace base
 	{
 		m_width = width;
 		m_height = height;
+	}
+
+	void Window::mouseMove(MouseState &state)
+	{
+
 	}
 
 	int Window::width()const

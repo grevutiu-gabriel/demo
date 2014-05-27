@@ -19,6 +19,8 @@ namespace base
 		virtual ~GLViewer();
 
 		virtual void         paintGL();
+		virtual void mouseMove( base::MouseState& state );
+
 		Camera::Ptr          getCamera();
 		void                 setView( math::Vec3f lookat, float distance, float azimuth, float elevation );
 		void                 setRenderCallback( RenderCallback render );

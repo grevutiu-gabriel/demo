@@ -209,6 +209,7 @@ public:
 
 	void load( const std::string& filename );
 	const std::string& getFilename()const;
+	float getEndTime()const;
 
 
 	Controller::Ptr getController( const std::string& name, UpdateGraph& updateGraph )

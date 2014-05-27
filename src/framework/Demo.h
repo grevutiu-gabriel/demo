@@ -113,6 +113,7 @@ public:
 	int addShot( Shot::Ptr shot );
 	Shot::Ptr getShot( int index );
 	int getNumShots()const;
+	float getDuration()const;
 
 	void render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera = base::Camera::Ptr() );
 

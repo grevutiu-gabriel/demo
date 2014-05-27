@@ -253,6 +253,13 @@ int Demo::getNumShots() const
 	return int(m_shots.size());
 }
 
+float Demo::getDuration() const
+{
+	if(m_scenes.empty())
+		return 10.0f;
+	return m_scenes[0]->getEndTime();
+}
+
 void Demo::loadScene( const std::string& filename )
 {
 	Scene::Ptr scene = Scene::create();

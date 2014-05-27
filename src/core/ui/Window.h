@@ -6,12 +6,15 @@
 #include <windowsx.h>
 #include <string>
 
+#include "EventInfo.h"
+
 namespace base
 {
 	class Window
 	{
 	public:
 		typedef void (*KeyPressCallback)( int key );
+		typedef bool (*MouseMoveCallback)(base::MouseState&);
 
 		Window();
 		virtual ~Window();
@@ -25,7 +28,9 @@ namespace base
 		virtual void                                 destroy(); // closes and destroys the window
 		virtual void         setCaption( std::string caption );
 		virtual void          setSize( int width, int height );
+		virtual void mouseMove( base::MouseState& state );
 		void  setKeyPressCallback( KeyPressCallback keyPress );
+		void  setMouseMoveCallback( MouseMoveCallback mouseMove );
 
 	//protected:
 		HWND                                            m_hwnd; // window handle
@@ -36,6 +41,7 @@ namespace base
 
 		//callbacks
 		KeyPressCallback                            m_keypress;
+		MouseMoveCallback                           m_mouseMove;
 	};
 
 	// this function will return the classid of the default windows class
