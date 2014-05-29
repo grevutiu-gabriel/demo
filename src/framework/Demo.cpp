@@ -11,6 +11,7 @@
 #include "controller/LoadTexture.h"
 #include "controller/LoadVolume.h"
 
+//#include "FileWatcher.h"
 #include <stack>
 
 
@@ -265,6 +266,8 @@ void Demo::loadScene( const std::string& filename )
 	Scene::Ptr scene = Scene::create();
 	scene->load(filename);
 	m_scenes.push_back(scene);
+
+	//FileWatcher::getInstance()->addFileWatch( base::expand(filename), std::bind( &Scene::reload, scene.get() ) );
 }
 
 void Demo::load( const std::string& filename )

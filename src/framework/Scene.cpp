@@ -143,41 +143,27 @@ float Scene::getEndTime() const
 	return m_endTime;
 }
 
+void Scene::registerReloadCallback(Scene::ReloadCallback callback)
+{
+	m_reloadCallbacks.push_back(callback);
+}
+
+void Scene::reload()
+{
+	m_updateGraph.clear();
+	m_controller.clear();
+	load(m_filename);
+	for(auto callback:m_reloadCallbacks)
+		callback();
+}
+
 void Scene::serialize(Serializer &out)
 {
 	Object::serialize(out);
 	out.write("filename", m_filename);
 }
 
-//{
 
-
-//	// open new file
-//	QFile file;
-//	file.setFileName(filename);
-//	file.open(QIODevice::ReadOnly | QIODevice::Text);
-
-//	QJsonDocument sd = QJsonDocument::fromJson(file.readAll());
-//	QJsonObject root = sd.object();
-
-//	// cameras ---
-//	if( root.contains("cameras") )
-//	{
-//		QJsonObject cameras = root.value("cameras").toObject();
-//		for( auto it = cameras.begin(), end = cameras.end(); it != end; ++it )
-//			m_cameras[it.key()] = loadCamera( it.value().toObject() );
-//	}
-
-	/*
-	// locators ---
-	if( root.contains("locators") )
-	{
-		QJsonObject locators = root.value("locators").toObject();
-		for( auto it = locators.begin(), end = locators.end(); it != end; ++it )
-			m_cameras[it.key()] = loadCamera( it.value().toObject() );
-	}
-	*/
-//}
 
 FloatController::Ptr Scene::loadTrack( houdini::json::ObjectPtr track, const std::string& name )
 {
@@ -599,6 +585,15 @@ Camera::Ptr HouScene::loadCamera( QJsonObject &obj )
 }
 */
 
+
+SceneController::SceneController(SceneController::ScenePtr scene, const std::string &controllerId)
+	:Controller(),
+	 m_scene(scene),
+	 m_controllerId(controllerId)
+{
+	m_scene->registerReloadCallback( std::bind( &SceneController::getController, this ) );
+	getController();
+}
 
 void SceneController::update(Property::Ptr prop, float time)
 {

@@ -4,6 +4,7 @@
 #include "GLViewer.h"
 
 #include <iostream>
+#include <QCoreApplication>
 
 
 
@@ -36,6 +37,8 @@ namespace gui
 			m_qtKey[ Qt::Key_R ] = KEY_R;
 			m_qtKey[ Qt::Key_T ] = KEY_T;
 			m_qtKey[ Qt::Key_G ] = KEY_G;
+			m_qtKey[ Qt::Key_Space ] = KEY_SPACE;
+			m_qtKey[ Qt::Key_Return ] = KEY_RETURN;
 		}
 
 
@@ -59,6 +62,12 @@ namespace gui
 		base::Camera::Ptr GLViewer::getCamera()
 		{
 			return m_orbitNavigator.m_camera;
+		}
+
+		void GLViewer::postUpdateEvent()
+		{
+			QEvent::Type et = (QEvent::Type)(QEvent::User+10);
+			QCoreApplication::postEvent( this, new QEvent( static_cast< QEvent::Type >( et ) ), Qt::LowEventPriority );
 		}
 
 		base::OrbitNavigator &GLViewer::getOrbitNavigator()
@@ -102,6 +111,7 @@ namespace gui
 			m_lastX = event->x();
 			m_lastY = event->y();
 
+			bool accepted = false;
 			if(m_mouseMove)
 			{
 				base::MouseState ms;
@@ -122,28 +132,31 @@ namespace gui
 				ms.x = event->x();
 				ms.y = event->y();
 
-				m_mouseMove(ms);
+				accepted = m_mouseMove(ms);
 			}
 
-			// if a mousebutton had been pressed
-			if( buttons != Qt::NoButton )
+			if(!accepted)
 			{
+				// if a mousebutton had been pressed
+				if( buttons != Qt::NoButton )
+				{
 
-				if( buttons & Qt::LeftButton )
-				{
-					m_orbitNavigator.orbitView( (float)(dx)*0.5f,(float) (dy)*0.5f );
-				}else
-				if( buttons & Qt::RightButton )
-				{
-					// Alt + RMB => move camera along lookat vector
-					m_orbitNavigator.zoomView( -dx*m_orbitNavigator.getDistance()*0.005f );
-				}else
-				if( buttons & Qt::MidButton )
-				{// MMBUTTON
-					m_orbitNavigator.panView( (float)dx, (float)-dy );
+					if( buttons & Qt::LeftButton )
+					{
+						m_orbitNavigator.orbitView( (float)(dx)*0.5f,(float) (dy)*0.5f );
+					}else
+					if( buttons & Qt::RightButton )
+					{
+						// Alt + RMB => move camera along lookat vector
+						m_orbitNavigator.zoomView( -dx*m_orbitNavigator.getDistance()*0.005f );
+					}else
+					if( buttons & Qt::MidButton )
+					{// MMBUTTON
+						m_orbitNavigator.panView( (float)dx, (float)-dy );
+					}
+
+					update();
 				}
-
-				update();
 			}
 		}
 
@@ -151,13 +164,30 @@ namespace gui
 		{
 			m_keyboardState.press[ m_qtKey[event->key()] ] = 1;
 			if(m_keyPress)
-				m_keyPress(m_keyboardState);
+				m_keyPress(m_qtKey[event->key()]);
 			update();
 		}
 		void GLViewer::keyReleaseEvent( QKeyEvent * event )
 		{
 			m_keyboardState.press[ m_qtKey[event->key()] ] = 0;
 			// TODO: callback/update?
+		}
+
+		bool GLViewer::event(QEvent* e)
+		{
+			bool accepted = QGLWidget::event(e);
+
+			//if(!accepted)
+			{
+				QEvent::Type et = (QEvent::Type)(QEvent::User+10);
+				if( e->type() == et )
+				{
+					e->accept();
+					this->update();
+					return true;
+				}
+			}
+			return accepted;
 		}
 
 		base::KeyboardState &GLViewer::getKeyboardState()

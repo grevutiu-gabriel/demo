@@ -79,7 +79,6 @@ namespace base
 
 		void setPosition( int pointIndex, float x )
 		{
-			std::cout << "setting position " << pointIndex << "  " << x << std::endl;
 			m_domain[pointIndex] = x;
 		}
 

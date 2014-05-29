@@ -155,13 +155,7 @@ public:
 	{
 	}
 
-	SceneController( ScenePtr scene, const std::string& controllerId )
-		:Controller(),
-		 m_scene(scene),
-		 m_controllerId(controllerId)
-	{
-		getController();
-	}
+	SceneController( ScenePtr scene, const std::string& controllerId );
 
 	static Ptr create( ScenePtr scene, const std::string& controllerId )
 	{
@@ -195,6 +189,7 @@ class Scene : public Object
 	OBJECT
 public:
 	typedef std::shared_ptr<Scene> Ptr;
+	typedef std::function<void()> ReloadCallback;
 
 	Scene() : Object(),
 		m_fps(24.0f),
@@ -207,9 +202,12 @@ public:
 		return std::make_shared<Scene>();
 	}
 
-	void load( const std::string& filename );
-	const std::string& getFilename()const;
-	float getEndTime()const;
+	void                         load( const std::string& filename );
+	void                         reload();
+	const std::string&           getFilename()const;
+	float                        getEndTime()const;
+
+	void registerReloadCallback( ReloadCallback callback );
 
 
 	Controller::Ptr getController( const std::string& name, UpdateGraph& updateGraph )
@@ -227,20 +225,20 @@ public:
 	}
 
 
-	virtual void serialize(Serializer &out)override;
+	virtual void                 serialize(Serializer &out)override;
 private:
-	M44fController::Ptr loadTransform( houdini::json::ObjectPtr transform, const std::string& name );
-	M44fController::Ptr loadLocator( houdini::json::ObjectPtr transform, const std::string& name );
-	void loadGeometry( houdini::json::ObjectPtr geometry, const std::string& name );
-	void loadSOP( houdini::json::ObjectPtr sop, const std::string& name );
-	CameraController::Ptr loadCamera( houdini::json::ObjectPtr camera, const std::string& name );
-	CameraController::Ptr loadSwitcher( houdini::json::ObjectPtr switcher, const std::string& name );
-	void loadChannel( houdini::json::ObjectPtr channel, const std::string& name );
-	FloatController::Ptr loadTrack( houdini::json::ObjectPtr track, const std::string& name );
-	FloatController::Ptr loadFloatParameter( houdini::json::ObjectPtr container, const std::string &parmName, const std::string &outName );
-	bool hasFloatParameter( houdini::json::ObjectPtr container, const std::string &parmName );
-	FloatPLFController::Ptr loadScalarRamp( houdini::json::ObjectPtr container, const std::string &parmName, const std::string &outName );
-	V3fPLFController::Ptr loadColorRamp( houdini::json::ObjectPtr container, const std::string &parmName, const std::string &outName );
+	M44fController::Ptr          loadTransform( houdini::json::ObjectPtr transform, const std::string& name );
+	M44fController::Ptr          loadLocator( houdini::json::ObjectPtr transform, const std::string& name );
+	void                         loadGeometry( houdini::json::ObjectPtr geometry, const std::string& name );
+	void                         loadSOP( houdini::json::ObjectPtr sop, const std::string& name );
+	CameraController::Ptr        loadCamera( houdini::json::ObjectPtr camera, const std::string& name );
+	CameraController::Ptr        loadSwitcher( houdini::json::ObjectPtr switcher, const std::string& name );
+	void                         loadChannel( houdini::json::ObjectPtr channel, const std::string& name );
+	FloatController::Ptr         loadTrack( houdini::json::ObjectPtr track, const std::string& name );
+	FloatController::Ptr         loadFloatParameter( houdini::json::ObjectPtr container, const std::string &parmName, const std::string &outName );
+	bool                         hasFloatParameter( houdini::json::ObjectPtr container, const std::string &parmName );
+	FloatPLFController::Ptr      loadScalarRamp( houdini::json::ObjectPtr container, const std::string &parmName, const std::string &outName );
+	V3fPLFController::Ptr        loadColorRamp( houdini::json::ObjectPtr container, const std::string &parmName, const std::string &outName );
 
 	std::string                            m_filename; // scene filename
 	float                                  m_fps; // needed for converting animation data (in frame) to time
@@ -248,4 +246,5 @@ private:
 	float                                  m_endTime;  // in s
 	std::map<std::string, Controller::Ptr> m_controller; // contains all channels etc.
 	UpdateGraph                            m_updateGraph; // holds information about how controllers are connected
+	std::vector<ReloadCallback>            m_reloadCallbacks;
 };
