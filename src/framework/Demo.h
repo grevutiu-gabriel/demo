@@ -114,6 +114,7 @@ public:
 	Shot::Ptr getShot( int index );
 	int getNumShots()const;
 	float getDuration()const;
+	std::vector<Scene::Ptr>& getScenes();
 
 	void render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera = base::Camera::Ptr() );
 

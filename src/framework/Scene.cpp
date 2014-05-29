@@ -17,19 +17,35 @@
 
 
 
-void Scene::load( const std::string& filename )
+bool Scene::load( const std::string& filename )
 {
 	m_filename = filename;
 	std::cout << "Scene::load " << filename << std::endl;
 	//houdini::HouGeoIO::makeLog(filename, &std::cout);
 
-	std::ifstream in( base::expand(filename).c_str(), std::ios_base::in | std::ios_base::binary );
+	std::ifstream in( base::expand(filename).c_str(), std::ios_base::in  | std::ios::binary);
+
+	if(!in)
+		return false;
+
+	int contentsSize = 0;
+	{
+		in.seekg(0, std::ios::end);
+		contentsSize = in.tellg();
+		in.seekg(0, std::ios::beg);
+	}
+
+	if(!contentsSize)
+		return false;
+
 	houdini::json::JSONLogger logger(std::cout);
 	houdini::json::JSONReader reader;
 	houdini::json::Parser p;
 	//p.parse( &in, &logger );
 	p.parse( &in, &reader );
 
+	//if(!m_reloading)
+	{
 
 	//
 	houdini::json::ObjectPtr root = reader.getRoot().asObject();
@@ -117,20 +133,27 @@ void Scene::load( const std::string& filename )
 			loadGeometry(geometry, "/obj/" + name);
 		}
 	}
-//	//get content from json object
-//	Camera::Ptr cam1 = Camera::create();
-//	cam1->xformMatrix = ConstantM44fController::create( math::M44f::TranslationMatrix(0.0f, 1.0f, 2.0f) );
-//	cam1->fov = ConstantFloatController::create( 54.0f );
-//	cam1->aspect = ConstantFloatController::create( 1.0f );
-//	cam1->projectionMatrix = ProjectionMatrixController::create( cam1->fov, cam1->aspect );
-//	m_cameras["cam1"] = cam1;
-
-	// add some dummy channel
-	//m_channels["color"] = FloatToV3fControllerOld::create( ConstantFloatController::create(1.0f), SinusController::create(), ConstantFloatController::create(0.0f) );
-	for( auto it:m_controller )
+	if(root && root->hasKey("lights"))
 	{
-		std::cout << it.first << std::endl;
+		houdini::json::ObjectPtr lights = root->getObject("lights");
+		std::vector<std::string> keys;
+		lights->getKeys(keys);
+
+		for(auto it = keys.begin(), end=keys.end();it!=end;++it)
+		{
+			std::string name = *it;
+			houdini::json::ObjectPtr light = lights->getObject(name);
+			loadLight(light, "/obj/" + name);
+		}
 	}
+
+	} // reloading
+
+	if(!m_reloading)
+		for( auto it:m_controller )
+			std::cout << it.first << std::endl;
+
+	return true;
 }
 
 const std::string &Scene::getFilename() const
@@ -150,9 +173,10 @@ void Scene::registerReloadCallback(Scene::ReloadCallback callback)
 
 void Scene::reload()
 {
+	m_reloading = true;
 	m_updateGraph.clear();
 	m_controller.clear();
-	load(m_filename);
+	bool success = load(m_filename);
 	for(auto callback:m_reloadCallbacks)
 		callback();
 }
@@ -283,40 +307,13 @@ V3fPLFController::Ptr Scene::loadColorRamp(houdini::json::ObjectPtr container, c
 M44fController::Ptr Scene::loadTransform( houdini::json::ObjectPtr transform, const std::string&name )
 {
 	PRSController::Ptr transformController = PRSController::create();
-	houdini::json::ObjectPtr channels = transform->getObject("channels");
 	{
-		bool hasAnimatedX = channels->hasKey("transform.tx");
-		bool hasAnimatedY = channels->hasKey("transform.ty");
-		bool hasAnimatedZ = channels->hasKey("transform.tz");
 		FloatController::Ptr translationX, translationY, translationZ;
-		if(hasAnimatedX)
-			translationX = loadTrack( channels->getObject("transform.tx"), name + ".tx" );
-		else
-		if( transform->hasKey("transform.tx") )
-			translationX = ConstantFloatController::create(transform->get<float>("transform.tx"));
-		else
-			translationX = ConstantFloatController::create(0.0f);
-		m_controller[name + ".tx"] = translationX;
+		translationX = loadFloatParameter( transform, "transform.tx", name + ".tx" );
 		m_updateGraph.addConnection( translationX, transformController, "tx" );
-
-		if(hasAnimatedY)
-			translationY = loadTrack( channels->getObject("transform.ty"), name + ".ty" );
-		else
-		if( transform->hasKey("transform.ty") )
-			translationY = ConstantFloatController::create(transform->get<float>("transform.ty"));
-		else
-			translationY = ConstantFloatController::create(0.0f);
-		m_controller[name + ".ty"] = translationY;
+		translationY = loadFloatParameter( transform, "transform.ty", name + ".ty" );
 		m_updateGraph.addConnection( translationY, transformController, "ty" );
-
-		if(hasAnimatedZ)
-			translationZ = loadTrack( channels->getObject("transform.tz"), name + ".tz" );
-		else
-		if( transform->hasKey("transform.tz") )
-			translationZ = ConstantFloatController::create(transform->get<float>("transform.tz"));
-		else
-			translationZ = ConstantFloatController::create(0.0f);
-		m_controller[name + ".tz"] = translationZ;
+		translationZ = loadFloatParameter( transform, "transform.tz", name + ".tz" );
 		m_updateGraph.addConnection( translationZ, transformController, "tz" );
 
 		FloatToV3fController::Ptr translationController = FloatToV3fController::create();
@@ -325,29 +322,13 @@ M44fController::Ptr Scene::loadTransform( houdini::json::ObjectPtr transform, co
 		m_updateGraph.addConnection( translationY, translationController, "y" );
 		m_updateGraph.addConnection( translationZ, translationController, "z" );
 	}
-	V3fController::Ptr rotation;
 	{
-		bool hasAnimatedX = channels->hasKey("transform.rx");
-		bool hasAnimatedY = channels->hasKey("transform.ry");
-		bool hasAnimatedZ = channels->hasKey("transform.rz");
 		FloatController::Ptr rotationX, rotationY, rotationZ;
-		if(hasAnimatedX)
-			rotationX = loadTrack( channels->getObject("transform.rx"), name + ".rx" );
-		else
-			rotationX = ConstantFloatController::create(0.0f);
-		m_controller[name + ".rx"] = rotationX;
+		rotationX = loadFloatParameter( transform, "transform.rx", name + ".rx" );
 		m_updateGraph.addConnection( rotationX, transformController, "rx" );
-		if(hasAnimatedY)
-			rotationY = loadTrack( channels->getObject("transform.ry"), name + ".ry" );
-		else
-			rotationY = ConstantFloatController::create(0.0f);
-		m_controller[name + ".ry"] = rotationY;
+		rotationY = loadFloatParameter( transform, "transform.ry", name + ".ry" );
 		m_updateGraph.addConnection( rotationY, transformController, "ry" );
-		if(hasAnimatedZ)
-			rotationZ = loadTrack( channels->getObject("transform.rz"), name + ".rz" );
-		else
-			rotationZ = ConstantFloatController::create(0.0f);
-		m_controller[name + ".rz"] = rotationZ;
+		rotationZ = loadFloatParameter( transform, "transform.rz", name + ".rz" );
 		m_updateGraph.addConnection( rotationZ, transformController, "rz" );
 	}
 	{
@@ -488,6 +469,21 @@ CameraController::Ptr Scene::loadCamera( houdini::json::ObjectPtr camera, const 
 	return cam;
 }
 
+void Scene::loadLight(houdini::json::ObjectPtr light, const std::string &name)
+{
+	M44fController::Ptr transformController = loadTransform( light, name + "/transform");
+	FloatController::Ptr intensityController = loadFloatParameter( light, "light_intensity", name + "/light_intensity" );
+	FloatController::Ptr colorRController = loadFloatParameter( light, "light_colorr", name + "/light_colorr" );
+	FloatController::Ptr colorGController = loadFloatParameter( light, "light_colorg", name + "/light_colorg" );
+	FloatController::Ptr colorBController = loadFloatParameter( light, "light_colorb", name + "/light_colorb" );
+
+	V3fController::Ptr colorController = FloatToV3fController::create();
+	m_updateGraph.addConnection( colorRController, colorController, "x" );
+	m_updateGraph.addConnection( colorGController, colorController, "y" );
+	m_updateGraph.addConnection( colorBController, colorController, "z" );
+	m_controller[name+"/light_color"] = colorController;
+}
+
 CameraController::Ptr Scene::loadSwitcher( houdini::json::ObjectPtr switcher, const std::string& name )
 {
 	CameraSwitchController::Ptr s = CameraSwitchController::create();
@@ -597,12 +593,15 @@ SceneController::SceneController(SceneController::ScenePtr scene, const std::str
 
 void SceneController::update(Property::Ptr prop, float time)
 {
-	//std::cout << "SceneController::update " << m_controllerId << " " << prop->getName() << std::endl;
+	if(m_controller)
+	{
+		//std::cout << "SceneController::update " << m_controllerId << " " << prop->getName() << std::endl;
 
-	// since the controller may be driven by other controllers, we have an updategraph
-	m_updateGraph.update( time );
-	// now, due to the udate graph, m_controller is supposed to be up to date...
-	m_controller->update( prop, time );
+		// since the controller may be driven by other controllers, we have an updategraph
+		m_updateGraph.update( time );
+		// now, due to the udate graph, m_controller is supposed to be up to date...
+		m_controller->update( prop, time );
+	}
 }
 
 void SceneController::serialize(Serializer &out)

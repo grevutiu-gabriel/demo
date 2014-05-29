@@ -109,6 +109,9 @@ void init( base::Context::Ptr context )
 #endif
 	g_demo->load("filename");
 
+#ifndef STANDALONE
+	gui::Application::getInstance()->setDemo(g_demo);
+#endif
 
 	// test: serialize demo ----
 	//houdini::json::Value value;

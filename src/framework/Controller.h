@@ -32,6 +32,7 @@ public:
 	{
 	}
 
+
 	virtual void update(Property::Ptr prop, float time)override
 	{
 		PropertyT<T>::Ptr propt = std::dynamic_pointer_cast<PropertyT<T>>(prop);

@@ -357,11 +357,13 @@ Volume::Volume() : Element()
 	volumeShader->setUniform( "areaLightTransform", areaLightTransform );
 
 	setPointLightPosition( math::V3f(1.0f, 13.4f, -13.4f) );
+	setPointLightColor(math::V3f(1.0f, 0.32f, 0.1f));
 	setPointLightIntensity( 5000 );
 
 	// register properties -----
 	addProperty<math::V3f>( "PointLightPosition", std::bind( &Volume::getPointLightPosition, this ), std::bind( &Volume::setPointLightPosition, this, std::placeholders::_1 ) );
 	addProperty<float>( "PointLightIntensity", std::bind( &Volume::getPointLightIntensity, this ), std::bind( &Volume::setPointLightIntensity, this, std::placeholders::_1 ) );
+	addProperty<math::V3f>( "PointLightColor", std::bind( &Volume::getPointLightColor, this ), std::bind( &Volume::setPointLightColor, this, std::placeholders::_1 ) );
 	addProperty<base::Texture3d::Ptr>( "normalizedDensity", PropertyT<base::Texture3d::Ptr>::Getter(), std::bind( static_cast<void(base::Shader::*)(const std::string& name, base::Texture3d::Ptr)>(&base::Shader::setUniform), volumeShader, "normalizedDensity", std::placeholders::_1 ) );
 	addProperty<math::M44f>( "localToWorld", std::bind( &Volume::getLocalToWorld, this ), std::bind( &Volume::setLocalToWorld, this, std::placeholders::_1 ) );
 	addProperty<AnimatedTransferFunction::Ptr>( "transferfunction", std::bind( &Volume::getTransferFunction, this ), std::bind( &Volume::setTransferFunction, this, std::placeholders::_1 ) );
@@ -386,6 +388,16 @@ void Volume::setPointLightIntensity( float intensity )
 float Volume::getPointLightIntensity()const
 {
 	return volumeShader->getUniform("pointLightIntensity")->get<float>(0);
+}
+
+void Volume::setPointLightColor(math::V3f &pos)
+{
+	volumeShader->setUniform( "pointLightColor", pos );
+}
+
+math::V3f Volume::getPointLightColor() const
+{
+	return volumeShader->getUniform("pointLightColor")->get<math::V3f>(0);
 }
 
 void Volume::setLocalToWorld(const math::M44f& localToWorld)

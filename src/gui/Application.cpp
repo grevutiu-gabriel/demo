@@ -25,6 +25,9 @@ namespace gui
 
 		m_mainWindow->setCentralWidget( m_glviewer );
 		m_mainWindow->show();
+
+		connect( &m_fileWatcher, SIGNAL(fileChanged(QString)), this, SLOT(fileChanged(QString)) );
+
 	}
 
 	Application::~Application()
@@ -45,6 +48,26 @@ namespace gui
 	Application* Application::getInstance()
 	{
 		return (Application*)instance();
+	}
+
+	void gui::Application::setDemo(Demo::Ptr demo)
+	{
+		m_demoWrapper = std::make_shared<DemoWrapper>(demo);
+	}
+
+	void Application::watchFile(const std::string &filename, Application::FileChangedCallback callback)
+	{
+		bool test = m_fileWatcher.addPath( QString::fromStdString(filename) );
+		m_fileChangedCallbacks[filename] = callback;
+	}
+
+	void Application::fileChanged(const QString &path)
+	{
+		std::cout << "fileChanged: " << path.toStdString() << std::endl;
+		std::string filename = path.toStdString();
+		auto it = m_fileChangedCallbacks.find(filename);
+		if(it!=m_fileChangedCallbacks.end())
+			it->second();
 	}
 
 

@@ -178,6 +178,7 @@ namespace gui
 			bool accepted = QGLWidget::event(e);
 
 			//if(!accepted)
+			if(this->isActiveWindow())
 			{
 				QEvent::Type et = (QEvent::Type)(QEvent::User+10);
 				if( e->type() == et )

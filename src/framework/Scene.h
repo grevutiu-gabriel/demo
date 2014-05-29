@@ -194,7 +194,8 @@ public:
 	Scene() : Object(),
 		m_fps(24.0f),
 		m_startTime(0.0f),
-		m_endTime(10.0f)
+		m_endTime(10.0f),
+		m_reloading(false)
 	{
 	}
 	static Ptr create()
@@ -202,7 +203,7 @@ public:
 		return std::make_shared<Scene>();
 	}
 
-	void                         load( const std::string& filename );
+	bool load( const std::string& filename );
 	void                         reload();
 	const std::string&           getFilename()const;
 	float                        getEndTime()const;
@@ -232,6 +233,7 @@ private:
 	void                         loadGeometry( houdini::json::ObjectPtr geometry, const std::string& name );
 	void                         loadSOP( houdini::json::ObjectPtr sop, const std::string& name );
 	CameraController::Ptr        loadCamera( houdini::json::ObjectPtr camera, const std::string& name );
+	void                         loadLight( houdini::json::ObjectPtr light, const std::string& name );
 	CameraController::Ptr        loadSwitcher( houdini::json::ObjectPtr switcher, const std::string& name );
 	void                         loadChannel( houdini::json::ObjectPtr channel, const std::string& name );
 	FloatController::Ptr         loadTrack( houdini::json::ObjectPtr track, const std::string& name );
@@ -247,4 +249,5 @@ private:
 	std::map<std::string, Controller::Ptr> m_controller; // contains all channels etc.
 	UpdateGraph                            m_updateGraph; // holds information about how controllers are connected
 	std::vector<ReloadCallback>            m_reloadCallbacks;
+	bool                                   m_reloading;
 };

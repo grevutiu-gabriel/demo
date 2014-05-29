@@ -52,6 +52,8 @@ public:
 	math::V3f getPointLightPosition()const;
 	void setPointLightIntensity( float intensity );
 	float getPointLightIntensity()const;
+	void setPointLightColor( math::V3f& pos );
+	math::V3f getPointLightColor()const;
 	void setLocalToWorld(const math::M44f& localToWorld);
 	math::M44f getLocalToWorld()const;
 	void setTransferFunction( AnimatedTransferFunction::Ptr transferFunction );

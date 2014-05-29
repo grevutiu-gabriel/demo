@@ -126,7 +126,8 @@ vec3 sampleHemisphere( out float pdf )
 vec4 sampleVolume( in vec3 localP )
 {
 	//return texture(transferFunction, texture(normalizedDensity,localP).r);
-	return texture(transferFunction2, vec2(texture(normalizedDensity,localP).r, normalizedTime));
+	return texture(transferFunction2, vec2(texture(normalizedDensity,localP).r, normalizedTime)*sigma_t_scale);
+	//return vec4(1.0f, 1.0f, 1.0f, texture(normalizedDensity,localP).r*sigma_t_scale);
 }
 
 //----------------------------- RAYTRACING -------------------------------------
@@ -163,8 +164,8 @@ float intersectBox( in Ray ray /* ray origin and direction */,
 // optimization: factor *stepsize out of the loop
 bool sampleDistance( in Ray ray, in float stepsize, out ScatterEvent se )
 {
-	float odmax = -log(randomFloat())/sigma_t_scale;
-	//float odmax = -log(randomFloat());
+	//float odmax = -log(randomFloat())/sigma_t_scale;
+	float odmax = -log(randomFloat());
 	float od = 0.0f;
 	float d = randomFloat()*stepsize;
 	while( od < odmax )
@@ -175,7 +176,7 @@ bool sampleDistance( in Ray ray, in float stepsize, out ScatterEvent se )
 		vec3 localP = (worldToLocal*vec4(se.p, 1)).xyz;
 		vec4 volumeSample = sampleVolume(localP);
 		se.albedo = volumeSample.rgb;
-		se.sigma_t = volumeSample.a*sigma_t_scale;
+		se.sigma_t = volumeSample.a;
 		od += se.sigma_t*stepsize;
 		d += stepsize;
 	}
@@ -186,8 +187,8 @@ bool sampleDistance( in Ray ray, in float stepsize, out ScatterEvent se )
 // optimization: factor *stepsize out of the loop
 bool sampleDistance( in Ray ray, in float stepsize)
 {
-	float odmax = -log(randomFloat())/sigma_t_scale;
-	//float odmax = -log(randomFloat());
+	//float odmax = -log(randomFloat())/sigma_t_scale;
+	float odmax = -log(randomFloat());
 	float od = 0.0f;
 	float d = randomFloat()*stepsize;
 	while( od < odmax )
@@ -195,7 +196,7 @@ bool sampleDistance( in Ray ray, in float stepsize)
 		if( d > ray.tmax )
 			return false;
 		vec3 localP = (worldToLocal*vec4(ray.o+ray.d*d, 1)).xyz;
-		float sigma_t = sampleVolume(localP).a*sigma_t_scale;
+		float sigma_t = sampleVolume(localP).a;
 		od += sigma_t*stepsize;
 		d += stepsize;
 	}
@@ -222,7 +223,7 @@ void sampleLightDirectional( inout Ray ray, out float pdf, out vec3 Li )
 // point light ------------
 
 uniform vec3 pointLightPos;
-vec3 pointLightColor = vec3(1.0f, 0.32f, 0.1f);
+uniform vec3 pointLightColor;
 uniform float pointLightIntensity;
 
 void samplePointLight( inout Ray ray, out float pdf, out vec3 Li )
@@ -231,6 +232,7 @@ void samplePointLight( inout Ray ray, out float pdf, out vec3 Li )
 	ray.tmax = length(ray.d);
 	ray.d = normalize(ray.d);
 	Li = (pointLightColor*pointLightIntensity)/(4.0f*M_PI*ray.tmax*ray.tmax);
+	//Li = (vec3(1.0f)*pointLightIntensity)/(4.0f*M_PI*ray.tmax*ray.tmax);
 	pdf = 1.0f;
 }
 

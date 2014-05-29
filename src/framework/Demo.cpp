@@ -261,6 +261,11 @@ float Demo::getDuration() const
 	return m_scenes[0]->getEndTime();
 }
 
+std::vector<Scene::Ptr> &Demo::getScenes()
+{
+	return m_scenes;
+}
+
 void Demo::loadScene( const std::string& filename )
 {
 	Scene::Ptr scene = Scene::create();
@@ -359,7 +364,8 @@ void Demo::load( const std::string& filename )
 	shot->setPropertyController( volume, "transferfunction", SceneController::create(m_scenes[0],"/obj/geo1/volumeramp1/baked"));
 	shot->setPropertyController( volume, "localToWorld", loadVolume);
 	shot->setPropertyController( volume, "PointLightPosition", SceneController::create(m_scenes[0],"/obj/null1/transform.translation"));
-	shot->setPropertyController( volume, "PointLightIntensity", SceneController::create(m_scenes[0],"/ch/ch1"));
+	shot->setPropertyController( volume, "PointLightColor", SceneController::create(m_scenes[0],"/obj/pointlight1/light_color"));
+	shot->setPropertyController( volume, "PointLightIntensity", SceneController::create(m_scenes[0],"/obj/pointlight1/light_intensity"));
 
 
 	shot->prepareForRendering();
