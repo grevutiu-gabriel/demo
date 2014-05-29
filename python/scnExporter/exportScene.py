@@ -116,7 +116,7 @@ class ExportScene:
 		self.exportCameras( writer )
 		self.exportSwitchers( writer )
 		self.exportChannels( writer )
-		#self.exportLights()
+		self.exportLights( writer )
 		self.exportLocators( writer )
 		writer.jsonEndMap()
 		
@@ -245,6 +245,22 @@ class ExportScene:
 			
 		writer.jsonEndMap()
 
+	# exports all lights of the scene
+	def exportLights(self, writer):
+		channelMatch = {'transform.tx':'tx', 'transform.ty':'ty', 'transform.tz':'tz', 'transform.rx':'rx', 'transform.ry':'ry', 'transform.rz':'rz', 'transform.rotateOrder':'rOrd', 'light_intensity':'light_intensity','light_colorr':'light_colorr', 'light_colorg':'light_colorg', 'light_colorb':'light_colorb' }
+
+		writer.jsonKeyToken("lights")
+		writer.jsonBeginMap()
+		# export all lights
+		for light in self.lights:
+			object = hou.node(light.path())
+			objectName = object.name()
+			writer.jsonKeyToken(objectName)
+			self.exportNode(light, channelMatch, self.startFrame, self.endFrame, writer)
+			print "Exported: " + light.name()
+			
+		writer.jsonEndMap()
+		
 	# exports all channels of the scene
 	def exportChannels(self, writer):
 		channelMatch = {}
