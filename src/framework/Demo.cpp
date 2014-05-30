@@ -284,7 +284,7 @@ void Demo::load( const std::string& filename )
 	// load scenes ------
 	loadScene("$DATA/artifix.scn");
 	loadScene("$DATA/test.scn");
-	loadScene("$DATA/animated_transfer_function.scn");
+	loadScene("$DATA/nebulae.scn");
 /*
 	// create all object instances ---
 	m_deserializeMap[0] = ObjectFactory::create("Clear");
@@ -345,6 +345,9 @@ void Demo::load( const std::string& filename )
 	shot->prepareForRendering();
 	*/
 ///*
+///
+///
+	/*
 	// volume -------
 	Shot::Ptr shot = Shot::create();
 	addShot(shot);
@@ -366,6 +369,30 @@ void Demo::load( const std::string& filename )
 	shot->setPropertyController( volume, "PointLightPosition", SceneController::create(m_scenes[0],"/obj/null1/transform.translation"));
 	shot->setPropertyController( volume, "PointLightColor", SceneController::create(m_scenes[0],"/obj/pointlight1/light_color"));
 	shot->setPropertyController( volume, "PointLightIntensity", SceneController::create(m_scenes[0],"/obj/pointlight1/light_intensity"));
+	*/
+
+	// neublae
+	Shot::Ptr shot = Shot::create();
+	addShot(shot);
+
+	Element::Ptr clear = ObjectFactory::create<Element>("Clear");
+	shot->addElement( clear );
+	Volume::Ptr volume = ObjectFactory::create<Volume>("Volume");
+
+	LoadVolume::Ptr loadVolume = ObjectFactory::create<LoadVolume>("LoadVolume");
+	loadVolume->setFilename("$DATA/nebulae200.bgeo");
+	shot->addElement( volume );
+
+	shot->setPropertyController( shot, "camera", SceneController::create(m_scenes[2],"/obj/cam1") );
+	shot->setPropertyController( volume, "normalizedDensity", loadVolume);
+	shot->setPropertyController( volume, "transferfunction", SceneController::create(m_scenes[2],"/obj/geo1/volumeramp1/baked"));
+	shot->setPropertyController( volume, "localToWorld", loadVolume);
+	shot->setPropertyController( volume, "PointLightPosition", SceneController::create(m_scenes[2],"/obj/pointlight1/transform.translation"));
+	shot->setPropertyController( volume, "PointLightColor", SceneController::create(m_scenes[0],"/obj/pointlight1/light_color"));
+	shot->setPropertyController( volume, "PointLightIntensity", SceneController::create(m_scenes[2],"/obj/pointlight1/light_intensity"));
+	shot->setPropertyController( volume, "stepSize", SceneController::create(m_scenes[2],"/ch/stepsize"));
+
+
 
 
 	shot->prepareForRendering();

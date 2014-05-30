@@ -359,8 +359,10 @@ Volume::Volume() : Element()
 	setPointLightPosition( math::V3f(1.0f, 13.4f, -13.4f) );
 	setPointLightColor(math::V3f(1.0f, 0.32f, 0.1f));
 	setPointLightIntensity( 5000 );
+	volumeShader->setUniform("g_stepSize", 1.17188f);
 
 	// register properties -----
+	addProperty<float>( "stepSize", PropertyT<float>::Getter(), std::bind( static_cast<void(base::Shader::*)(const std::string& name, float)>(&base::Shader::setUniform), volumeShader, "g_stepSize", std::placeholders::_1 ) );
 	addProperty<math::V3f>( "PointLightPosition", std::bind( &Volume::getPointLightPosition, this ), std::bind( &Volume::setPointLightPosition, this, std::placeholders::_1 ) );
 	addProperty<float>( "PointLightIntensity", std::bind( &Volume::getPointLightIntensity, this ), std::bind( &Volume::setPointLightIntensity, this, std::placeholders::_1 ) );
 	addProperty<math::V3f>( "PointLightColor", std::bind( &Volume::getPointLightColor, this ), std::bind( &Volume::setPointLightColor, this, std::placeholders::_1 ) );
@@ -382,6 +384,7 @@ math::V3f Volume::getPointLightPosition()const
 
 void Volume::setPointLightIntensity( float intensity )
 {
+	//std::cout << "density scale: " << intensity << std::endl;
 	volumeShader->setUniform( "pointLightIntensity", intensity );
 }
 
@@ -431,6 +434,7 @@ void Volume::setTransferFunction(AnimatedTransferFunction::Ptr transferFunction)
 {
 	m_transferFunction2 = transferFunction;
 	volumeShader->setUniform( "transferFunction2", m_transferFunction2->getTexture()->getUniform() );
+	//std::cout << "density scale: " << m_transferFunction2->getDensityScale() << std::endl;
 	volumeShader->setUniform( "sigma_t_scale", m_transferFunction2->getDensityScale() );
 }
 

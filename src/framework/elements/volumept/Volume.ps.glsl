@@ -25,6 +25,7 @@ uniform vec3      aabb_min; // worldspace
 uniform vec3      aabb_max;
 uniform float     sigma_t_scale;
 uniform float     normalizedTime;
+uniform float     g_stepSize;
 
 
 // ------------------------ MATH --------------------------------
@@ -164,8 +165,8 @@ float intersectBox( in Ray ray /* ray origin and direction */,
 // optimization: factor *stepsize out of the loop
 bool sampleDistance( in Ray ray, in float stepsize, out ScatterEvent se )
 {
-	//float odmax = -log(randomFloat())/sigma_t_scale;
-	float odmax = -log(randomFloat());
+	float odmax = -log(randomFloat())/sigma_t_scale;
+	//float odmax = -log(randomFloat());
 	float od = 0.0f;
 	float d = randomFloat()*stepsize;
 	while( od < odmax )
@@ -187,8 +188,8 @@ bool sampleDistance( in Ray ray, in float stepsize, out ScatterEvent se )
 // optimization: factor *stepsize out of the loop
 bool sampleDistance( in Ray ray, in float stepsize)
 {
-	//float odmax = -log(randomFloat())/sigma_t_scale;
-	float odmax = -log(randomFloat());
+	float odmax = -log(randomFloat())/sigma_t_scale;
+	//float odmax = -log(randomFloat());
 	float od = 0.0f;
 	float d = randomFloat()*stepsize;
 	while( od < odmax )
@@ -398,8 +399,12 @@ void main()
 	// stochastic raymarching ER style ---
 //	float stepsize = 0.0117188f;
 //	float stepsize2 = 0.0117188f;
-	float stepsize = 1.17188f;
-	float stepsize2 = 1.17188f;
+
+
+	float stepsize = g_stepSize;
+	float stepsize2 = g_stepSize;
+	//float stepsize = 1.17188f;
+	//float stepsize2 = 1.17188f;
 	int numSamples = 5;
 	vec4 sum = vec4(0.0f);
 	for(int i=0;i<numSamples;++i)
