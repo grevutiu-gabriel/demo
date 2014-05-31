@@ -266,13 +266,13 @@ std::vector<Scene::Ptr> &Demo::getScenes()
 	return m_scenes;
 }
 
+// TODO: remove
 void Demo::loadScene( const std::string& filename )
 {
 	Scene::Ptr scene = Scene::create();
 	scene->load(filename);
-	m_scenes.push_back(scene);
-
-	//FileWatcher::getInstance()->addFileWatch( base::expand(filename), std::bind( &Scene::reload, scene.get() ) );
+	scene->setName(filename);
+	addScene(scene);
 }
 
 void Demo::load( const std::string& filename )
@@ -588,6 +588,11 @@ void Demo::serialize(Serializer &out)
 		}
 		out.write( "shots", shots );
 	}
+}
+
+void Demo::addScene(Scene::Ptr scene)
+{
+	m_scenes.push_back(scene);
 }
 
 void Demo::store(const std::string &filename)

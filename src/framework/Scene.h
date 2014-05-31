@@ -211,6 +211,7 @@ public:
 	void registerReloadCallback( ReloadCallback callback );
 
 
+	void getControllerNames( std::vector<std::string>& names );
 	Controller::Ptr getController( const std::string& name, UpdateGraph& updateGraph )
 	{
 		updateGraph.clear();

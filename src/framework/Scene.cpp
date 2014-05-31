@@ -171,6 +171,13 @@ void Scene::registerReloadCallback(Scene::ReloadCallback callback)
 	m_reloadCallbacks.push_back(callback);
 }
 
+void Scene::getControllerNames(std::vector<std::string> &names)
+{
+	names.clear();
+	for( auto it = m_controller.begin(), end=m_controller.end();it!=end;++it )
+		names.push_back( it->first );
+}
+
 void Scene::reload()
 {
 	m_reloading = true;

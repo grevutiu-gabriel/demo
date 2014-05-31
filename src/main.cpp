@@ -102,15 +102,21 @@ void init( base::Context::Ptr context )
 
 
 	// intialize and load demo --------
-#ifdef DOAUDIO
-	g_demo = Demo::create(true);
-#else
+
+#ifdef STANDALONE
+
+//#ifdef DOAUDIO
+//	g_demo = Demo::create(true);
+//#else
 	g_demo = Demo::create();
-#endif
+//#endif
 	g_demo->load("filename");
 
-#ifndef STANDALONE
-	gui::Application::getInstance()->setDemo(g_demo);
+#else
+	// gui
+	gui::DemoWrapper::Ptr demoWrapper = gui::Application::getInstance()->getDemoWrapper();
+	demoWrapper->load("filename");
+	g_demo = demoWrapper->getDemo();
 #endif
 
 	// test: serialize demo ----
@@ -196,6 +202,9 @@ void onKeyPress( int key )
 
 int main(int argc, char ** argv)
 {
+	base::pathRegister( "src", base::Path( SRC_PATH ) );
+	base::pathRegister( "data", base::Path( DATA_PATH ) );
+
 	///*
 	int xres = 800;
 	int yres = 600;

@@ -15,10 +15,19 @@ namespace gui
 	public:
 		typedef std::shared_ptr<DemoWrapper> Ptr;
 
-		DemoWrapper( Demo::Ptr demo );
+		DemoWrapper();
+		static Ptr create();
+
+		void load(const std::string& filename);
+		Demo::Ptr getDemo();
+
+		void loadScene( const std::string& filename );
+
+		SceneWrapper::Ptr getSceneWrapper( int index );
 
 
 	signals:
+		void sceneAdded( int index );
 	public slots:
 	private:
 		Demo::Ptr m_demo;

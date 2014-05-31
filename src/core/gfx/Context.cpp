@@ -10,9 +10,6 @@ namespace base
 
 	Context::Context()
 	{
-
-		pathRegister( "src", base::Path( SRC_PATH ) );
-		pathRegister( "data", base::Path( DATA_PATH ) );
 		/*
 //		// setup path
 //		if( !pathIsRegistered("src") )

@@ -33,4 +33,15 @@ void ObjectFactory::print(std::ostream &out)
 void Object::serialize(Serializer &out)
 {
 	out.write("type", getMetaObject()->getTypeName());
+	out.write("name", m_name);
 }
+std::string Object::getName() const
+{
+    return m_name;
+}
+
+void Object::setName(const std::string &name)
+{
+    m_name = name;
+}
+

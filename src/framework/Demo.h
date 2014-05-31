@@ -109,6 +109,7 @@ public:
 
 	//void addElement( Element::Ptr element );
 
+	void addScene( Scene::Ptr scene );
 	void addClip( int shotIndex, float shotStart, float shotEnd, float clipDuration );
 	int addShot( Shot::Ptr shot );
 	Shot::Ptr getShot( int index );

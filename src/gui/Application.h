@@ -8,7 +8,7 @@
 #include "widgets/GLViewer/GLViewer.h"
 
 #include "wrapper/DemoWrapper.h"
-
+#include "TreeView.h"
 
 
 namespace gui
@@ -27,7 +27,7 @@ namespace gui
 		QMainWindow*                    getMainWindow();
 		gui::widgets::GLViewer*         getGlViewer();
 
-		void                            setDemo( Demo::Ptr demo );
+		DemoWrapper::Ptr                getDemoWrapper();
 
 		void watchFile( const std::string& filename, FileChangedCallback callback );
 
@@ -38,6 +38,7 @@ namespace gui
 
 	private:
 		QMainWindow*                    m_mainWindow;
+		TreeView::Ptr                   m_treeView;
 		gui::widgets::GLViewer*         m_glviewer;
 		DemoWrapper::Ptr                m_demoWrapper;
 		QFileSystemWatcher              m_fileWatcher;

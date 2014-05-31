@@ -16,8 +16,11 @@ namespace gui
 
 		SceneWrapper( Scene::Ptr scene );
 		void reload();
+		void getControllerNames( std::vector<std::string>& names );
+		std::string getName()const;
 
 	signals:
+		void sceneReloaded();
 	public slots:
 	public:
 		Scene::Ptr m_scene;

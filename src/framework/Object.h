@@ -71,9 +71,13 @@ public:
 
 	virtual void serialize(Serializer &out);
 
+	std::string getName() const;
+	void setName(const std::string &name);
+
 private:
 	std::map<std::string, Property::Ptr> m_props;
 	std::vector<Ptr>                     m_childs;
+	std::string                          m_name;
 };
 
 struct Serializer

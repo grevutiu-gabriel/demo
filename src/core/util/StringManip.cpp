@@ -160,7 +160,11 @@ namespace base
 
 	std::string replace(std::string &s, const std::string &toReplace, const std::string &replaceWith)
 	{
-		return(s.replace(s.find(toReplace), toReplace.length(), replaceWith));
+		const size_t pos = s.find(toReplace);
+		if(pos!=std::string::npos)
+			return(s.replace(pos, toReplace.length(), replaceWith));
+		else
+			return s;
 	}
 
 } // namespace base
