@@ -266,6 +266,11 @@ std::vector<Scene::Ptr> &Demo::getScenes()
 	return m_scenes;
 }
 
+std::vector<Shot::Ptr> &Demo::getShots()
+{
+	return m_shots;
+}
+
 // TODO: remove
 void Demo::loadScene( const std::string& filename )
 {
@@ -373,6 +378,7 @@ void Demo::load( const std::string& filename )
 
 	// neublae
 	Shot::Ptr shot = Shot::create();
+	shot->setName("nebulae");
 	addShot(shot);
 
 	Element::Ptr clear = ObjectFactory::create<Element>("Clear");

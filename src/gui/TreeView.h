@@ -30,7 +30,10 @@ public:
 	~TreeView();
 public slots:
 	void onSceneAdded( int index );
+	void onShotAdded( int index );
 	void loadScene();
+	void newShot();
+	void onCustomContextMenuRequested ( const QPoint & pos );
 public:
 	QWidget*            m_widget;
 	QTreeWidget*        m_treeWidget;

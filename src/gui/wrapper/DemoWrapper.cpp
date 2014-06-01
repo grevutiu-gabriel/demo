@@ -31,11 +31,29 @@ namespace gui
 			m_sceneWrapper.push_back( sceneWrapper );
 			emit sceneAdded(index);
 		}
+
+		// for shots ----
+		std::vector<Shot::Ptr>& shots = m_demo->getShots();
+		index = 0;
+		for( auto it = shots.begin(), end=shots.end();it!=end;++it,++index )
+		{
+			ShotWrapper::Ptr shotWrapper = std::make_shared<ShotWrapper>(*it);
+			m_shotWrapper.push_back( shotWrapper );
+			emit shotAdded(index);
+		}
 	}
 
 	Demo::Ptr DemoWrapper::getDemo()
 	{
 		return m_demo;
+	}
+
+	void DemoWrapper::addShot(ShotWrapper::Ptr shotWrapper)
+	{
+		m_demo->addShot( shotWrapper->getShot() );
+		int index = int(m_shotWrapper.size());
+		m_shotWrapper.push_back(shotWrapper);
+		emit shotAdded(index);
 	}
 
 	void DemoWrapper::loadScene(const std::string &filename)
@@ -49,6 +67,11 @@ namespace gui
 		int index = int(m_sceneWrapper.size());
 		m_sceneWrapper.push_back(sceneWrapper);
 		emit sceneAdded(index);
+	}
+
+	ShotWrapper::Ptr DemoWrapper::getShotWrapper(int index)
+	{
+		return m_shotWrapper[index];
 	}
 
 	SceneWrapper::Ptr DemoWrapper::getSceneWrapper(int index)
