@@ -2,17 +2,23 @@
 
 
 
+Shot::Shot() :
+	Object(),
+	m_updateGraph(std::make_shared<UpdateGraph>())
+{
+	addProperty<base::Camera::Ptr>( "camera", std::bind( &Shot::getCamera, this ), std::bind( &Shot::setCamera, this, std::placeholders::_1 ) );
+}
 
 
 void Shot::prepareForRendering()
 {
-	m_updateGraph.compile();
+	m_updateGraph->compile();
 }
 
 void Shot::render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera )
 {
 	// update all properties ---
-	m_updateGraph.update(time);
+	m_updateGraph->update(time);
 
 	// get camera ---
 	base::Camera::Ptr camera = m_camera;
@@ -30,6 +36,16 @@ void Shot::render( base::Context::Ptr context, float time, base::Camera::Ptr ove
 	}
 }
 
+void Shot::setPropertyController(Object::Ptr object, const std::string &name, Controller::Ptr controller)
+{
+	m_updateGraph->addConnection( controller, object, name );
+}
+
+UpdateGraph::Ptr Shot::getUpdateGraph()
+{
+	return m_updateGraph;
+}
+
 int Shot::getNumShotElements() const
 {
 	return int(m_elements.size());
@@ -38,6 +54,11 @@ int Shot::getNumShotElements() const
 ShotElement::Ptr Shot::getShotElement( int index )
 {
 	return m_elements[index];
+}
+
+std::vector<ShotElement::Ptr> &Shot::getShotElements()
+{
+	return m_elements;
 }
 
 
@@ -58,7 +79,7 @@ void Shot::serialize(Serializer &out)
 	}
 	// updategraph
 	{
-		out.write("updateGraph", m_updateGraph.serialize( out ));
+		out.write("updateGraph", m_updateGraph->serialize( out ));
 	}
 }
 
@@ -86,34 +107,6 @@ houdini::json::Value ShotElement::serialize(Serializer &out)
 
 
 
-houdini::json::Value UpdateGraph::serialize(Serializer &out)
-{
-	houdini::json::ArrayPtr jsonGraph = houdini::json::Array::create();
-
-	// serialize graph: objectid->object bindings
-	for( auto it = m_graph.begin(), end=m_graph.end();it!=end;++it )
-	{
-		Object::Ptr object = it->first;
-		ObjectBindings* bindings = it->second;
-
-		houdini::json::ObjectPtr jsonBindings = houdini::json::Object::create();
-		for( auto it2 = bindings->begin(), end2=bindings->end();it2!=end2;++it2 )
-		{
-			Property::Ptr prop = it2->first;
-			Controller::Ptr controller = it2->second;
-			jsonBindings->append( "controller",  out.serialize(controller));
-			jsonBindings->appendValue<std::string>( "property",  prop->getName());
-		}
-
-		houdini::json::ObjectPtr json = houdini::json::Object::create();
-		json->append("object", out.serialize(object));
-		json->append("bindings", jsonBindings);
-
-		jsonGraph->append(json);
-	}
-
-	return houdini::json::Value::createArray(jsonGraph);
-}
 
 REGISTERCLASS( Shot )
 

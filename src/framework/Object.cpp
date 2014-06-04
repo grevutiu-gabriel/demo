@@ -30,6 +30,13 @@ void ObjectFactory::print(std::ostream &out)
 }
 
 
+void Object::getPropertyNames(std::vector<std::string>& names)
+{
+	names.clear();
+	for(auto it:m_props)
+		names.push_back(it.first);
+}
+
 void Object::serialize(Serializer &out)
 {
 	out.write("type", getMetaObject()->getTypeName());

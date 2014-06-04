@@ -25,7 +25,7 @@ public:
 	void contextMenu( const QPoint& pos );
 
 public slots:
-
+	void onShotElementAdded( int index );
 
 private:
 	ShotWrapper::Ptr m_shotWrapper;

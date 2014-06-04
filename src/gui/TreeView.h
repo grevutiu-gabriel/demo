@@ -3,6 +3,7 @@
 #include <QTreeWidget>
 #include <memory>
 
+#include "gui/widgets/TreeWidget/TreeWidget.h"
 #include "wrapper/DemoWrapper.h"
 
 
@@ -21,13 +22,13 @@ public:
 	typedef std::shared_ptr<TreeView> Ptr;
 
 	TreeView( DemoWrapper::Ptr demoWrapper );
-
+	~TreeView();
 	static Ptr create( DemoWrapper::Ptr demoWrapper );
 
 
 
-	TreeView();
-	~TreeView();
+
+
 public slots:
 	void onSceneAdded( int index );
 	void onShotAdded( int index );
@@ -36,7 +37,7 @@ public slots:
 	void onCustomContextMenuRequested ( const QPoint & pos );
 public:
 	QWidget*            m_widget;
-	QTreeWidget*        m_treeWidget;
+	TreeWidget*         m_treeWidget;
 	DemoWrapper::Ptr    m_demoWrapper;
 };
 

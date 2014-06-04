@@ -13,25 +13,25 @@ namespace gui
 
 
 
-class TreeViewSceneItem : public QObject, public TreeWidgetItem
+class TreeViewSceneControllerItem : public QObject, public TreeWidgetItem
 {
 	Q_OBJECT
 public:
 
-	TreeViewSceneItem( SceneWrapper::Ptr sceneWrapper );
-	~TreeViewSceneItem();
+	TreeViewSceneControllerItem( SceneWrapper::Ptr sceneWrapper, const std::string& controllerName );
+	~TreeViewSceneControllerItem();
 
 	void contextMenu( const QPoint& pos )override;
 	virtual QMimeData* mimeData()override;
-	void update();
 
 
 public slots:
-	void onSceneReloaded();
 
 
 private:
 	SceneWrapper::Ptr m_sceneWrapper;
+	std::string m_controllerName;
+	SceneController::Ptr m_sceneController;
 };
 
 

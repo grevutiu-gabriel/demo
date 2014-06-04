@@ -34,8 +34,9 @@ TreeView::TreeView(DemoWrapper::Ptr demoWrapper) :
 	layout->addWidget( tb );
 
 	// treewidget --
-	m_treeWidget = new QTreeWidget();
+	m_treeWidget = new TreeWidget();
 	m_treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+	m_treeWidget->setDragEnabled(true);
 	layout->addWidget( m_treeWidget );
 
 	m_widget->show();

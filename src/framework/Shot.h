@@ -35,6 +35,11 @@ struct ShotElement
 		return se;
 	}
 
+	std::vector<ShotElement::Ptr>& getChilds()
+	{
+		return m_childs;
+	}
+
 	// propagates the given vector with own element and all child elements
 	// used by shot::prepareForRendering to find the root nodes of the updategraph
 	void getAllChildElements( std::vector<Element::Ptr>& elements )
@@ -82,10 +87,7 @@ public:
 	typedef std::shared_ptr<Shot> Ptr;
 
 
-	Shot() : Object()
-	{
-		addProperty<base::Camera::Ptr>( "camera", std::bind( &Shot::getCamera, this ), std::bind( &Shot::setCamera, this, std::placeholders::_1 ) );
-	}
+	Shot();
 
 	static Ptr create()
 	{
@@ -116,10 +118,8 @@ public:
 
 	virtual void render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera );
 
-	void setPropertyController(Object::Ptr object, const std::string& name, Controller::Ptr controller)
-	{
-		m_updateGraph.addConnection( controller, object, name );
-	}
+	void setPropertyController(Object::Ptr object, const std::string& name, Controller::Ptr controller);
+	UpdateGraph::Ptr getUpdateGraph();
 
 	base::Camera::Ptr getCamera()const
 	{
@@ -132,6 +132,7 @@ public:
 
 	int getNumShotElements()const;
 	ShotElement::Ptr getShotElement( int index );
+	std::vector<ShotElement::Ptr>& getShotElements();
 
 
 	virtual void serialize(Serializer &out);
@@ -139,7 +140,7 @@ public:
 	base::Camera::Ptr                        m_camera;
 	std::vector<ShotElement::Ptr>            m_elements;
 
-	UpdateGraph                              m_updateGraph;
+	UpdateGraph::Ptr                         m_updateGraph;
 };
 
 

@@ -2,6 +2,8 @@
 
 #include <util/StringManip.h>
 
+#include "ShotElementWrapper.h"
+
 namespace gui
 {
 
@@ -30,6 +32,8 @@ namespace gui
 			SceneWrapper::Ptr sceneWrapper = std::make_shared<SceneWrapper>(*it);
 			m_sceneWrapper.push_back( sceneWrapper );
 			emit sceneAdded(index);
+
+			//TODO: (*it)->load();
 		}
 
 		// for shots ----
@@ -40,6 +44,9 @@ namespace gui
 			ShotWrapper::Ptr shotWrapper = std::make_shared<ShotWrapper>(*it);
 			m_shotWrapper.push_back( shotWrapper );
 			emit shotAdded(index);
+			shotWrapper->load();
+
+
 		}
 	}
 

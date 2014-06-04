@@ -8,8 +8,10 @@
 
 
 
-struct UpdateGraph
+class UpdateGraph
 {
+public:
+	typedef std::shared_ptr<UpdateGraph> Ptr;
 	typedef std::map<Property::Ptr, Controller::Ptr> ObjectBindings;
 
 	UpdateGraph();
@@ -31,6 +33,8 @@ struct UpdateGraph
 	}
 
 	void update( float time );
+
+	void getNodes( std::vector<Object::Ptr>& nodes );
 
 	ObjectBindings* getObjectBindings(Object::Ptr object)
 	{

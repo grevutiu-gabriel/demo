@@ -117,6 +117,9 @@ void init( base::Context::Ptr context )
 	gui::DemoWrapper::Ptr demoWrapper = gui::Application::getInstance()->getDemoWrapper();
 	demoWrapper->load("filename");
 	g_demo = demoWrapper->getDemo();
+
+	if( g_demo->getNumShots()>0 )
+		gui::Application::getInstance()->openGraphEditor( gui::Application::getInstance()->getWrapper(g_demo->getShot(0)->getUpdateGraph()) );
 #endif
 
 	// test: serialize demo ----

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QObject>
+#include "ObjectWrapper.h"
 
 #include "../framework/Scene.h"
 
@@ -8,7 +8,7 @@
 namespace gui
 {
 
-	class SceneWrapper : public QObject
+	class SceneWrapper : public ObjectWrapper
 	{
 		Q_OBJECT
 	public:
@@ -17,6 +17,7 @@ namespace gui
 		SceneWrapper( Scene::Ptr scene );
 		void reload();
 		void getControllerNames( std::vector<std::string>& names );
+		Scene::Ptr getScene();
 		std::string getName()const;
 
 	signals:

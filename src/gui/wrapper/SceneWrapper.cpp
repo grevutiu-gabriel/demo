@@ -4,7 +4,9 @@
 namespace gui
 {
 
-	SceneWrapper::SceneWrapper( Scene::Ptr scene ):m_scene(scene)
+	SceneWrapper::SceneWrapper( Scene::Ptr scene ):
+		ObjectWrapper(scene),
+		m_scene(scene)
 	{
 		Application::getInstance()->watchFile(base::expand(m_scene->getFilename()), std::bind( &SceneWrapper::reload, this ));
 	}
@@ -19,6 +21,11 @@ namespace gui
 	void SceneWrapper::getControllerNames(std::vector<std::string> &names)
 	{
 		m_scene->getControllerNames( names );
+	}
+
+	Scene::Ptr SceneWrapper::getScene()
+	{
+		return m_scene;
 	}
 
 	std::string SceneWrapper::getName() const

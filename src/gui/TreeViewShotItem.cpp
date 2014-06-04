@@ -1,5 +1,6 @@
 #include "TreeViewShotItem.h"
 
+#include "TreeViewShotElementItem.h"
 #include <QMenu>
 
 
@@ -14,6 +15,8 @@ TreeViewShotItem::TreeViewShotItem(ShotWrapper::Ptr shotWrapper)
 	  m_shotWrapper(shotWrapper)
 {
 	setText(0, QString::fromStdString(m_shotWrapper->getName()));
+
+	connect( m_shotWrapper.get(), SIGNAL(shotElementAdded(int)), this, SLOT(onShotElementAdded(int)) );
 }
 
 TreeViewShotItem::~TreeViewShotItem()
@@ -23,19 +26,28 @@ TreeViewShotItem::~TreeViewShotItem()
 
 void TreeViewShotItem::contextMenu(const QPoint &pos)
 {
-	QMenu* menu = new QMenu();
+//	QMenu* menu = new QMenu();
 
-	QMenu* createMenu = menu->addMenu("create...");
-	createMenu->addAction( "clear" );
-	createMenu->addAction( "render texture" );
-	createMenu->addAction( "render geometry" );
-	createMenu->addAction( "post process" );
-	QAction* action = menu->exec(pos);
-	if(action)
-		std::cout<<action->text().toStdString()<< std::endl;
+//	QMenu* createMenu = menu->addMenu("create...");
+//	createMenu->addAction( "Clear" );
+//	createMenu->addAction( "RenderTexture" );
+//	createMenu->addAction( "RenderGeometry" );
+//	createMenu->addAction( "PostProcess" );
+//	QAction* action = menu->exec(pos);
+//	if(action)
+//	{
+//		QString elementTypeName = action->text().toStdString();
+//		std::cout<<<< std::endl;
+//	}
 
-	delete menu;
+//	delete menu;
 
+}
+
+void TreeViewShotItem::onShotElementAdded(int index)
+{
+	TreeViewShotElementItem* item = new TreeViewShotElementItem(m_shotWrapper->getShotElement(index));
+	this->addChild(item);
 }
 
 

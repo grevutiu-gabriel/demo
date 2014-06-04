@@ -68,6 +68,12 @@ void UpdateGraph::update(float time)
 	}
 }
 
+void UpdateGraph::getNodes(std::vector<Object::Ptr> &nodes)
+{
+	for( auto it:m_graph )
+		nodes.push_back(it.first);
+}
+
 void UpdateGraph::compile()
 {
 	m_updateCommands.clear();
@@ -104,3 +110,35 @@ void UpdateGraph::compile()
 		gatherUpdateCommands( obj );
 	}
 }
+
+
+
+houdini::json::Value UpdateGraph::serialize(Serializer &out)
+{
+	houdini::json::ArrayPtr jsonGraph = houdini::json::Array::create();
+
+	// serialize graph: objectid->object bindings
+	for( auto it = m_graph.begin(), end=m_graph.end();it!=end;++it )
+	{
+		Object::Ptr object = it->first;
+		ObjectBindings* bindings = it->second;
+
+		houdini::json::ObjectPtr jsonBindings = houdini::json::Object::create();
+		for( auto it2 = bindings->begin(), end2=bindings->end();it2!=end2;++it2 )
+		{
+			Property::Ptr prop = it2->first;
+			Controller::Ptr controller = it2->second;
+			jsonBindings->append( "controller",  out.serialize(controller));
+			jsonBindings->appendValue<std::string>( "property",  prop->getName());
+		}
+
+		houdini::json::ObjectPtr json = houdini::json::Object::create();
+		json->append("object", out.serialize(object));
+		json->append("bindings", jsonBindings);
+
+		jsonGraph->append(json);
+	}
+
+	return houdini::json::Value::createArray(jsonGraph);
+}
+

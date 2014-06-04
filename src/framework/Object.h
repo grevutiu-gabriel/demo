@@ -44,6 +44,7 @@ public:
 	}
 
 
+	void getPropertyNames( std::vector<std::string>& names );
 
 	Property::Ptr getProperty( const std::string& name )
 	{

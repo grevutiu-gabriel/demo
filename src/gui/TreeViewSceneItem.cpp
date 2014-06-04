@@ -1,8 +1,8 @@
 #include "TreeViewSceneItem.h"
 
+#include "TreeViewSceneControllerItem.h"
 
-
-
+#include "wrapper/ObjectWrapperMimeData.h"
 
 
 
@@ -10,7 +10,7 @@ namespace gui
 {
 
 TreeViewSceneItem::TreeViewSceneItem(SceneWrapper::Ptr sceneWrapper)
-	: QObject(),QTreeWidgetItem(),
+	: QObject(),TreeWidgetItem(),
 	  m_sceneWrapper(sceneWrapper)
 {
 	setText(0, QString::fromStdString(m_sceneWrapper->getName()));
@@ -41,8 +41,7 @@ void TreeViewSceneItem::update()
 
 	for(auto name:controllerNames)
 	{
-		QTreeWidgetItem* item = new QTreeWidgetItem();
-		item->setText(0,QString::fromStdString(name));
+		TreeViewSceneControllerItem* item = new TreeViewSceneControllerItem( m_sceneWrapper, name );
 		this->addChild(item);
 	}
 
@@ -53,7 +52,27 @@ void TreeViewSceneItem::onSceneReloaded()
 	update();
 }
 
+void TreeViewSceneItem::contextMenu(const QPoint &pos)
+{
+//	QMenu* menu = new QMenu();
 
+//	QMenu* createMenu = menu->addMenu("create...");
+//	createMenu->addAction( "clear" );
+//	createMenu->addAction( "render texture" );
+//	createMenu->addAction( "render geometry" );
+//	createMenu->addAction( "post process" );
+//	QAction* action = menu->exec(pos);
+//	if(action)
+//		std::cout<<action->text().toStdString()<< std::endl;
+
+//	delete menu;
+
+}
+
+QMimeData *TreeViewSceneItem::mimeData()
+{
+	return new ObjectWrapperMimeData( m_sceneWrapper );
+}
 
 
 

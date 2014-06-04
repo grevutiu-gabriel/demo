@@ -382,8 +382,10 @@ void Demo::load( const std::string& filename )
 	addShot(shot);
 
 	Element::Ptr clear = ObjectFactory::create<Element>("Clear");
+	clear->setName("clear");
 	shot->addElement( clear );
 	Volume::Ptr volume = ObjectFactory::create<Volume>("Volume");
+	volume->setName("volume");
 
 	LoadVolume::Ptr loadVolume = ObjectFactory::create<LoadVolume>("LoadVolume");
 	loadVolume->setFilename("$DATA/nebulae200.bgeo");
