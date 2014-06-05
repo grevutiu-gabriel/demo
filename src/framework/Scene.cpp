@@ -149,9 +149,12 @@ bool Scene::load( const std::string& filename )
 
 	} // reloading
 
-	if(!m_reloading)
-		for( auto it:m_controller )
-			std::cout << it.first << std::endl;
+	//if(!m_reloading)
+	for( auto it:m_controller )
+	{
+		//std::cout << it.first << std::endl;
+		it.second->setName(it.first);
+	}
 
 	return true;
 }

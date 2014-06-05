@@ -205,6 +205,17 @@ QVector<QNEPort*> QNEBlock::ports()
 	return res;
 }
 
+QNEPort *QNEBlock::getPort(const std::string &name)
+{
+	foreach(QGraphicsItem *port_, childItems())
+	{
+		QNEPort *port = (QNEPort*) port_;
+		if (port->portName().toStdString() == name)
+			return port;
+	}
+	return 0;
+}
+
 QVariant QNEBlock::itemChange(GraphicsItemChange change, const QVariant &value)
 {
 

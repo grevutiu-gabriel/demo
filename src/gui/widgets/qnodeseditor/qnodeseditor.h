@@ -45,6 +45,7 @@ public:
 
 	virtual bool eventFilter(QObject *, QEvent *)override;
 	virtual void onConnectionAdded( QNEPort* src, QNEPort* dst );
+	virtual void onConnectionRemoved( QNEPort* src, QNEPort* dst );
 
 	void save(QDataStream &ds);
 	void load(QDataStream &ds);

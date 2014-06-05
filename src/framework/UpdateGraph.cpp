@@ -30,8 +30,7 @@ void UpdateGraph::copyFrom(UpdateGraph &graph, std::vector<Object::Ptr> &roots)
 			for( auto it = src_bindings->begin(),end=src_bindings->end();it!=end;++it )
 			{
 				Controller::Ptr controller = it->second;
-				Property::Ptr prop = it->first;
-				addConnection( controller, next, prop->getName() );
+				addConnection( controller, next, it->first );
 				todo.push( controller );
 			}
 		}
@@ -68,10 +67,92 @@ void UpdateGraph::update(float time)
 	}
 }
 
+UpdateGraph::ObjectBindings* UpdateGraph::insertNode(Object::Ptr object)
+{
+	ObjectBindings* ob = new ObjectBindings();
+	m_graph[object] = ob;
+	return ob;
+}
+
 void UpdateGraph::getNodes(std::vector<Object::Ptr> &nodes)
 {
 	for( auto it:m_graph )
 		nodes.push_back(it.first);
+}
+
+bool UpdateGraph::hasNode(Object::Ptr object)
+{
+	return getObjectBindings(object)!=0;
+}
+
+void UpdateGraph::getConnections(std::vector<UpdateGraph::Connection>& connections)
+{
+	for( auto it:m_graph )
+	{
+		Object::Ptr obj = it.first;
+		ObjectBindings* b = it.second;
+
+		for( auto it2:*b )
+		{
+			Connection conn;
+			conn.src = it2.second;
+			conn.dest = obj;
+			conn.propName = it2.first;
+			connections.push_back(conn);
+		}
+	}
+}
+
+UpdateGraph::ObjectBindings *UpdateGraph::getObjectBindings(Object::Ptr object)
+{
+	auto it = m_graph.find(object);
+	if(it != m_graph.end())
+		return it->second;
+	return 0;
+}
+
+void UpdateGraph::addConnection(Controller::Ptr controller, Object::Ptr object, const std::string &propName)
+{
+	ObjectBindings* ob = getObjectBindings( object );
+	// create, if objectbindings dont exist
+	if(!ob)
+		ob = insertNode( object );
+	(*ob)[propName] = controller;
+	if(!hasNode( controller ))
+		insertNode(controller);
+}
+
+void UpdateGraph::removeConnection(Controller::Ptr controller, Object::Ptr object, const std::string &propName)
+{
+	ObjectBindings* ob = getObjectBindings( object );
+	if(ob)
+	{
+		auto it = ob->find(propName);
+		if( it != ob->end() )
+			ob->erase(it);
+	}
+}
+
+void UpdateGraph::gatherUpdateCommands(Object::Ptr object)
+{
+	ObjectBindings* ob = getObjectBindings( object );
+	if(ob)
+	{
+		for( auto it = ob->begin(), end=ob->end();it!=end;++it )
+		{
+			Property::Ptr property = object->getProperty(it->first);
+			if(property)
+			{
+				Controller::Ptr controller = it->second;
+
+				// recurse down the tree
+				gatherUpdateCommands( controller );
+
+				// now, since all leave nodes have been processed, add current binding
+				m_updateCommands.push_back(std::make_pair(controller, property));
+			}
+		}
+	}
 }
 
 void UpdateGraph::compile()
@@ -126,7 +207,7 @@ houdini::json::Value UpdateGraph::serialize(Serializer &out)
 		houdini::json::ObjectPtr jsonBindings = houdini::json::Object::create();
 		for( auto it2 = bindings->begin(), end2=bindings->end();it2!=end2;++it2 )
 		{
-			Property::Ptr prop = it2->first;
+			Property::Ptr prop = object->getProperty(it2->first);
 			Controller::Ptr controller = it2->second;
 			jsonBindings->append( "controller",  out.serialize(controller));
 			jsonBindings->appendValue<std::string>( "property",  prop->getName());

@@ -12,7 +12,14 @@ class UpdateGraph
 {
 public:
 	typedef std::shared_ptr<UpdateGraph> Ptr;
-	typedef std::map<Property::Ptr, Controller::Ptr> ObjectBindings;
+	typedef std::map<std::string, Controller::Ptr> ObjectBindings;
+
+	struct Connection
+	{
+		Object::Ptr src;
+		Object::Ptr dest;
+		std::string propName;
+	};
 
 	UpdateGraph();
 	UpdateGraph( UpdateGraph& graph );
@@ -34,48 +41,17 @@ public:
 
 	void update( float time );
 
+	UpdateGraph::ObjectBindings* insertNode( Object::Ptr object );
 	void getNodes( std::vector<Object::Ptr>& nodes );
+	bool hasNode(Object::Ptr object);
+	void getConnections( std::vector<Connection>& connections );
 
-	ObjectBindings* getObjectBindings(Object::Ptr object)
-	{
-		auto it = m_graph.find(object);
-		if(it != m_graph.end())
-			return it->second;
-		return 0;
-	}
+	ObjectBindings* getObjectBindings(Object::Ptr object);
 
-	void addConnection( Controller::Ptr controller, Object::Ptr object, const std::string& propName )
-	{
-		ObjectBindings* ob = getObjectBindings( object );
-		// create, if objectbindings dont exist
-		if(!ob)
-		{
-			ob = new ObjectBindings();
-			m_graph[object] = ob;
-		}
-		Property::Ptr prop = object->getProperty(propName);
-		if(prop)
-			(*ob)[prop] = controller;
-	}
+	void addConnection( Controller::Ptr controller, Object::Ptr object, const std::string& propName );
+	void removeConnection(Controller::Ptr controller, Object::Ptr object, const std::string& propName);
 
-	void gatherUpdateCommands( Object::Ptr object )
-	{
-		ObjectBindings* ob = getObjectBindings( object );
-		if(ob)
-		{
-			for( auto it = ob->begin(), end=ob->end();it!=end;++it )
-			{
-				Property::Ptr property = it->first;
-				Controller::Ptr controller = it->second;
-
-				// recurse down the tree
-				gatherUpdateCommands( controller );
-
-				// now, since all leave nodes have been processed, add current binding
-				m_updateCommands.push_back(std::make_pair(controller, property));
-			}
-		}
-	}
+	void gatherUpdateCommands( Object::Ptr object );
 
 	void compile();
 

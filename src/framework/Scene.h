@@ -159,7 +159,9 @@ public:
 
 	static Ptr create( ScenePtr scene, const std::string& controllerId )
 	{
-		return std::make_shared<SceneController>( scene, controllerId );
+		SceneController::Ptr sceneController = std::make_shared<SceneController>( scene, controllerId );
+		sceneController->setName(controllerId);
+		return sceneController;
 	}
 
 	virtual void update( Property::Ptr prop, float time)override;

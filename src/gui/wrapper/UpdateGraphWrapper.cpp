@@ -16,6 +16,11 @@ namespace gui
 		return std::make_shared<UpdateGraphWrapper>(graph);
 	}
 
+	UpdateGraph::Ptr UpdateGraphWrapper::getUpdateGraph()
+	{
+		return m_graph;
+	}
+
 	void UpdateGraphWrapper::load()
 	{
 		std::vector<Object::Ptr> nodes;
@@ -34,6 +39,13 @@ namespace gui
 	{
 		Controller::Ptr controller = std::dynamic_pointer_cast<Controller>( controllerWrapper->getObject() );
 		m_graph->addConnection( controller, objectWrapper->getObject(), propName );
+		m_graph->compile();
+	}
+
+	void UpdateGraphWrapper::removeConnection(ObjectWrapper::Ptr controllerWrapper, ObjectWrapper::Ptr objectWrapper, const std::string &propName)
+	{
+		Controller::Ptr controller = std::dynamic_pointer_cast<Controller>( controllerWrapper->getObject() );
+		m_graph->removeConnection( controller, objectWrapper->getObject(), propName );
 		m_graph->compile();
 	}
 /*

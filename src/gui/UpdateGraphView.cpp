@@ -9,6 +9,7 @@
 #include <QDropEvent>
 #include <QGraphicsSceneDragDropEvent>
 
+#include "Application.h"
 
 namespace gui
 {
@@ -51,11 +52,19 @@ QNEBlock* UpdateGraphView::insertNode(ObjectWrapper::Ptr objectWrapper)
 	}
 
 	// keep track of added nodes
-	m_nodes[m_nextNode] = objectWrapper;
+	m_nodes[b] = objectWrapper;
 	b->setPtr(m_nextNode);
 	m_nextNode++;
 
 	return b;
+}
+
+QNEBlock *UpdateGraphView::getNode(ObjectWrapper::Ptr objectWrapper)
+{
+	for( auto it:m_nodes )
+		if(objectWrapper==it.second)
+			return it.first;
+	return 0;
 }
 
 bool UpdateGraphView::hasNode(ObjectWrapper::Ptr objectWrapper)
@@ -112,10 +121,18 @@ bool UpdateGraphView::eventFilter(QObject *object, QEvent *event)
 void UpdateGraphView::onConnectionAdded(QNEPort *src, QNEPort *dst)
 {
 	std::cout << "connection added !\n";
-	ObjectWrapper::Ptr controller = m_nodes[src->block()->ptr()];
-	ObjectWrapper::Ptr object = m_nodes[dst->block()->ptr()];
+	ObjectWrapper::Ptr controller = m_nodes[src->block()];
+	ObjectWrapper::Ptr object = m_nodes[dst->block()];
 	std::string propName = m_inputs[dst->ptr()];
 	m_updateGraphWrapper->addConnection( controller, object, propName );
+}
+
+void UpdateGraphView::onConnectionRemoved(QNEPort *src, QNEPort *dst)
+{
+	ObjectWrapper::Ptr controller = m_nodes[src->block()];
+	ObjectWrapper::Ptr object = m_nodes[dst->block()];
+	std::string propName = m_inputs[dst->ptr()];
+	m_updateGraphWrapper->removeConnection( controller, object, propName );
 }
 
 UpdateGraphView::UpdateGraphView(UpdateGraphWrapper::Ptr updateGraphWrapper) :
@@ -140,14 +157,33 @@ UpdateGraphView::UpdateGraphView(UpdateGraphWrapper::Ptr updateGraphWrapper) :
 	{
 		QNEBlock* b = insertNode( node );
 
-//		b->addOutputPort("out1");
-//		b->addOutputPort("out2");
-//		b->addOutputPort("out3");
 		b->setPos(150, index*150);
 		++index;
 	}
 
-
+	std::vector<UpdateGraph::Connection> connections;
+	m_updateGraphWrapper->getUpdateGraph()->getConnections(connections);
+	for(auto conn:connections)
+	{
+		QNEBlock* srcBlock = getNode(Application::getInstance()->getWrapper(conn.src));
+		QVector<QNEPort*> srcPorts = srcBlock->ports();
+		QNEPort* srcPort = 0;
+		for(auto p:srcPorts)
+			if(p->isOutput())
+			{
+				srcPort = p;
+				break;
+			}
+		QNEBlock* destBlock = getNode(Application::getInstance()->getWrapper(conn.dest));
+		QNEPort* destPort = destBlock->getPort(conn.propName);
+		QNEConnection* path = new QNEConnection(0);
+		m_scene->addItem(path);
+		path->setPort1(srcPort);
+		path->setPort2(destPort);
+		path->setPos1(srcPort->scenePos());
+		path->setPos2(destPort->scenePos());
+		path->updatePath();
+	}
 
 
 }

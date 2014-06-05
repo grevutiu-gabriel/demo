@@ -92,7 +92,21 @@ bool QNodesEditor::eventFilter(QObject *o, QEvent *e)
 		{
 			QGraphicsItem *item = itemAt(me->scenePos());
 			if (item && (item->type() == QNEConnection::Type || item->type() == QNEBlock::Type))
+			{
+				if(item->type() == QNEConnection::Type)
+				{
+					QNEConnection* connection = dynamic_cast<QNEConnection*>( item );
+					QNEPort *port1 = connection->port1();
+					QNEPort *port2 = connection->port2();
+					if(port1->isOutput())
+						onConnectionAdded( port1, port2 );
+					else
+						onConnectionAdded( port2, port1 );
+					onConnectionRemoved(port1, port2);
+				}
 				delete item;
+
+			}
 			// if (selBlock == (QNEBlock*) item)
 				// selBlock = 0;
 			break;
@@ -144,6 +158,11 @@ bool QNodesEditor::eventFilter(QObject *o, QEvent *e)
 }
 
 void QNodesEditor::onConnectionAdded(QNEPort *src, QNEPort *dst)
+{
+
+}
+
+void QNodesEditor::onConnectionRemoved(QNEPort *src, QNEPort *dst)
 {
 
 }
