@@ -113,6 +113,7 @@ struct ObjectFactory
 		return std::dynamic_pointer_cast<T>(create(name));
 	}
 
+	static void getTypeNames( std::vector<std::string>& typeNames );
 	static void print(std::ostream &out);
 private:
 	static std::map<std::string, const MetaObject*>* m_register;

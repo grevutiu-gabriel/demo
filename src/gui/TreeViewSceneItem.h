@@ -25,6 +25,7 @@ public:
 	virtual QMimeData* mimeData()override;
 	void update();
 
+	ObjectWrapper::Ptr getObjectWrapper();
 
 public slots:
 	void onSceneReloaded();

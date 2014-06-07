@@ -12,6 +12,7 @@
 #include "wrapper/DemoWrapper.h"
 #include "wrapper/UpdateGraphWrapper.h"
 #include "TreeView.h"
+#include "ObjectTypeListView.h"
 #include "UpdateGraphView.h"
 
 
@@ -48,6 +49,7 @@ namespace gui
 		gui::widgets::GLViewer*         m_glviewer;
 		QSplitter*                      m_splitter;
 		TreeView::Ptr                   m_treeView;
+		ObjectTypeListView::Ptr         m_typeList;
 		QTabWidget*                     m_tabWidget;
 		std::vector<UpdateGraphView*>   m_updateGraphViews;
 		DemoWrapper::Ptr                m_demoWrapper;

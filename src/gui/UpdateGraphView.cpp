@@ -120,11 +120,11 @@ bool UpdateGraphView::eventFilter(QObject *object, QEvent *event)
 
 void UpdateGraphView::onConnectionAdded(QNEPort *src, QNEPort *dst)
 {
-	std::cout << "connection added !\n";
 	ObjectWrapper::Ptr controller = m_nodes[src->block()];
 	ObjectWrapper::Ptr object = m_nodes[dst->block()];
 	std::string propName = m_inputs[dst->ptr()];
 	m_updateGraphWrapper->addConnection( controller, object, propName );
+	Application::getInstance()->getGlViewer()->update();
 }
 
 void UpdateGraphView::onConnectionRemoved(QNEPort *src, QNEPort *dst)
@@ -133,6 +133,7 @@ void UpdateGraphView::onConnectionRemoved(QNEPort *src, QNEPort *dst)
 	ObjectWrapper::Ptr object = m_nodes[dst->block()];
 	std::string propName = m_inputs[dst->ptr()];
 	m_updateGraphWrapper->removeConnection( controller, object, propName );
+	Application::getInstance()->getGlViewer()->update();
 }
 
 UpdateGraphView::UpdateGraphView(UpdateGraphWrapper::Ptr updateGraphWrapper) :

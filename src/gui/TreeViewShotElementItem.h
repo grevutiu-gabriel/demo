@@ -25,6 +25,7 @@ public:
 	void contextMenu( const QPoint& pos )override;
 	virtual QMimeData* mimeData()override;
 
+	ObjectWrapper::Ptr getObjectWrapper();
 public slots:
 	void onShotElementAdded( int index );
 

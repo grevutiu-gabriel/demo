@@ -42,14 +42,18 @@ void TreeViewSceneControllerItem::contextMenu(const QPoint &pos)
 
 QMimeData *TreeViewSceneControllerItem::mimeData()
 {
+	return new ObjectWrapperMimeData( std::bind( &TreeViewSceneControllerItem::getObjectWrapper, this ) );
+}
+
+ObjectWrapper::Ptr TreeViewSceneControllerItem::getObjectWrapper()
+{
 	// create controller if it hasnt been created yet
 	if(!m_sceneController)
 	{
 		m_sceneController = SceneController::create(m_sceneWrapper->getScene(),m_controllerName);
 		m_sceneController->setName(m_controllerName);
 	}
-
-	return new ObjectWrapperMimeData( Application::getInstance()->getWrapper(m_sceneController) );
+	return Application::getInstance()->getWrapper(m_sceneController);
 }
 
 

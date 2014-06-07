@@ -27,11 +27,18 @@ namespace gui
 		// tree view ---
 		m_treeView = TreeView::create(m_demoWrapper);
 
+		// list view for object types
+		m_typeList = ObjectTypeListView::create();
+
 		// tab widget for graph views ---
 		m_tabWidget = new QTabWidget();
 
+		QSplitter* leftSplitter = new QSplitter(Qt::Vertical);
+		leftSplitter->addWidget(m_treeView->m_widget);
+		leftSplitter->addWidget(m_typeList->getWidget());
+
 		m_splitter = new QSplitter();
-		m_splitter->addWidget(m_treeView->m_widget);
+		m_splitter->addWidget(leftSplitter);
 		m_splitter->addWidget(m_tabWidget);
 
 

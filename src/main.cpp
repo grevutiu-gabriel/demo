@@ -88,9 +88,10 @@ void render( base::Context::Ptr context, base::Camera::Ptr cam )
 	++numFrames;
 
 
+	if(g_timer.elapsedSeconds()>g_demo->getDuration())
+		g_timer.setElapsed(0.0f);
+
 	gui::Application::getInstance()->getGlViewer()->postUpdateEvent();
-
-
 }
 
 

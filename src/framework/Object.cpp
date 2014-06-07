@@ -29,6 +29,12 @@ void ObjectFactory::print(std::ostream &out)
 	}
 }
 
+void ObjectFactory::getTypeNames(std::vector<std::string> &typeNames)
+{
+	typeNames.clear();
+	for( auto it=m_register->begin(), end=m_register->end();it!=end;++it )
+		typeNames.push_back(it->first);
+}
 
 void Object::getPropertyNames(std::vector<std::string>& names)
 {

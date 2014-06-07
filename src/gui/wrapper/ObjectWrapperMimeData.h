@@ -8,7 +8,7 @@
 
 #pragma once
 #include <QMimeData>
-
+#include <functional>
 #include "ObjectWrapper.h"
 
 namespace gui
@@ -21,7 +21,9 @@ namespace gui
 	{
 		Q_OBJECT
 	public:
-		ObjectWrapperMimeData( ObjectWrapper::Ptr objectWrapper );  // constructor - provide info about which process to create
+		typedef std::function<ObjectWrapper::Ptr(void)> GetObjectWrapperCallback;
+
+		ObjectWrapperMimeData( GetObjectWrapperCallback callback );  // constructor - provide info about which process to create
 		~ObjectWrapperMimeData();                                    // destructor
 
 		// QMimeData overrides
@@ -29,8 +31,8 @@ namespace gui
 		virtual QStringList formats () const override;
 
 		ObjectWrapper::Ptr getObjectWrapper() const;  // returns string identifier of the processtype to create
-
 	private:
 		ObjectWrapper::Ptr             m_objectWrapper;
+		GetObjectWrapperCallback       m_callback;
 	};
 }
