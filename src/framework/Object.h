@@ -59,10 +59,10 @@ public:
 		return m_props.find( name ) != m_props.end();
 	}
 
-	ChildList& getChildren()
-	{
-		return m_childs;
-	}
+//	ChildList& getChildren()
+//	{
+//		return m_childs;
+//	}
 
 	void print( std::ostream& out )const
 	{
@@ -77,7 +77,7 @@ public:
 
 private:
 	std::map<std::string, Property::Ptr> m_props;
-	std::vector<Ptr>                     m_childs;
+	//std::vector<Ptr>                     m_childs;
 	std::string                          m_name;
 };
 

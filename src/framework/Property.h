@@ -7,20 +7,15 @@
 #include <functional>
 #include <iostream>
 
-
-/*
-
-  Property system features:
-	-properties can be serialized and deserialized
-	-Properties can be updated from controllers (1 to n relationship possible)
-	-controllers can be linked such that controller chains are established
-	- not fully a pll mechanism because we want a callback when the property changes (the set function)
-
-
-
- */
-
-
+//http://stackoverflow.com/questions/4484982/how-to-convert-typename-t-to-string-in-c
+template <typename T>
+struct TypeName
+{
+	static std::string get()
+	{
+		return typeid(T).name();
+	}
+};
 
 
 struct Property
@@ -35,6 +30,7 @@ struct Property
 	{
 		return m_name;
 	}
+	virtual std::string getType()const=0;
 
 	virtual void print( std::ostream& out )const
 	{
@@ -65,6 +61,11 @@ struct PropertyT : public Property
 	{
 	}
 
+	virtual std::string getType()const override
+	{
+		return TypeName<T>::get();
+	}
+
 
 
 	Getter get;
@@ -73,51 +74,6 @@ struct PropertyT : public Property
 typedef PropertyT<float> FloatProperty;
 
 
-
-// object forward declaration
-class Object;
-
-
-// this property wraps a reference to a object or any derived class
-struct RefProperty : public Property
-{
-	typedef std::shared_ptr<RefProperty> Ptr;
-
-	RefProperty( const std::string& name ) : Property(name)
-	{
-
-	}
-
-	virtual std::shared_ptr<Object> getRef()=0;
-
-private:
-};
-
-template<class T>
-struct RefPropertyT : public RefProperty
-{
-	typedef std::shared_ptr<RefPropertyT<T>> Ptr;
-	typedef std::function<std::shared_ptr<T>()> Getter;
-	typedef std::function<void(std::shared_ptr<T>)> Setter;
-
-	RefPropertyT( const std::string& name, Getter getter, Setter setter ) :
-		RefProperty(name),
-		get(getter),
-		set(setter)
-	{
-	}
-	static Ptr create( const std::string& name, Getter getter, Setter setter )
-	{
-		return std::make_shared<RefPropertyT<T>>(name, getter, setter);
-	}
-	virtual std::shared_ptr<Object> getRef()
-	{
-		return get();
-	}
-
-	Getter get;
-	Setter set;
-};
 
 
 
