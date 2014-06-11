@@ -34,4 +34,24 @@ namespace gui
 		return m_object;
 	}
 
+	void ObjectWrapper::getProperties(std::vector<Property::Ptr> &props)
+	{
+		props.clear();
+		// propagate internal props...
+		std::vector<std::string> propNames;
+		m_object->getPropertyNames(propNames);
+		for(auto propName:propNames)
+			props.push_back(m_object->getProperty(propName));
+
+		// as well as external props...
+		for( auto prop:m_externalProps )
+		{
+			props.push_back(prop);
+		}
+	}
+
+	void ObjectWrapper::addExternalProperty(Property::Ptr prop)
+	{
+		m_externalProps.push_back(prop);
+	}
 } // namespace gui

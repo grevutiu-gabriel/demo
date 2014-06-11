@@ -18,7 +18,7 @@ namespace gui
 {
 
 
-class UpdateGraphView : QNodesEditor
+class UpdateGraphView : public QNodesEditor
 {
 	Q_OBJECT
 public:
@@ -36,12 +36,14 @@ public:
 	virtual void onConnectionAdded( QNEPort* src, QNEPort* dst )override;
 	virtual void onConnectionRemoved( QNEPort* src, QNEPort* dst )override;
 
+	void getSelectedObjects( std::vector<ObjectWrapper::Ptr>& selected );
+signals:
+	void selectionChanged();
 public slots:
 
 public:
 	UpdateGraphWrapper::Ptr    m_updateGraphWrapper;
 
-	QNodesEditor*              m_nodeEditor;
 	QGraphicsScene*            m_scene;
 	QGraphicsView*             m_view;
 	std::map<QNEBlock*, ObjectWrapper::Ptr> m_nodes;

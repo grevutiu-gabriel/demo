@@ -82,6 +82,16 @@ public:
 		return false;
 	}
 
+	void setValue( const T& value )
+	{
+		m_value = value;
+	}
+
+	T getValue()
+	{
+		return m_value;
+	}
+
 private:
 	T m_value;
 };

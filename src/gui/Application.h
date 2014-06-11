@@ -10,10 +10,11 @@
 #include "widgets/GLViewer/GLViewer.h"
 
 #include "wrapper/DemoWrapper.h"
-#include "wrapper/UpdateGraphWrapper.h"
+#include "wrapper/ShotWrapper.h"
 #include "TreeView.h"
 #include "ObjectTypeListView.h"
 #include "UpdateGraphView.h"
+#include "ShotEditor.h"
 
 
 namespace gui
@@ -35,7 +36,7 @@ namespace gui
 		gui::widgets::GLViewer*         getGlViewer();
 
 		DemoWrapper::Ptr                getDemoWrapper();
-		void                            openGraphEditor( UpdateGraphWrapper::Ptr graph );
+		void                            openShotEditor( ShotWrapper::Ptr shotWrapper );
 
 		void watchFile( const std::string& filename, FileChangedCallback callback );
 
@@ -45,17 +46,17 @@ namespace gui
 
 
 	private:
-		QMainWindow*                    m_mainWindow;
-		gui::widgets::GLViewer*         m_glviewer;
-		QSplitter*                      m_splitter;
-		TreeView::Ptr                   m_treeView;
-		ObjectTypeListView::Ptr         m_typeList;
-		QTabWidget*                     m_tabWidget;
-		std::vector<UpdateGraphView*>   m_updateGraphViews;
-		DemoWrapper::Ptr                m_demoWrapper;
-		QFileSystemWatcher              m_fileWatcher;
-		std::map<std::string, FileChangedCallback> m_fileChangedCallbacks;
-		std::map<Object::Ptr, ObjectWrapper::Ptr>  m_objectWrapper;
+		QMainWindow*                                         m_mainWindow;
+		gui::widgets::GLViewer*                              m_glviewer;
+		QSplitter*                                           m_splitter;
+		TreeView::Ptr                                        m_treeView;
+		ObjectTypeListView::Ptr                              m_typeList;
+		QTabWidget*                                          m_tabWidget;
+		std::vector<ShotEditor::Ptr>                         m_shotEditor;
+		DemoWrapper::Ptr                                     m_demoWrapper;
+		QFileSystemWatcher                                   m_fileWatcher;
+		std::map<std::string, FileChangedCallback>           m_fileChangedCallbacks;
+		std::map<Object::Ptr, ObjectWrapper::Ptr>            m_objectWrapper;
 		std::map<UpdateGraph::Ptr, UpdateGraphWrapper::Ptr>  m_updateGraphWrapper;
 
 	};

@@ -136,6 +136,22 @@ void UpdateGraphView::onConnectionRemoved(QNEPort *src, QNEPort *dst)
 	Application::getInstance()->getGlViewer()->update();
 }
 
+void UpdateGraphView::getSelectedObjects(std::vector<ObjectWrapper::Ptr> &selected)
+{
+	selected.clear();
+	QList<QGraphicsItem *>& selectedItems = m_scene->selectedItems();
+	for( auto selectedItem:selectedItems )
+	{
+		QNEBlock* block = dynamic_cast<QNEBlock*>(selectedItem);
+		if(block)
+		{
+			auto it = m_nodes.find(block);
+			if(it!=m_nodes.end())
+				selected.push_back(it->second);
+		}
+	}
+}
+
 UpdateGraphView::UpdateGraphView(UpdateGraphWrapper::Ptr updateGraphWrapper) :
 	QNodesEditor(),
 	m_updateGraphWrapper(updateGraphWrapper),
@@ -146,9 +162,7 @@ UpdateGraphView::UpdateGraphView(UpdateGraphWrapper::Ptr updateGraphWrapper) :
 	m_scene = new QGraphicsScene();
 	m_view = new QGraphicsView();
 	m_view->setScene(m_scene);
-	m_nodeEditor = this;
-	//m_nodeEditor = new QNodesEditor();
-	m_nodeEditor->install(m_scene);
+	install(m_scene);
 
 
 	std::vector<ObjectWrapper::Ptr> nodes;
@@ -186,6 +200,7 @@ UpdateGraphView::UpdateGraphView(UpdateGraphWrapper::Ptr updateGraphWrapper) :
 		path->updatePath();
 	}
 
+	connect( m_scene, SIGNAL(selectionChanged()), this, SIGNAL(selectionChanged()) );
 
 }
 

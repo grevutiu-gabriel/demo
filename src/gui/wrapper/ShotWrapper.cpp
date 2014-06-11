@@ -4,7 +4,9 @@
 namespace gui
 {
 
-	ShotWrapper::ShotWrapper( Shot::Ptr shot ):m_shot(shot)
+	ShotWrapper::ShotWrapper( Shot::Ptr shot ):
+		ObjectWrapper(shot),
+		m_shot(shot)
 	{
 	}
 
@@ -41,6 +43,11 @@ namespace gui
 	std::string ShotWrapper::getName() const
 	{
 		return m_shot->getName();
+	}
+
+	UpdateGraphWrapper::Ptr ShotWrapper::getUpdateGraph()
+	{
+		return Application::getInstance()->getWrapper(m_shot->getUpdateGraph());
 	}
 
 	ShotElementWrapper::Ptr ShotWrapper::getShotElement(int index)

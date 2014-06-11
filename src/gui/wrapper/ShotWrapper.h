@@ -4,11 +4,12 @@
 
 #include "../framework/Shot.h"
 #include "ShotElementWrapper.h"
+#include "UpdateGraphWrapper.h"
 
 namespace gui
 {
 
-	class ShotWrapper : public QObject
+	class ShotWrapper : public ObjectWrapper
 	{
 		Q_OBJECT
 	public:
@@ -21,6 +22,7 @@ namespace gui
 
 		Shot::Ptr getShot();
 		std::string getName()const;
+		UpdateGraphWrapper::Ptr getUpdateGraph();
 
 		ShotElementWrapper::Ptr getShotElement( int index );
 		void addShotElement( ShotElementWrapper::Ptr shotElementWrapper );

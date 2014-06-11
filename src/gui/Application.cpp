@@ -9,7 +9,7 @@
 
 #include <iostream>
 
-
+#include "wrapper/ControllerWrapper.h"
 
 namespace gui
 {
@@ -71,6 +71,9 @@ namespace gui
 
 		ObjectWrapper::Ptr wrapper;
 
+		if( std::dynamic_pointer_cast<Controller>(object) )
+			wrapper = ControllerWrapper::create(std::dynamic_pointer_cast<Controller>(object));
+		else
 		if(std::dynamic_pointer_cast<Element>(object))
 			wrapper = ElementWrapper::create(std::dynamic_pointer_cast<Element>(object));
 		else
@@ -107,11 +110,13 @@ namespace gui
 		return m_demoWrapper;
 	}
 
-	void Application::openGraphEditor(UpdateGraphWrapper::Ptr graph)
+
+
+	void Application::openShotEditor(ShotWrapper::Ptr shotWrapper)
 	{
-		UpdateGraphView* ugv = new UpdateGraphView(graph);
-		m_updateGraphViews.push_back(ugv);
-		m_tabWidget->addTab( ugv->m_view, "nebulae" );
+		ShotEditor::Ptr se = ShotEditor::create(shotWrapper);
+		m_tabWidget->addTab( se->getWidget(), QString::fromStdString(shotWrapper->getName()) );
+		m_shotEditor.push_back(se);
 	}
 
 
