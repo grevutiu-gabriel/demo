@@ -3,11 +3,21 @@
 
 namespace gui
 {
-
+	float testtest = 1.123f;
+	void setTest( float test )
+	{
+		std::cout << "setTest " << test << std::endl;std::flush(std::cout);
+		testtest = test;
+	}
+	float getTest()
+	{
+		std::cout << "getTest " << testtest << std::endl;std::flush(std::cout);
+		return testtest;
+	}
 
 	ObjectWrapper::ObjectWrapper(Object::Ptr object) : QObject(), m_object(object)
 	{
-
+		//addExternalProperty( PropertyT<float>::create("test", std::bind(getTest), std::bind(setTest, std::placeholders::_1)));
 	}
 
 	ObjectWrapper::~ObjectWrapper()

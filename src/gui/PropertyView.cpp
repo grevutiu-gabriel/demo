@@ -127,6 +127,7 @@ void PropertyView::addObject(ObjectWrapper::Ptr objectWrapper)
 	}
 
 	m_propertyBrowser->addProperty(topItem);
+	update();
 }
 
 void PropertyView::clear()
