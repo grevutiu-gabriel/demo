@@ -39,7 +39,8 @@ TreeView::TreeView(DemoWrapper::Ptr demoWrapper) :
 	m_treeWidget->setDragEnabled(true);
 	layout->addWidget( m_treeWidget );
 
-	m_widget->show();
+
+	//m_widget->setMaximumWidth(250);
 
 
 	connect( m_demoWrapper.get(), SIGNAL(sceneAdded(int)), this, SLOT(onSceneAdded(int)) );

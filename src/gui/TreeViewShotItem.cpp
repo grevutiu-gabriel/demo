@@ -27,7 +27,7 @@ TreeViewShotItem::~TreeViewShotItem()
 void TreeViewShotItem::contextMenu(const QPoint &pos)
 {
 	QMenu* menu = new QMenu();
-	menu->addAction("open editor...");
+	menu->addAction("edit...");
 
 //	QMenu* createMenu = menu->addMenu("create...");
 //	createMenu->addAction( "Clear" );
@@ -35,12 +35,13 @@ void TreeViewShotItem::contextMenu(const QPoint &pos)
 //	createMenu->addAction( "RenderGeometry" );
 //	createMenu->addAction( "PostProcess" );
 	QAction* action = menu->exec(pos);
-	if(action->text() == "open editor...")
-	{
-		gui::Application::getInstance()->openShotEditor( m_shotWrapper );
-		//QString elementTypeName = action->text().toStdString();
-		//std::cout<<<< std::endl;
-	}
+	if(action)
+		if(action->text() == "edit...")
+		{
+			gui::Application::getInstance()->openShotEditor( m_shotWrapper );
+			//QString elementTypeName = action->text().toStdString();
+			//std::cout<<<< std::endl;
+		}
 
 	delete menu;
 

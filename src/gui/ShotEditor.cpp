@@ -26,10 +26,16 @@ ShotEditor::ShotEditor(ShotWrapper::Ptr shotWrapper):
 	splitter2->addWidget(m_propertyView->getWidget());
 
 
-	QSplitter* splitter1 = new QSplitter(Qt::Horizontal);
+	QSplitter* splitter1 = new QSplitter(Qt::Vertical);
 	splitter1->addWidget(m_updateGraphView->m_view);
+	//splitter1->setStretchFactor(0, 1);
 	splitter1->addWidget(splitter2);
+	//splitter1->setStretchFactor(1, 1);
 
+	QList<int> sizes;
+	sizes.push_back(500);
+	sizes.push_back(200);
+	splitter1->setSizes(sizes);
 
 	m_widget = splitter1;
 

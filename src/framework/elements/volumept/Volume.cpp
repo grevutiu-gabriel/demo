@@ -362,7 +362,7 @@ Volume::Volume() : Element()
 	volumeShader->setUniform("g_stepSize", 1.17188f);
 
 	// register properties -----
-	addProperty<float>( "stepSize", PropertyT<float>::Getter(), std::bind( static_cast<void(base::Shader::*)(const std::string& name, float)>(&base::Shader::setUniform), volumeShader, "g_stepSize", std::placeholders::_1 ) );
+	addProperty<float>( "stepSize", [=]{return volumeShader->getUniform("g_stepSize")->get<float>(0);}, std::bind( static_cast<void(base::Shader::*)(const std::string& name, float)>(&base::Shader::setUniform), volumeShader, "g_stepSize", std::placeholders::_1 ) );
 	addProperty<math::V3f>( "PointLightPosition", std::bind( &Volume::getPointLightPosition, this ), std::bind( &Volume::setPointLightPosition, this, std::placeholders::_1 ) );
 	addProperty<float>( "PointLightIntensity", std::bind( &Volume::getPointLightIntensity, this ), std::bind( &Volume::setPointLightIntensity, this, std::placeholders::_1 ) );
 	addProperty<math::V3f>( "PointLightColor", std::bind( &Volume::getPointLightColor, this ), std::bind( &Volume::setPointLightColor, this, std::placeholders::_1 ) );

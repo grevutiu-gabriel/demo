@@ -37,9 +37,17 @@ namespace gui
 		leftSplitter->addWidget(m_treeView->m_widget);
 		leftSplitter->addWidget(m_typeList->getWidget());
 
+		QList<int> sizes;
 		m_splitter = new QSplitter();
 		m_splitter->addWidget(leftSplitter);
+		sizes.push_back(250);
 		m_splitter->addWidget(m_tabWidget);
+		sizes.push_back(1000);
+
+		m_splitter->setStretchFactor(0, 0);
+		m_splitter->setStretchFactor(1, 1);
+		m_splitter->setSizes(sizes);
+		m_splitter->resize( 850, 700 );
 
 
 		// file watcher ---
@@ -53,9 +61,11 @@ namespace gui
 		m_mainWindow->setCentralWidget( m_glviewer );
 
 
+		m_splitter->move(50, m_splitter->pos().y());
 		m_splitter->show();
 		// its important to show gui at the very last, as this triggers glview init
 		// which in turn triggers demo loading...
+		m_mainWindow->move(m_splitter->width()+50+15, m_mainWindow->pos().y());
 		m_mainWindow->show();
 	}
 
