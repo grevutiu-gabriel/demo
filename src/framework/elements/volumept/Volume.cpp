@@ -360,6 +360,7 @@ Volume::Volume() : Element()
 	setPointLightColor(math::V3f(1.0f, 0.32f, 0.1f));
 	setPointLightIntensity( 5000 );
 	volumeShader->setUniform("g_stepSize", 1.17188f);
+	volumeShader->setUniform("g_numSamples", 1);
 
 	// register properties -----
 	addProperty<float>( "stepSize", [=]{return volumeShader->getUniform("g_stepSize")->get<float>(0);}, std::bind( static_cast<void(base::Shader::*)(const std::string& name, float)>(&base::Shader::setUniform), volumeShader, "g_stepSize", std::placeholders::_1 ) );
@@ -369,6 +370,7 @@ Volume::Volume() : Element()
 	addProperty<base::Texture3d::Ptr>( "normalizedDensity", PropertyT<base::Texture3d::Ptr>::Getter(), std::bind( static_cast<void(base::Shader::*)(const std::string& name, base::Texture3d::Ptr)>(&base::Shader::setUniform), volumeShader, "normalizedDensity", std::placeholders::_1 ) );
 	addProperty<math::M44f>( "localToWorld", std::bind( &Volume::getLocalToWorld, this ), std::bind( &Volume::setLocalToWorld, this, std::placeholders::_1 ) );
 	addProperty<AnimatedTransferFunction::Ptr>( "transferfunction", std::bind( &Volume::getTransferFunction, this ), std::bind( &Volume::setTransferFunction, this, std::placeholders::_1 ) );
+	addProperty<int>( "samples", [=]{return volumeShader->getUniform("g_numSamples")->get<int>(0);}, std::bind( static_cast<void(base::Shader::*)(const std::string& name, int)>(&base::Shader::setUniform), volumeShader, "g_numSamples", std::placeholders::_1 ) );
 
 }
 

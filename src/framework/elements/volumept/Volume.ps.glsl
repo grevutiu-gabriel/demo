@@ -26,6 +26,7 @@ uniform vec3      aabb_max;
 uniform float     sigma_t_scale;
 uniform float     normalizedTime;
 uniform float     g_stepSize;
+uniform int     g_numSamples;
 
 
 // ------------------------ MATH --------------------------------
@@ -405,7 +406,7 @@ void main()
 	float stepsize2 = g_stepSize;
 	//float stepsize = 1.17188f;
 	//float stepsize2 = 1.17188f;
-	int numSamples = 5;
+	int numSamples = g_numSamples;
 	vec4 sum = vec4(0.0f);
 	for(int i=0;i<numSamples;++i)
 	{
