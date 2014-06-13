@@ -35,6 +35,7 @@ public slots:
 	void loadScene();
 	void newShot();
 	void onCustomContextMenuRequested ( const QPoint & pos );
+	void onItemDoubleClicked(QTreeWidgetItem * item, int column);
 public:
 	QWidget*            m_widget;
 	TreeWidget*         m_treeWidget;

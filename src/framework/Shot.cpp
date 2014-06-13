@@ -25,7 +25,7 @@ void Shot::render( base::Context::Ptr context, float time, base::Camera::Ptr ove
 	if( overrideCamera )
 		camera = overrideCamera;
 
-	//if( camera )
+	if( camera )
 		context->setView( camera->m_worldToView, camera->m_viewToWorld, camera->m_viewToNDC );
 
 	// render elements

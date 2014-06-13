@@ -7,7 +7,7 @@
 //
 #include "ObjectWrapperMimeData.h"
 
-
+#include <QStringList>
 
 namespace gui
 {

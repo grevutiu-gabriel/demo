@@ -23,6 +23,7 @@ public:
 
 
 	void contextMenu( const QPoint& pos );
+	void doubleClick( int column );
 
 public slots:
 	void onShotElementAdded( int index );

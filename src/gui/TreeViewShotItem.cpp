@@ -4,7 +4,7 @@
 #include <QMenu>
 
 
-
+#include "Application.h"
 
 
 namespace gui
@@ -26,22 +26,29 @@ TreeViewShotItem::~TreeViewShotItem()
 
 void TreeViewShotItem::contextMenu(const QPoint &pos)
 {
-//	QMenu* menu = new QMenu();
+	QMenu* menu = new QMenu();
+	menu->addAction("open editor...");
 
 //	QMenu* createMenu = menu->addMenu("create...");
 //	createMenu->addAction( "Clear" );
 //	createMenu->addAction( "RenderTexture" );
 //	createMenu->addAction( "RenderGeometry" );
 //	createMenu->addAction( "PostProcess" );
-//	QAction* action = menu->exec(pos);
-//	if(action)
-//	{
-//		QString elementTypeName = action->text().toStdString();
-//		std::cout<<<< std::endl;
-//	}
+	QAction* action = menu->exec(pos);
+	if(action->text() == "open editor...")
+	{
+		gui::Application::getInstance()->openShotEditor( m_shotWrapper );
+		//QString elementTypeName = action->text().toStdString();
+		//std::cout<<<< std::endl;
+	}
 
-//	delete menu;
+	delete menu;
 
+}
+
+void TreeViewShotItem::doubleClick(int column)
+{
+	gui::Application::getInstance()->openShotEditor( m_shotWrapper );
 }
 
 void TreeViewShotItem::onShotElementAdded(int index)

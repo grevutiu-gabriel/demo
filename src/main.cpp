@@ -91,7 +91,7 @@ void render( base::Context::Ptr context, base::Camera::Ptr cam )
 	if(g_timer.elapsedSeconds()>g_demo->getDuration())
 		g_timer.setElapsed(0.0f);
 
-	gui::Application::getInstance()->getGlViewer()->postUpdateEvent();
+	//gui::Application::getInstance()->getGlViewer()->postUpdateEvent();
 }
 
 
@@ -119,14 +119,14 @@ void init( base::Context::Ptr context )
 	demoWrapper->load("filename");
 	g_demo = demoWrapper->getDemo();
 
-	if( g_demo->getNumShots()>0 )
-		gui::Application::getInstance()->openShotEditor( demoWrapper->getShotWrapper(0) );
+	//if( g_demo->getNumShots()>0 )
+	//	gui::Application::getInstance()->openShotEditor( demoWrapper->getShotWrapper(0) );
 #endif
 
 	// test: serialize demo ----
 	//houdini::json::Value value;
 	//g_demo->store(value);
-	g_demo->store("test.json");
+	//g_demo->store("test.json");
 
 	{
 		//DemoExporter de(&std::cout);
