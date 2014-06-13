@@ -22,6 +22,11 @@ namespace gui
 		TreeWidget();
 		~TreeWidget();
 
+
+		virtual void dragEnterEvent ( QDragEnterEvent * event )override;
+		virtual void dragMoveEvent ( QDragMoveEvent * event )override;
+		virtual void dropEvent ( QDropEvent * event )override;
+
 		// overides
 		QMimeData* mimeData(const QList<QTreeWidgetItem *> items) const override;
 	};

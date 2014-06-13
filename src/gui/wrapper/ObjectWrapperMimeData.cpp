@@ -15,9 +15,10 @@ namespace gui
 	//
 	// constructor - provide info about which process to create
 	//
-	ObjectWrapperMimeData::ObjectWrapperMimeData(GetObjectWrapperCallback callback ) :
+	ObjectWrapperMimeData::ObjectWrapperMimeData(const std::string& className, GetObjectWrapperCallback callback ) :
 		QMimeData(),
-		m_callback(callback)
+		m_callback(callback),
+		m_className(className)
 	{
 	}
 
@@ -37,6 +38,11 @@ namespace gui
 		if( m_callback )
 			return m_callback();
 		return ObjectWrapper::Ptr();
+	}
+
+	const std::string &ObjectWrapperMimeData::getClassName() const
+	{
+		return m_className;
 	}
 
 	//

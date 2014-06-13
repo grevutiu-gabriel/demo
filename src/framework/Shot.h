@@ -94,9 +94,11 @@ public:
 		return std::make_shared<Shot>();
 	}
 
-	void addElement( Element::Ptr element )
+	ShotElement::Ptr addElement( Element::Ptr element )
 	{
-		m_elements.push_back(ShotElement::create(element));
+		ShotElement::Ptr shotElement = ShotElement::create(element);
+		m_elements.push_back(shotElement);
+		return shotElement;
 	}
 	void addElement( ShotElement::Ptr shotElement )
 	{

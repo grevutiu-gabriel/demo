@@ -110,13 +110,12 @@ void PRSController::setSz(float sz)
 
 
 
-
-REGISTERCLASS( SinusController )
-REGISTERCLASS( FloatToV3fController )
-REGISTERCLASS( PRSController )
-REGISTERCLASS( CurveFloatController )
-REGISTERCLASS( ConstantFloatController )
-REGISTERCLASS( ConstantV3fController )
-REGISTERCLASS( ConstantM44fController )
-REGISTERCLASS( ConstantCameraController )
-REGISTERCLASS( ConstantTexture2dController )
+REGISTERCLASS2( SinusController, Controller )
+REGISTERCLASS2( FloatToV3fController, Controller )
+REGISTERCLASS2( PRSController, Controller )
+REGISTERCLASS2( CurveFloatController, Controller )
+REGISTERCLASS2( ConstantFloatController, Controller )
+REGISTERCLASS2( ConstantV3fController, Controller )
+REGISTERCLASS2( ConstantM44fController, Controller )
+REGISTERCLASS2( ConstantCameraController, Controller )
+REGISTERCLASS2( ConstantTexture2dController, Controller )

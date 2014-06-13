@@ -93,9 +93,10 @@ struct Serializer
 
 struct MetaObject
 {
-	//const MetaObject* getParent()const=0;
 	virtual Object::Ptr create()const=0;
-	virtual const std::string& getTypeName()const=0;
+	virtual const std::string& getClassName()const=0;
+	virtual const std::string& getSuperClassName()const=0;
+	//virtual const MetaObject* getSuperClass()const=0;
 };
 
 struct ObjectFactory
@@ -108,10 +109,12 @@ struct ObjectFactory
 		return std::dynamic_pointer_cast<T>(create(name));
 	}
 
-	static void getTypeNames( std::vector<std::string>& typeNames );
+	static void getClassNames( std::vector<std::string>& classNames );
+	static const MetaObject* getMetaObject(const std::string& className);
+	static bool derivesFrom( const MetaObject*moc, const std::string& superClass );
 	static void print(std::ostream &out);
 private:
-	static std::map<std::string, const MetaObject*>* m_register;
+	static std::map<std::string, const MetaObject*>* m_register; // className:metaobject
 };
 
 #define REGISTERCLASS( name ) \
@@ -126,12 +129,46 @@ private:
 					{ \
 						return std::make_shared<name>(); \
 					} \
-					virtual const std::string& getTypeName()const override \
+					virtual const std::string& getClassName()const override \
 					{ \
 						return m_name; \
 					} \
+					virtual const std::string& getSuperClassName()const \
+					{ \
+						return m_superClassName; \
+					} \
 				private:\
 					std::string m_name; \
+					std::string m_superClassName; \
+				}; \
+				const MetaObject* name::metaObject = 0; \
+				name ## MetaObject g_ ## name ## MetaObject;
+
+#define REGISTERCLASS2( name, superclass ) \
+				struct name ## MetaObject : public MetaObject \
+				{ \
+					name ## MetaObject() : MetaObject(), \
+					m_className( #name ), \
+					m_superClassName( #superclass ) \
+					{ \
+						name::metaObject = this; \
+						ObjectFactory::registerClass(this); \
+					} \
+					virtual Object::Ptr create()const override \
+					{ \
+						return std::make_shared<name>(); \
+					} \
+					virtual const std::string& getClassName()const override \
+					{ \
+						return m_className; \
+					} \
+					virtual const std::string& getSuperClassName()const override \
+					{ \
+						return m_superClassName; \
+					} \
+				private:\
+					std::string m_className; \
+					std::string m_superClassName; \
 				}; \
 				const MetaObject* name::metaObject = 0; \
 				name ## MetaObject g_ ## name ## MetaObject;

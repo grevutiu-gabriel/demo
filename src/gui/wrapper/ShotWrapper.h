@@ -25,7 +25,7 @@ namespace gui
 		UpdateGraphWrapper::Ptr getUpdateGraph();
 
 		ShotElementWrapper::Ptr getShotElement( int index );
-		void addShotElement( ShotElementWrapper::Ptr shotElementWrapper );
+		void addElement( ElementWrapper::Ptr elementWrapper );
 
 	signals:
 		void shotElementAdded( int indexAdded );

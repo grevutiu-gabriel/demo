@@ -1,9 +1,8 @@
 
 #include <QObject>
-#include <QTreeWidgetItem>
 #include <QPoint>
 
-
+#include "widgets/TreeWidget/TreeWidgetItem.h"
 #include "wrapper/ShotWrapper.h"
 
 
@@ -12,8 +11,7 @@ namespace gui
 {
 
 
-
-class TreeViewShotItem : public QObject, public QTreeWidgetItem
+class TreeViewShotItem : public QObject, public TreeWidgetItem
 {
 	Q_OBJECT
 public:
@@ -21,8 +19,11 @@ public:
 	TreeViewShotItem( ShotWrapper::Ptr shotWrapper );
 	~TreeViewShotItem();
 
+	virtual void dragEnterEvent( QDragEnterEvent* event )override;
+	virtual void dragMoveEvent( QDragMoveEvent* event )override;
+	virtual void dropEvent( QDropEvent* event )override;
 
-	void contextMenu( const QPoint& pos );
+	virtual void contextMenu( const QPoint& pos )override;
 	void doubleClick( int column );
 
 public slots:

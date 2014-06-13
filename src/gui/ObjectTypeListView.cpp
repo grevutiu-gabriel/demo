@@ -33,12 +33,12 @@ ObjectTypeListView::ObjectTypeListView():
 	layout->addWidget(m_listWidget);
 
 	// propagate typenames
-	std::vector<std::string> typeNames;
-	ObjectFactory::getTypeNames(typeNames);
+	std::vector<std::string> classNames;
+	ObjectFactory::getClassNames(classNames);
 
-	for( auto typeName:typeNames )
-		m_typeNames.push_back(QString::fromStdString(typeName));
-	m_listWidget->addItems(m_typeNames);
+	for( auto className:classNames )
+		m_classNames.push_back(QString::fromStdString(className));
+	m_listWidget->addItems(m_classNames);
 	m_listWidget->getMimeData = std::bind( &ObjectTypeListView::getMimeData, this, std::placeholders::_1 );
 
 	connect( edit, SIGNAL(textChanged(QString)), this, SLOT(filterTextChanged(QString)) );
@@ -61,7 +61,7 @@ QWidget *ObjectTypeListView::getWidget()
 
 QMimeData *ObjectTypeListView::getMimeData(QListWidgetItem *item)
 {
-	return new ObjectWrapperMimeData( std::bind( &ObjectTypeListView::getObjectWrapper, this, item ) );
+	return new ObjectWrapperMimeData( item->text().toStdString(), std::bind( &ObjectTypeListView::getObjectWrapper, this, item ) );
 }
 
 ObjectWrapper::Ptr ObjectTypeListView::getObjectWrapper(QListWidgetItem *item)
@@ -70,6 +70,7 @@ ObjectWrapper::Ptr ObjectTypeListView::getObjectWrapper(QListWidgetItem *item)
 	std::string type = item->text().toStdString();
 	// create object
 	Object::Ptr object = ObjectFactory::create(type);
+	object->setName(type);
 	// wrap it up
 	ObjectWrapper::Ptr objectWrapper = Application::getInstance()->getWrapper(object);
 	return objectWrapper;
@@ -79,7 +80,7 @@ void ObjectTypeListView::filterTextChanged(const QString &text)
 {
 	QRegExp regExp( text, Qt::CaseInsensitive, QRegExp::Wildcard );
 	m_listWidget->clear();
-	m_listWidget->addItems( m_typeNames.filter(regExp) );
+	m_listWidget->addItems( m_classNames.filter(regExp) );
 }
 
 }

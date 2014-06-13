@@ -36,7 +36,7 @@ void RenderGeometry::setShader( base::Shader::Ptr shader )
 
 
 
-REGISTERCLASS( RenderGeometry )
+REGISTERCLASS2( RenderGeometry, Element )
 
 
 

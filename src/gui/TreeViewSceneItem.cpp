@@ -76,7 +76,7 @@ void TreeViewSceneItem::contextMenu(const QPoint &pos)
 
 QMimeData *TreeViewSceneItem::mimeData()
 {
-	return new ObjectWrapperMimeData( std::bind( &TreeViewSceneItem::getObjectWrapper, this ) );
+	return new ObjectWrapperMimeData( "SceneController", std::bind( &TreeViewSceneItem::getObjectWrapper, this ) );
 }
 
 

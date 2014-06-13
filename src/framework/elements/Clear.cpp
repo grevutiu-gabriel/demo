@@ -1,6 +1,6 @@
 #include "Clear.h"
 
-REGISTERCLASS(Clear)
+REGISTERCLASS2(Clear, Element)
 
 
 

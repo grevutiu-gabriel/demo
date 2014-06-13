@@ -23,4 +23,4 @@ ElementMetaObject g_elementMetaObject;
 
 */
 
-REGISTERCLASS( Element )
+REGISTERCLASS2( Element, Object )

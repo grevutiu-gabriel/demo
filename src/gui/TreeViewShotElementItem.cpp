@@ -48,7 +48,7 @@ void TreeViewShotElementItem::onShotElementAdded(int index)
 
 QMimeData *TreeViewShotElementItem::mimeData()
 {
-	return new ObjectWrapperMimeData( std::bind( &TreeViewShotElementItem::getObjectWrapper, this ) );
+	return new ObjectWrapperMimeData( m_shotElementWrapper->getElement()->getElement()->getMetaObject()->getClassName(),std::bind( &TreeViewShotElementItem::getObjectWrapper, this ) );
 }
 
 ObjectWrapper::Ptr TreeViewShotElementItem::getObjectWrapper()

@@ -24,7 +24,7 @@ UpdateGraphView::Ptr UpdateGraphView::create( UpdateGraphWrapper::Ptr updateGrap
 QNEBlock* UpdateGraphView::insertNode(ObjectWrapper::Ptr objectWrapper)
 {
 	QString name = QString::fromStdString(objectWrapper->getName());
-	QString type = QString::fromStdString(objectWrapper->getObject()->getMetaObject()->getTypeName());
+	QString type = QString::fromStdString(objectWrapper->getObject()->getMetaObject()->getClassName());
 	if( name.isEmpty() )
 		name = "unnamed";
 	QNEBlock *b = new QNEBlock(0);

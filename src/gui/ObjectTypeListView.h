@@ -38,7 +38,7 @@ namespace gui
 
 
 	private:
-		QStringList m_typeNames;
+		QStringList m_classNames;
 		QWidget* m_widget;
 		ListWidget* m_listWidget;
 	};

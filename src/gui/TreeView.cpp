@@ -35,8 +35,10 @@ TreeView::TreeView(DemoWrapper::Ptr demoWrapper) :
 
 	// treewidget --
 	m_treeWidget = new TreeWidget();
+	m_treeWidget->setColumnCount(1);
 	m_treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
 	m_treeWidget->setDragEnabled(true);
+	m_treeWidget->viewport()->setAcceptDrops(true);
 	layout->addWidget( m_treeWidget );
 
 

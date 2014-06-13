@@ -5,13 +5,13 @@
 
 
 #include "Application.h"
-
+#include "wrapper/ObjectWrapperMimeData.h"
 
 namespace gui
 {
 
 TreeViewShotItem::TreeViewShotItem(ShotWrapper::Ptr shotWrapper)
-	: QObject(),QTreeWidgetItem(),
+	: QObject(),TreeWidgetItem(),
 	  m_shotWrapper(shotWrapper)
 {
 	setText(0, QString::fromStdString(m_shotWrapper->getName()));
@@ -22,6 +22,47 @@ TreeViewShotItem::TreeViewShotItem(ShotWrapper::Ptr shotWrapper)
 TreeViewShotItem::~TreeViewShotItem()
 {
 
+}
+
+void TreeViewShotItem::dragEnterEvent(QDragEnterEvent *event)
+{
+	//std::cout << "TreeViewShotItemdrop event!\n";
+	event->acceptProposedAction();
+}
+
+void TreeViewShotItem::dragMoveEvent(QDragMoveEvent *event)
+{
+	//std::cout << "TreeViewShotItemdrop event!\n";
+	//event->acceptProposedAction();
+}
+
+void TreeViewShotItem::dropEvent(QDropEvent *e)
+{
+	//std::cout << "TreeViewShotItemdrop event!\n";
+	if (e->mimeData()->hasFormat("application/objectwrapper"))
+	{
+		const ObjectWrapperMimeData* md = dynamic_cast<const ObjectWrapperMimeData*>(e->mimeData());
+		if(md)
+		{
+			const MetaObject* moc = ObjectFactory::getMetaObject(md->getClassName());
+			if(moc)
+			{
+				if(ObjectFactory::derivesFrom( moc, "Element" ))
+				{
+					ObjectWrapper::Ptr objectWrapper = md->getObjectWrapper();
+					ElementWrapper::Ptr elementWrapper = std::dynamic_pointer_cast<ElementWrapper>(objectWrapper);
+					if(elementWrapper)
+					{
+						std::cout << "gaga! \n";
+						// yay! add element to shot
+						m_shotWrapper->addElement(elementWrapper);
+						e->acceptProposedAction();
+					}
+				}
+			}
+		}
+
+	}
 }
 
 void TreeViewShotItem::contextMenu(const QPoint &pos)

@@ -23,7 +23,7 @@ namespace gui
 	public:
 		typedef std::function<ObjectWrapper::Ptr(void)> GetObjectWrapperCallback;
 
-		ObjectWrapperMimeData( GetObjectWrapperCallback callback );  // constructor - provide info about which process to create
+		ObjectWrapperMimeData(const std::string& className, GetObjectWrapperCallback callback );  // constructor - provide info about which process to create
 		~ObjectWrapperMimeData();                                    // destructor
 
 		// QMimeData overrides
@@ -31,8 +31,10 @@ namespace gui
 		virtual QStringList formats () const override;
 
 		ObjectWrapper::Ptr getObjectWrapper() const;  // returns string identifier of the processtype to create
+		const std::string& getClassName()const;
 	private:
 		ObjectWrapper::Ptr             m_objectWrapper;
 		GetObjectWrapperCallback       m_callback;
+		std::string                    m_className;
 	};
 }

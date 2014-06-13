@@ -55,10 +55,12 @@ namespace gui
 		return m_shotElementWrapper[index];
 	}
 
-	void ShotWrapper::addShotElement(ShotElementWrapper::Ptr shotElementWrapper)
+	void ShotWrapper::addElement(ElementWrapper::Ptr elementWrapper)
 	{
+		ShotElement::Ptr shotElement = m_shot->addElement(elementWrapper->getElement());
 		int index = int(m_shotElementWrapper.size());
-		m_shotElementWrapper.push_back(shotElementWrapper);
+		m_shotElementWrapper.push_back(ShotElementWrapper::create(shotElement));
+		std::cout << "gaga22! \n";
 		emit shotElementAdded(index);
 	}
 

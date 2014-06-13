@@ -7,4 +7,4 @@
 
 
 
-REGISTERCLASS( RenderTexture )
+REGISTERCLASS2( RenderTexture, Element )

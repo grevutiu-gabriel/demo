@@ -48,50 +48,5 @@ namespace gui
 		m_graph->removeConnection( controller, objectWrapper->getObject(), propName );
 		m_graph->compile();
 	}
-/*
-	ShotWrapper::Ptr ShotWrapper::create()
-	{
-		Shot::Ptr shot = Shot::create();
-		shot->setName("new shot");
-		return std::make_shared<ShotWrapper>(shot);
-	}
 
-	void ShotWrapper::load()
-	{
-		// for shotelements
-		std::vector<ShotElement::Ptr>& shotElements = m_shot->getShotElements();
-		int index = 0;
-		for( auto shotElement:shotElements )
-		{
-			ShotElementWrapper::Ptr shotElementWrapper = ShotElementWrapper::create( shotElement );
-			m_shotElementWrapper.push_back(shotElementWrapper);
-			emit shotElementAdded(index);
-			shotElementWrapper->load();
-			++index;
-		}
-	}
-
-	Shot::Ptr ShotWrapper::getShot()
-	{
-		return m_shot;
-	}
-
-
-	std::string ShotWrapper::getName() const
-	{
-		return m_shot->getName();
-	}
-
-	ShotElementWrapper::Ptr ShotWrapper::getShotElement(int index)
-	{
-		return m_shotElementWrapper[index];
-	}
-
-	void ShotWrapper::addShotElement(ShotElementWrapper::Ptr shotElementWrapper)
-	{
-		int index = int(m_shotElementWrapper.size());
-		m_shotElementWrapper.push_back(shotElementWrapper);
-		emit shotElementAdded(index);
-	}
-*/
 } // namespace gui
