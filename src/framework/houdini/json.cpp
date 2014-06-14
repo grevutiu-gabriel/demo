@@ -763,6 +763,7 @@ namespace houdini
 
 		void ASCIIWriter::jsonEndArray()
 		{
+			firstItem = false;
 			stack.pop();
 			--indentLevel;
 			writeNewline();
@@ -782,6 +783,7 @@ namespace houdini
 
 		void ASCIIWriter::jsonEndMap()
 		{
+			firstItem = false;
 			stack.pop();
 			--indentLevel;
 			writeNewline();
@@ -869,7 +871,8 @@ namespace houdini
 				write( ":" );
 			}else
 			if( !stack.empty() )
-				if( stack.top() == Token::JID_MAP_BEGIN )
+				if( (stack.top() == Token::JID_MAP_BEGIN)||
+					(stack.top() == Token::JID_ARRAY_BEGIN))
 				{
 					write( ", " );
 					writeNewline();

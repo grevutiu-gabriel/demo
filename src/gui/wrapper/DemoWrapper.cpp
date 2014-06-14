@@ -45,9 +45,12 @@ namespace gui
 			m_shotWrapper.push_back( shotWrapper );
 			emit shotAdded(index);
 			shotWrapper->load();
-
-
 		}
+	}
+
+	void DemoWrapper::save(const std::string &filename)
+	{
+		m_demo->save(filename);
 	}
 
 	Demo::Ptr DemoWrapper::getDemo()
@@ -65,11 +68,14 @@ namespace gui
 
 	void DemoWrapper::loadScene(const std::string &filename)
 	{
-		std::string name = filename;
+		std::string expanded = filename;
+		expanded = base::replace(expanded, base::path("data").str(), "$DATA");
+		std::string name = expanded;
 		Scene::Ptr scene = Scene::create();
 		std::cout << "loading " << filename << std::endl;
-		scene->load(filename);
-		scene->setName(base::replace(name, base::path("data").str(), "$DATA"));
+		scene->load(expanded);
+		scene->setName(name);
+		m_demo->addScene(scene);
 		SceneWrapper::Ptr sceneWrapper = std::make_shared<SceneWrapper>(scene);
 		int index = int(m_sceneWrapper.size());
 		m_sceneWrapper.push_back(sceneWrapper);

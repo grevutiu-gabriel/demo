@@ -7,6 +7,7 @@
 
 struct MetaObject;
 struct Serializer;
+struct Deserializer;
 
 
 class Object
@@ -67,6 +68,7 @@ public:
 	}
 
 	virtual void serialize(Serializer &out);
+	virtual void deserialize(Deserializer &in);
 
 	std::string getName() const;
 	void setName(const std::string &name);
@@ -89,7 +91,25 @@ struct Serializer
 	virtual void write( const std::string& key, houdini::json::Value value )=0;
 	virtual houdini::json::Value serialize( Object::Ptr object )=0;
 };
+struct Deserializer
+{
+	~Deserializer(){}
 
+	virtual
+	houdini::json::ArrayPtr readArray( const std::string& key )=0;
+
+	//virtual void read( const std::string& key, unsigned char value )=0;
+	virtual std::string readString( const std::string& key, const std::string& defaultValue ="")=0;
+	/*
+	virtual void read( const std::string& key, float value )=0;
+	virtual void read( const std::string& key, int value )=0;
+	virtual void read( const std::string& key, houdini::json::ObjectPtr jsonObject )=0;
+	virtual void read( const std::string& key, houdini::json::ArrayPtr array )=0;
+	virtual void read( const std::string& key, Object::Ptr object )=0;
+	virtual void read( const std::string& key, houdini::json::Value value )=0;
+	*/
+	virtual Object::Ptr deserializeObject( houdini::json::Value )=0;
+};
 
 struct MetaObject
 {

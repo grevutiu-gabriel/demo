@@ -197,6 +197,13 @@ void Scene::serialize(Serializer &out)
 	out.write("filename", m_filename);
 }
 
+void Scene::deserialize(Deserializer &in)
+{
+	Object::deserialize(in);
+	m_filename = in.readString("filename");
+	load(m_filename);
+}
+
 
 
 FloatController::Ptr Scene::loadTrack( houdini::json::ObjectPtr track, const std::string& name )

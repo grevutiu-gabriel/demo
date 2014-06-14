@@ -230,6 +230,7 @@ public:
 
 
 	virtual void                 serialize(Serializer &out)override;
+	virtual void                 deserialize(Deserializer &in)override;
 private:
 	M44fController::Ptr          loadTransform( houdini::json::ObjectPtr transform, const std::string& name );
 	M44fController::Ptr          loadLocator( houdini::json::ObjectPtr transform, const std::string& name );

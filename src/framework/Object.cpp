@@ -100,6 +100,13 @@ void Object::serialize(Serializer &out)
 	out.write("type", getMetaObject()->getClassName());
 	out.write("name", m_name);
 }
+
+void Object::deserialize(Deserializer &in)
+{
+	// we dont need to read the type as this was needed
+	// before this object was created...
+	m_name = in.readString( "name" );
+}
 std::string Object::getName() const
 {
     return m_name;
@@ -109,4 +116,6 @@ void Object::setName(const std::string &name)
 {
     m_name = name;
 }
+
+
 

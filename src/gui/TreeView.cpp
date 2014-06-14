@@ -29,6 +29,8 @@ TreeView::TreeView(DemoWrapper::Ptr demoWrapper) :
 
 	// toolbar
 	QToolBar* tb=new QToolBar();
+	tb->addAction("load", this, SLOT(load()));
+	tb->addAction("save", this, SLOT(save()));
 	tb->addAction("load scene", this, SLOT(loadScene()));
 	tb->addAction("new shot", this, SLOT(newShot()));
 	layout->addWidget( tb );
@@ -67,6 +69,34 @@ void TreeView::onShotAdded(int index)
 	// add a new TreeViewScene item representing the scene in the treeview
 	TreeViewShotItem* item = new TreeViewShotItem( m_demoWrapper->getShotWrapper( index ) );
 	m_treeWidget->addTopLevelItem(item);
+}
+
+void TreeView::load()
+{
+	QString fileName = QFileDialog::getOpenFileName(m_widget,
+		"Load Demo",
+		QString::fromStdString(base::expand("$DATA")),
+		"Demo Files(*.dmo)");
+	if(!fileName.isEmpty())
+	{
+		m_demoWrapper->load( fileName.toStdString() );
+	}
+	else
+		std::cout << "no file selected!";
+}
+
+void TreeView::save()
+{
+	QString fileName = QFileDialog::getSaveFileName(m_widget,
+		"Save Demo",
+		QString::fromStdString(base::expand("$DATA")),
+		"Demo Files(*.dmo)");
+	if(!fileName.isEmpty())
+	{
+		m_demoWrapper->save( fileName.toStdString() );
+	}
+	else
+		std::cout << "no file selected!";
 }
 
 void TreeView::loadScene()

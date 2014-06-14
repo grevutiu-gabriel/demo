@@ -106,6 +106,7 @@ public:
 	}
 
 	virtual void serialize(Serializer &out)override;
+	virtual void deserialize(Deserializer &in)override;
 
 	//void addElement( Element::Ptr element );
 
@@ -122,8 +123,9 @@ public:
 
 	void load( const std::string& filename );
 	void loadScene(const std::string &filename);
-	void store( const std::string& filename );
+	void save( const std::string& filename );
 
+	std::string                          m_filename;
 	std::vector<Scene::Ptr>              m_scenes;
 	//std::vector<Element::Ptr>            m_elements;
 	std::vector<Shot::Ptr>               m_shots;

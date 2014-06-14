@@ -32,6 +32,8 @@ public:
 public slots:
 	void onSceneAdded( int index );
 	void onShotAdded( int index );
+	void load();
+	void save();
 	void loadScene();
 	void newShot();
 	void onCustomContextMenuRequested ( const QPoint & pos );

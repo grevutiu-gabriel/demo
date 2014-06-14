@@ -221,6 +221,70 @@ private:
 };
 
 
+struct DemoDeserializer : public Deserializer
+{
+
+	DemoDeserializer(Demo* demo, std::istream* in)
+	{
+		houdini::json::JSONLogger logger(std::cout);
+		houdini::json::JSONReader reader;
+		houdini::json::Parser p;
+		//p.parse( &in, &logger );
+		p.parse( in, &reader );
+
+		//
+		houdini::json::ObjectPtr root = reader.getRoot().asObject();
+
+		// read objects
+		m_serializedObjects = root->getArray( "objects" );
+
+		// finally deserialize demo object
+		m_jsonObjectStack.push(root);
+		demo->deserialize( *this );
+		m_jsonObjectStack.pop();
+	}
+
+	houdini::json::ArrayPtr readArray( const std::string& key )override
+	{
+		return m_jsonObjectStack.top()->getArray(key);
+	}
+
+	virtual std::string readString( const std::string& key, const std::string& defaultValue = "" )override
+	{
+		if( m_jsonObjectStack.top()->hasKey(key) )
+			return m_jsonObjectStack.top()->get<std::string>(key);
+		return defaultValue;
+	}
+
+	virtual Object::Ptr deserializeObject( houdini::json::Value value )
+	{
+		int id = value.as<int>();
+
+		// find deserialized object
+		auto it = m_deserializeMap.find(id);
+		if(it!=m_deserializeMap.end())
+			return it->second;
+
+		// object not deserialized yet...deserialize it
+		houdini::json::ObjectPtr serializedObject = m_serializedObjects->getObject(id);
+		m_jsonObjectStack.push(serializedObject);
+		std::string className = readString("type");
+		Object::Ptr object = ObjectFactory::create(className);
+		object->deserialize(*this);
+		m_jsonObjectStack.pop();
+
+		// register created object
+		m_deserializeMap[id] = object;
+
+		return object;
+	}
+
+private:
+
+	houdini::json::ArrayPtr              m_serializedObjects;
+	std::map<int, Object::Ptr>           m_deserializeMap; // objects to be serialized with their associated id
+	std::stack<houdini::json::ObjectPtr> m_jsonObjectStack;
+};
 
 
 
@@ -285,11 +349,33 @@ void Demo::load( const std::string& filename )
 	std::string basePathData = base::path("data");
 	std::string basePathSrc = base::path("src");
 
+	m_filename = filename;
+	std::cout << "Demo::load " << filename << std::endl;
+	std::ifstream in( base::expand(filename).c_str(), std::ios_base::in);
+	if(!in)
+		return;
 
-	// load scenes ------
-	loadScene("$DATA/artifix.scn");
-	loadScene("$DATA/test.scn");
-	loadScene("$DATA/nebulae.scn");
+	int contentsSize = 0;
+	{
+		in.seekg(0, std::ios::end);
+		contentsSize = in.tellg();
+		in.seekg(0, std::ios::beg);
+	}
+
+	if(!contentsSize)
+		return;
+
+	DemoDeserializer deserializer(this, &in);
+
+
+	//
+
+
+
+
+//	loadScene("$DATA/artifix.scn");
+//	loadScene("$DATA/test.scn");
+//	loadScene("$DATA/nebulae.scn");
 /*
 	// create all object instances ---
 	m_deserializeMap[0] = ObjectFactory::create("Clear");
@@ -376,6 +462,7 @@ void Demo::load( const std::string& filename )
 	shot->setPropertyController( volume, "PointLightIntensity", SceneController::create(m_scenes[0],"/obj/pointlight1/light_intensity"));
 	*/
 
+	/*
 	// neublae
 	Shot::Ptr shot = Shot::create();
 	shot->setName("nebulae");
@@ -404,6 +491,7 @@ void Demo::load( const std::string& filename )
 
 
 	shot->prepareForRendering();
+	*/
 //*/
 //	// load elements ------
 //	addElement( ObjectFactory::create<Element>("Clear") );
@@ -580,7 +668,6 @@ void Demo::serialize(Serializer &out)
 		for( auto it = m_scenes.begin(), end=m_scenes.end();it!=end;++it )
 		{
 			Scene::Ptr scene = *it;
-			//scenes->append( houdini::json::Value::create<std::string>(scene->getFilename()) );
 			scenes->append( out.serialize(scene) );
 		}
 		out.write( "scenes", scenes );
@@ -598,14 +685,28 @@ void Demo::serialize(Serializer &out)
 	}
 }
 
+void Demo::deserialize(Deserializer &in)
+{
+	// scenes ------
+	houdini::json::ArrayPtr scenes = in.readArray( "scenes" );
+	for( int i=0,numElements=scenes->size();i<numElements;++i )
+	{
+		Scene::Ptr scene = std::dynamic_pointer_cast<Scene>(in.deserializeObject( scenes->getValue(i) ));
+		addScene(scene);
+	}
+}
+
 void Demo::addScene(Scene::Ptr scene)
 {
 	m_scenes.push_back(scene);
 }
 
-void Demo::store(const std::string &filename)
+void Demo::save(const std::string &filename)
 {
-	DemoSerializer de( this, &std::cout );
+	std::ofstream out( filename, std::ios::trunc );
+
+	//DemoSerializer de( this, &std::cout );
+	DemoSerializer de( this, &out );
 }
 
 

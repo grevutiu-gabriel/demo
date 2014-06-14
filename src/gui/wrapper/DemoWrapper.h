@@ -20,6 +20,7 @@ namespace gui
 		static Ptr create();
 
 		void load(const std::string& filename);
+		void save(const std::string& filename);
 		Demo::Ptr getDemo();
 
 		void addShot( ShotWrapper::Ptr shotWrapper );

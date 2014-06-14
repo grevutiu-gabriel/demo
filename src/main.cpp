@@ -99,7 +99,7 @@ void render( base::Context::Ptr context, base::Camera::Ptr cam )
 void init( base::Context::Ptr context )
 {
 	std::cout << "init...\n";
-	ObjectFactory::print(std::cout);
+	//ObjectFactory::print(std::cout);
 
 
 	// intialize and load demo --------
