@@ -83,6 +83,25 @@ void Shot::serialize(Serializer &out)
 	}
 }
 
+void Shot::deserialize(Deserializer &in)
+{
+	Object::deserialize(in);
+	// shotelements
+	{
+		houdini::json::ArrayPtr shotElements = in.readArray("elements");
+		for(int i=0,numElements=shotElements->size();i<numElements;++i)
+		{
+			ShotElement::Ptr shotElement = std::make_shared<ShotElement>();
+			shotElement->deserialize(in, shotElements->getValue(i));
+			addElement(shotElement);
+		}
+	}
+	// updategraph
+	{
+		m_updateGraph->deserialize( in, in.readValue("updateGraph") );
+	}
+}
+
 
 
 houdini::json::Value ShotElement::serialize(Serializer &out)
@@ -103,6 +122,22 @@ houdini::json::Value ShotElement::serialize(Serializer &out)
 	}
 
 	return houdini::json::Value::createObject(obj);
+}
+
+void ShotElement::deserialize(Deserializer &in, houdini::json::Value value)
+{
+	houdini::json::ObjectPtr obj = value.asObject();
+	m_element = std::dynamic_pointer_cast<Element>( in.deserializeObject(obj->getValue("element")) );
+	// childs
+	{
+		houdini::json::ArrayPtr childs = obj->getArray( "childs" );
+		for( int i=0,numElements=childs->size();i<numElements;++i )
+		{
+			ShotElement::Ptr child = std::make_shared<ShotElement>();
+			child->deserialize(in, childs->getValue(i));
+			m_childs.push_back(child);
+		}
+	}
 }
 
 

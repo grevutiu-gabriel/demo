@@ -17,10 +17,13 @@ struct ShotElement
 {
 	typedef std::shared_ptr<ShotElement> Ptr;
 
+	ShotElement()
+	{
+	}
+
 	ShotElement(Element::Ptr element):
 		m_element(element)
 	{
-
 	}
 
 	static Ptr create( Element::Ptr element )
@@ -70,6 +73,7 @@ struct ShotElement
 	}
 
 	houdini::json::Value serialize(Serializer &out);
+	void deserialize(Deserializer &in, houdini::json::Value value);
 
 
 	Element::Ptr m_element;
@@ -138,6 +142,7 @@ public:
 
 
 	virtual void serialize(Serializer &out);
+	virtual void deserialize(Deserializer &in);
 
 	base::Camera::Ptr                        m_camera;
 	std::vector<ShotElement::Ptr>            m_elements;

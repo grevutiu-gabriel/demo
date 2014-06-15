@@ -686,4 +686,4 @@ void Volume::reload()
 }
 
 
-REGISTERCLASS( Volume )
+REGISTERCLASS2( Volume, Element )

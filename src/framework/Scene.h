@@ -173,6 +173,7 @@ public:
 	}
 
 	virtual void serialize(Serializer &out)override;
+	virtual void deserialize(Deserializer &in)override;
 
 private:
 	void getController();

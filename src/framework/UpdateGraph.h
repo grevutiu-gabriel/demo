@@ -56,6 +56,7 @@ public:
 	void compile();
 
 	houdini::json::Value serialize(Serializer &out);
+	void deserialize(Deserializer &in, houdini::json::Value value);
 
 private:
 	std::map<Object::Ptr, ObjectBindings* > m_graph; // the graph

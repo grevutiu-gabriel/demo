@@ -204,13 +204,15 @@ houdini::json::Value UpdateGraph::serialize(Serializer &out)
 		Object::Ptr object = it->first;
 		ObjectBindings* bindings = it->second;
 
-		houdini::json::ObjectPtr jsonBindings = houdini::json::Object::create();
+		houdini::json::ArrayPtr jsonBindings = houdini::json::Array::create();
 		for( auto it2 = bindings->begin(), end2=bindings->end();it2!=end2;++it2 )
 		{
+			houdini::json::ObjectPtr obj = houdini::json::Object::create();
 			Property::Ptr prop = object->getProperty(it2->first);
 			Controller::Ptr controller = it2->second;
-			jsonBindings->append( "controller",  out.serialize(controller));
-			jsonBindings->appendValue<std::string>( "property",  prop->getName());
+			obj->append( "controller",  out.serialize(controller));
+			obj->appendValue<std::string>( "property",  prop->getName());
+			jsonBindings->append(obj);
 		}
 
 		houdini::json::ObjectPtr json = houdini::json::Object::create();
@@ -221,5 +223,28 @@ houdini::json::Value UpdateGraph::serialize(Serializer &out)
 	}
 
 	return houdini::json::Value::createArray(jsonGraph);
+}
+
+void UpdateGraph::deserialize(Deserializer &in, houdini::json::Value value)
+{
+	houdini::json::ArrayPtr jsonGraph = value.asArray();
+
+	for( int i=0,numElements=jsonGraph->size();i<numElements;++i )
+	{
+		houdini::json::ObjectPtr nodes = jsonGraph->getObject(i);
+
+		Object::Ptr object = in.deserializeObject(nodes->getValue("object"));
+		houdini::json::ArrayPtr jsonBindings = nodes->getArray("bindings");
+
+		UpdateGraph::ObjectBindings* bindings = insertNode(object);
+
+		for( int j=0,numElements2=jsonBindings->size();j<numElements2;++j )
+		{
+			houdini::json::ObjectPtr jsonBinding = jsonBindings->getObject(j);
+			std::string propName = jsonBinding->get<std::string>("property");
+			Controller::Ptr controller = std::dynamic_pointer_cast<Controller>(in.deserializeObject(jsonBinding->getValue("controller")));
+			addConnection( controller, object, propName );
+		}
+	}
 }
 

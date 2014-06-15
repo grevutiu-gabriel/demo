@@ -279,6 +279,11 @@ struct DemoDeserializer : public Deserializer
 		return object;
 	}
 
+	virtual houdini::json::Value readValue( const std::string& key ) override
+	{
+		return m_jsonObjectStack.top()->getValue(key);
+	}
+
 private:
 
 	houdini::json::ArrayPtr              m_serializedObjects;
@@ -693,6 +698,13 @@ void Demo::deserialize(Deserializer &in)
 	{
 		Scene::Ptr scene = std::dynamic_pointer_cast<Scene>(in.deserializeObject( scenes->getValue(i) ));
 		addScene(scene);
+	}
+	// shots ------
+	houdini::json::ArrayPtr shots = in.readArray( "shots" );
+	for( int i=0,numElements=shots->size();i<numElements;++i )
+	{
+		Shot::Ptr shot = std::dynamic_pointer_cast<Shot>(in.deserializeObject( shots->getValue(i) ));
+		addShot(shot);
 	}
 }
 
