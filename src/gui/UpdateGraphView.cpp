@@ -56,6 +56,8 @@ QNEBlock* UpdateGraphView::insertNode(ObjectWrapper::Ptr objectWrapper)
 	b->setPtr(m_nextNode);
 	m_nextNode++;
 
+	m_updateGraphWrapper->addNode( objectWrapper );
+
 	return b;
 }
 

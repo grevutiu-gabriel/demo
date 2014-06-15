@@ -40,6 +40,8 @@ namespace gui
 
 		void watchFile( const std::string& filename, FileChangedCallback callback );
 
+		void serializeGuiInfo( Serializer& out );
+		void deserializeGuiInfo( Deserializer& in );
 
 	public slots:
 		void fileChanged( const QString& path );
@@ -52,13 +54,12 @@ namespace gui
 		TreeView::Ptr                                        m_treeView;
 		ObjectTypeListView::Ptr                              m_typeList;
 		QTabWidget*                                          m_tabWidget;
-		std::vector<ShotEditor::Ptr>                         m_shotEditor;
+		std::map<ShotWrapper::Ptr, ShotEditor::Ptr>          m_shotEditor;
 		DemoWrapper::Ptr                                     m_demoWrapper;
 		QFileSystemWatcher                                   m_fileWatcher;
 		std::map<std::string, FileChangedCallback>           m_fileChangedCallbacks;
 		std::map<Object::Ptr, ObjectWrapper::Ptr>            m_objectWrapper;
 		std::map<UpdateGraph::Ptr, UpdateGraphWrapper::Ptr>  m_updateGraphWrapper;
-
 	};
 
 } // namespace gui

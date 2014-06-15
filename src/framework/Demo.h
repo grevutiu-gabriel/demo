@@ -91,6 +91,8 @@ class Demo : public Object
 	OBJECT
 public:
 	typedef std::shared_ptr<Demo> Ptr;
+	typedef std::function<void(Serializer&)> GuiInfoSerializationCallback;
+	typedef std::function<void(Deserializer&)> GuiInfoDeserializationCallback;
 
 	Demo( bool doAudio = false );
 
@@ -105,29 +107,27 @@ public:
 		return m_audio;
 	}
 
-	virtual void serialize(Serializer &out)override;
-	virtual void deserialize(Deserializer &in)override;
+	virtual void                         serialize(Serializer &out)override;
+	virtual void                         deserialize(Deserializer &in)override;
 
-	//void addElement( Element::Ptr element );
 
-	void addScene( Scene::Ptr scene );
-	void addClip( int shotIndex, float shotStart, float shotEnd, float clipDuration );
-	int addShot( Shot::Ptr shot );
-	Shot::Ptr getShot( int index );
-	int getNumShots()const;
-	float getDuration()const;
-	std::vector<Scene::Ptr>& getScenes();
-	std::vector<Shot::Ptr>& getShots();
+	void                                 addScene( Scene::Ptr scene );
+	void                                 loadScene(const std::string &filename);
+	void                                 addClip( int shotIndex, float shotStart, float shotEnd, float clipDuration );
+	int                                  addShot( Shot::Ptr shot );
+	Shot::Ptr                            getShot( int index );
+	int                                  getNumShots()const;
+	float                                getDuration()const;
+	std::vector<Scene::Ptr>&             getScenes();
+	std::vector<Shot::Ptr>&              getShots();
 
-	void render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera = base::Camera::Ptr() );
+	void                                 render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera = base::Camera::Ptr() );
 
-	void load( const std::string& filename );
-	void loadScene(const std::string &filename);
-	void save( const std::string& filename );
+	void                                 load( const std::string& filename );
+	void                                 save( const std::string& filename, GuiInfoSerializationCallback callback = GuiInfoSerializationCallback() );
 
 	std::string                          m_filename;
 	std::vector<Scene::Ptr>              m_scenes;
-	//std::vector<Element::Ptr>            m_elements;
 	std::vector<Shot::Ptr>               m_shots;
 	std::vector<Clip>                    m_clips;
 	PiecewiseConstantFunction<int>       m_clipIndex; // tells which shot to render when (should cover the range [0, m_duration])

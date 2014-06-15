@@ -124,9 +124,22 @@ namespace gui
 
 	void Application::openShotEditor(ShotWrapper::Ptr shotWrapper)
 	{
-		ShotEditor::Ptr se = ShotEditor::create(shotWrapper);
-		m_tabWidget->addTab( se->getWidget(), QString::fromStdString(shotWrapper->getName()) );
-		m_shotEditor.push_back(se);
+		ShotEditor::Ptr se;
+		auto it = m_shotEditor.find(shotWrapper);
+		if(it!=m_shotEditor.end())
+		{
+			se = it->second;
+		}else
+		{
+			// create shot editor ---
+			se = ShotEditor::create(shotWrapper);
+			m_tabWidget->addTab( se->getWidget(), QString::fromStdString(shotWrapper->getName()) );
+			// register
+			m_shotEditor[shotWrapper] = se;
+		}
+
+		// bring tab to front, change demo rendering shot
+		// TODO
 	}
 
 
@@ -141,6 +154,53 @@ namespace gui
 		bool test = m_fileWatcher.addPath( QString::fromStdString(filename) );
 		m_fileChangedCallbacks[filename] = callback;
 	}
+
+	void Application::serializeGuiInfo(Serializer &out)
+	{
+		std::vector<Shot::Ptr>& shots = m_demoWrapper->getDemo()->getShots();
+		// shot editors
+		{
+			// make all updategraphviews(in open shoteditors) update the node positions in
+			// updategraphwrappers
+			// todo
+
+
+			// serialize updategraphwrappers
+			houdini::json::ArrayPtr updateGraphWrappers = houdini::json::Array::create();
+			for( auto it:m_updateGraphWrapper )
+			{
+				houdini::json::ObjectPtr json = houdini::json::Object::create();
+				UpdateGraphWrapper::Ptr wrapper = it.second;
+
+				// find shot to which this wrapper belongs...
+				Shot::Ptr foundShot;
+				for( auto shot:shots )
+					if( getWrapper(shot->getUpdateGraph()) == wrapper )
+						foundShot = shot;
+				if(!foundShot)
+					continue;
+
+				json->append( "shot", out.serialize(foundShot) );
+				wrapper->serialize(out, json);
+
+				updateGraphWrappers->append(json);
+			}
+			out.write("updategraphwrappers", updateGraphWrappers);
+		}
+	}
+
+	void Application::deserializeGuiInfo(Deserializer &in)
+	{
+		houdini::json::ArrayPtr updateGraphWrappers = in.readArray("updategraphwrappers");
+		for( int i=0, numElements=updateGraphWrappers->size();i<numElements;++i )
+		{
+			houdini::json::ObjectPtr json = updateGraphWrappers->getObject(i);
+
+			//TODO: getshot
+		}
+	}
+
+
 
 	void Application::fileChanged(const QString &path)
 	{

@@ -42,14 +42,14 @@ signals:
 public slots:
 
 public:
-	UpdateGraphWrapper::Ptr    m_updateGraphWrapper;
+	UpdateGraphWrapper::Ptr                 m_updateGraphWrapper;
 
-	QGraphicsScene*            m_scene;
-	QGraphicsView*             m_view;
+	QGraphicsScene*                         m_scene;
+	QGraphicsView*                          m_view;
 	std::map<QNEBlock*, ObjectWrapper::Ptr> m_nodes;
-	std::map<quint64, std::string> m_inputs; // register for all inputs
-	quint64                    m_nextInput; // counter
-	quint64                    m_nextNode; // counter
+	std::map<quint64, std::string>          m_inputs; // register for all inputs
+	quint64                                 m_nextInput; // counter
+	quint64                                 m_nextNode; // counter
 
 };
 

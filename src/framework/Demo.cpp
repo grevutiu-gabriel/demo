@@ -103,18 +103,30 @@ struct DemoSerializer : public Serializer
 		houdini::json::Value value;
 	};
 
-	DemoSerializer( Demo* demo, std::ostream *out )
+	DemoSerializer( Demo* demo, std::ostream *out, Demo::GuiInfoSerializationCallback serializeGuiInfo )
+		:m_serializeGuiInfo(serializeGuiInfo)
 	{
 		m_writer= new JSONWriter( out );
 
 		houdini::json::ObjectPtr root = houdini::json::Object::create();
 		m_jsonObjectStack.push( root );
-
 		demo->serialize(*this);
 	}
 	~DemoSerializer()
 	{
 		houdini::json::ObjectPtr root = m_jsonObjectStack.top();
+
+		// serialize gui
+		{
+			houdini::json::ObjectPtr guiInfo = houdini::json::Object::create();
+			m_jsonObjectStack.push( guiInfo );
+			if(m_serializeGuiInfo)
+				m_serializeGuiInfo(*this);
+			m_jsonObjectStack.pop();
+			root->append("gui", guiInfo);
+		}
+
+
 		m_jsonObjectStack.pop();
 
 		// objects
@@ -133,8 +145,10 @@ struct DemoSerializer : public Serializer
 			root->append( "objects", objects );
 		}
 
+
 		// now, finally write out the json object hierarchy
 		m_writer->writeValue( houdini::json::Value::createObject(root) );
+
 		delete m_writer;
 	}
 
@@ -217,7 +231,7 @@ private:
 	JSONWriter* m_writer;
 	std::map<Object::Ptr, SerializedObject>           m_serializeMap; // objects to be serialized with their associated id
 	std::stack<houdini::json::ObjectPtr>              m_jsonObjectStack;
-
+	Demo::GuiInfoSerializationCallback                m_serializeGuiInfo;
 };
 
 
@@ -713,12 +727,12 @@ void Demo::addScene(Scene::Ptr scene)
 	m_scenes.push_back(scene);
 }
 
-void Demo::save(const std::string &filename)
+void Demo::save(const std::string &filename, GuiInfoSerializationCallback serializeGuiInfo)
 {
 	std::ofstream out( filename, std::ios::trunc );
 
 	//DemoSerializer de( this, &std::cout );
-	DemoSerializer de( this, &out );
+	DemoSerializer de( this, &out, serializeGuiInfo );
 }
 
 

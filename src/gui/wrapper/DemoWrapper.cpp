@@ -3,6 +3,7 @@
 #include <util/StringManip.h>
 
 #include "ShotElementWrapper.h"
+#include "../Application.h"
 
 namespace gui
 {
@@ -50,7 +51,8 @@ namespace gui
 
 	void DemoWrapper::save(const std::string &filename)
 	{
-		m_demo->save(filename);
+		Demo::GuiInfoSerializationCallback serializeGui = std::bind( &Application::serializeGuiInfo, Application::getInstance(), std::placeholders::_1 );
+		m_demo->save(filename, serializeGui);
 	}
 
 	Demo::Ptr DemoWrapper::getDemo()
