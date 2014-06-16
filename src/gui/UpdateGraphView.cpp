@@ -154,6 +154,17 @@ void UpdateGraphView::getSelectedObjects(std::vector<ObjectWrapper::Ptr> &select
 	}
 }
 
+void UpdateGraphView::updateGuiInfo()
+{
+	for( auto it:m_nodes )
+	{
+		QNEBlock* block = it.first;
+		ObjectWrapper::Ptr wrapper = it.second;
+
+		m_updateGraphWrapper->setPosition( wrapper, block->pos() );
+	}
+}
+
 UpdateGraphView::UpdateGraphView(UpdateGraphWrapper::Ptr updateGraphWrapper) :
 	QNodesEditor(),
 	m_updateGraphWrapper(updateGraphWrapper),
@@ -174,7 +185,7 @@ UpdateGraphView::UpdateGraphView(UpdateGraphWrapper::Ptr updateGraphWrapper) :
 	{
 		QNEBlock* b = insertNode( node );
 
-		b->setPos(150, index*150);
+		b->setPos(m_updateGraphWrapper->getPosition(node));
 		++index;
 	}
 

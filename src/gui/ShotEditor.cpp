@@ -58,6 +58,11 @@ QWidget *ShotEditor::getWidget()
 	return m_widget;
 }
 
+void ShotEditor::updateGuiInfo()
+{
+	m_updateGraphView->updateGuiInfo();
+}
+
 void ShotEditor::onGraphSelectionChanged()
 {
 	std::vector<ObjectWrapper::Ptr> selected;

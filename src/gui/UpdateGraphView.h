@@ -37,6 +37,8 @@ public:
 	virtual void onConnectionRemoved( QNEPort* src, QNEPort* dst )override;
 
 	void getSelectedObjects( std::vector<ObjectWrapper::Ptr>& selected );
+
+	void updateGuiInfo();
 signals:
 	void selectionChanged();
 public slots:

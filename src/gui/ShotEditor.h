@@ -23,6 +23,7 @@ public:
 	static Ptr create( ShotWrapper::Ptr shotWrapper );
 
 	QWidget* getWidget();
+	void updateGuiInfo();
 
 public slots:
 	void onGraphSelectionChanged();

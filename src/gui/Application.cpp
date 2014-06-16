@@ -139,7 +139,21 @@ namespace gui
 		}
 
 		// bring tab to front, change demo rendering shot
-		// TODO
+		bool found = false;
+		int shotIndex = 0;
+		std::vector<Shot::Ptr>& shots = m_demoWrapper->getDemo()->getShots();
+		for( auto shot : shots)
+		{
+			if( shotWrapper->getShot() == shot )
+			{
+				found=true;
+				continue;
+			}
+			++shotIndex;
+		}
+
+		if(found)
+			m_demoWrapper->getDemo()->m_currentShotIndex = shotIndex;
 	}
 
 
@@ -161,8 +175,10 @@ namespace gui
 		// shot editors
 		{
 			// make all updategraphviews(in open shoteditors) update the node positions in
-			// updategraphwrappers
-			// todo
+			for( auto shotEditor:m_shotEditor )
+			{
+				shotEditor.second->updateGuiInfo();
+			}
 
 
 			// serialize updategraphwrappers
@@ -196,7 +212,11 @@ namespace gui
 		{
 			houdini::json::ObjectPtr json = updateGraphWrappers->getObject(i);
 
-			//TODO: getshot
+			Shot::Ptr shot = std::dynamic_pointer_cast<Shot>(in.deserializeObject(json->getValue("shot")));
+
+			UpdateGraphWrapper::Ptr updateGraphWrapper = getWrapper(shot->getUpdateGraph());
+
+			updateGraphWrapper->deserialize( in, json );
 		}
 	}
 

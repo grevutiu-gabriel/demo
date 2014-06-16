@@ -21,7 +21,8 @@ namespace gui
 
 	void DemoWrapper::load(const std::string &filename)
 	{
-		m_demo->load(filename);
+		Demo::GuiInfoDeserializationCallback deserializeGui = std::bind( &Application::deserializeGuiInfo, Application::getInstance(), std::placeholders::_1 );
+		m_demo->load(filename, deserializeGui);
 
 		// inspect demo and create wrappers
 
@@ -47,6 +48,8 @@ namespace gui
 			emit shotAdded(index);
 			shotWrapper->load();
 		}
+
+		Application::getInstance()->getGlViewer()->update();
 	}
 
 	void DemoWrapper::save(const std::string &filename)

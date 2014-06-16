@@ -41,11 +41,12 @@ namespace gui
 		//nodes = std::vector<ObjectWrapper::Ptr>( m_nodes.begin(), m_nodes.end() );
 	}
 
-	void UpdateGraphWrapper::addNode(ObjectWrapper::Ptr objectWrapper)
+	UpdateGraphWrapper::Node& UpdateGraphWrapper::addNode(ObjectWrapper::Ptr objectWrapper)
 	{
 		auto it = m_nodes.find(objectWrapper);
 		if( it==m_nodes.end() )
 			m_nodes[objectWrapper] = Node();
+		return m_nodes[objectWrapper];
 	}
 
 	void UpdateGraphWrapper::addConnection(ObjectWrapper::Ptr controllerWrapper, ObjectWrapper::Ptr objectWrapper, const std::string &propName)
@@ -77,6 +78,39 @@ namespace gui
 			jsonNodes->append( jsonNode );
 		}
 		json->append( "nodes", jsonNodes );
+	}
+
+	void UpdateGraphWrapper::deserialize(Deserializer &in, houdini::json::ObjectPtr json)
+	{
+		houdini::json::ArrayPtr jsonNodes = json->getArray("nodes");
+		for( int i=0, numElements=jsonNodes->size();i<numElements;++i )
+		{
+			houdini::json::ObjectPtr jsonNode = jsonNodes->getObject(i);
+
+			Object::Ptr object = in.deserializeObject(jsonNode->getValue("object"));
+			ObjectWrapper::Ptr objectWrapper = Application::getInstance()->getWrapper(object);
+			Node& node = addNode( objectWrapper );
+			node.pos.rx() = jsonNode->get<float>("posX");
+			node.pos.ry() = jsonNode->get<float>("posY");
+		}
+	}
+
+	void UpdateGraphWrapper::setPosition(ObjectWrapper::Ptr object, const QPointF &pos)
+	{
+		auto it = m_nodes.find(object);
+		if(it!=m_nodes.end())
+		{
+			it->second.pos.rx() = pos.x();
+			it->second.pos.ry() = pos.y();
+		}
+	}
+
+	QPointF UpdateGraphWrapper::getPosition(ObjectWrapper::Ptr object)
+	{
+		auto it = m_nodes.find(object);
+		if(it!=m_nodes.end())
+			return it->second.pos;
+		return QPointF(0,0);
 	}
 
 } // namespace gui

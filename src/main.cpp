@@ -116,7 +116,7 @@ void init( base::Context::Ptr context )
 #else
 	// gui
 	gui::DemoWrapper::Ptr demoWrapper = gui::Application::getInstance()->getDemoWrapper();
-	demoWrapper->load("filename");
+	//demoWrapper->load("filename");
 	g_demo = demoWrapper->getDemo();
 
 	//if( g_demo->getNumShots()>0 )

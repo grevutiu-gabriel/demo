@@ -98,6 +98,12 @@ void LoadVolume::serialize(Serializer &out)
 	out.write( "filename", m_filename );
 }
 
+void LoadVolume::deserialize(Deserializer &in)
+{
+	Controller::deserialize(in);
+	setFilename(in.readString("filename"));
+}
+
 
 REGISTERCLASS( LoadVolume )
 

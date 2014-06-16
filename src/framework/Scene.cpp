@@ -633,12 +633,17 @@ void SceneController::deserialize(Deserializer &in)
 	Controller::deserialize(in);
 	m_scene = std::dynamic_pointer_cast<Scene>(in.deserializeObject(in.readValue("scene")));
 	m_controllerId = in.readString("controller");
+	getController();
 }
 
 void SceneController::getController()
 {
 	// get Controller from scene
 	m_controller = m_scene->getController(m_controllerId, m_updateGraph);
+	if(!m_controller)
+		std::cout << "didnt get " << m_controllerId << std::endl;
+	else
+		std::cout << "got " << m_controllerId << std::endl;
 }
 
 

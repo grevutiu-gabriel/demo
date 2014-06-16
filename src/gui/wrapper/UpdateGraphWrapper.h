@@ -29,11 +29,15 @@ namespace gui
 		void                                   load();
 		void                                   getNodes( std::vector<ObjectWrapper::Ptr>& nodes );
 
-		void                                   addNode( ObjectWrapper::Ptr objectWrapper );
+		Node&                                  addNode( ObjectWrapper::Ptr objectWrapper );
 		void                                   addConnection( ObjectWrapper::Ptr controllerWrapper, ObjectWrapper::Ptr objectWrapper, const std::string& propName );
 		void                                   removeConnection( ObjectWrapper::Ptr controllerWrapper, ObjectWrapper::Ptr objectWrapper, const std::string& propName );
 
 		void                                   serialize( Serializer& out, houdini::json::ObjectPtr json );
+		void                                   deserialize( Deserializer& in, houdini::json::ObjectPtr json );
+
+		void                                   setPosition( ObjectWrapper::Ptr object, const QPointF& pos );
+		QPointF                                getPosition(ObjectWrapper::Ptr object);
 	signals:
 	public slots:
 	private:

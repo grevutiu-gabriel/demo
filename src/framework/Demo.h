@@ -123,12 +123,13 @@ public:
 
 	void                                 render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera = base::Camera::Ptr() );
 
-	void                                 load( const std::string& filename );
+	void                                 load( const std::string& filename, GuiInfoDeserializationCallback callback = GuiInfoDeserializationCallback() );
 	void                                 save( const std::string& filename, GuiInfoSerializationCallback callback = GuiInfoSerializationCallback() );
 
 	std::string                          m_filename;
 	std::vector<Scene::Ptr>              m_scenes;
 	std::vector<Shot::Ptr>               m_shots;
+	int                                  m_currentShotIndex;
 	std::vector<Clip>                    m_clips;
 	PiecewiseConstantFunction<int>       m_clipIndex; // tells which shot to render when (should cover the range [0, m_duration])
 	Audio::Ptr                           m_audio;

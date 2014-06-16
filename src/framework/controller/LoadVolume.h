@@ -31,7 +31,8 @@ public:
 	void setFilename( const std::string& filename );
 	std::string getFilename();
 
-	void serialize(Serializer &out);
+	virtual void serialize(Serializer &out)override;
+	virtual void deserialize(Deserializer &in)override;
 private:
 	base::Texture3d::Ptr evaluateTexture3d(float time);
 	base::ScalarField::Ptr evaluateScalarField(float time);

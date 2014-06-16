@@ -238,7 +238,7 @@ private:
 struct DemoDeserializer : public Deserializer
 {
 
-	DemoDeserializer(Demo* demo, std::istream* in)
+	DemoDeserializer(Demo* demo, std::istream* in, Demo::GuiInfoDeserializationCallback deserializeGuiInfo)
 	{
 		houdini::json::JSONLogger logger(std::cout);
 		houdini::json::JSONReader reader;
@@ -255,6 +255,14 @@ struct DemoDeserializer : public Deserializer
 		// finally deserialize demo object
 		m_jsonObjectStack.push(root);
 		demo->deserialize( *this );
+		//gui
+		if(deserializeGuiInfo)
+		{
+			houdini::json::ObjectPtr guiInfo = root->getObject("gui");
+			m_jsonObjectStack.push(guiInfo);
+			deserializeGuiInfo(*this);
+			m_jsonObjectStack.pop();
+		}
 		m_jsonObjectStack.pop();
 	}
 
@@ -284,11 +292,12 @@ struct DemoDeserializer : public Deserializer
 		m_jsonObjectStack.push(serializedObject);
 		std::string className = readString("type");
 		Object::Ptr object = ObjectFactory::create(className);
+		// register created object (done before deserialize in order to avoid infinit loops)
+		m_deserializeMap[id] = object;
 		object->deserialize(*this);
 		m_jsonObjectStack.pop();
 
-		// register created object
-		m_deserializeMap[id] = object;
+
 
 		return object;
 	}
@@ -311,7 +320,9 @@ private:
 
 
 
-Demo::Demo( bool doAudio )
+Demo::Demo( bool doAudio ) :
+	Object(),
+	m_currentShotIndex(0)
 {
 	base::setVariable("$DATA", base::path("data").str());
 	if(doAudio)
@@ -363,11 +374,12 @@ void Demo::loadScene( const std::string& filename )
 	addScene(scene);
 }
 
-void Demo::load( const std::string& filename )
+void Demo::load( const std::string& filename, GuiInfoDeserializationCallback callback )
 {
 	std::string basePathData = base::path("data");
 	std::string basePathSrc = base::path("src");
 
+	///*
 	m_filename = filename;
 	std::cout << "Demo::load " << filename << std::endl;
 	std::ifstream in( base::expand(filename).c_str(), std::ios_base::in);
@@ -384,9 +396,9 @@ void Demo::load( const std::string& filename )
 	if(!contentsSize)
 		return;
 
-	DemoDeserializer deserializer(this, &in);
+	DemoDeserializer deserializer(this, &in, callback);
 
-
+	//*/
 	//
 
 
@@ -652,6 +664,9 @@ void Demo::load( const std::string& filename )
 //	}
 	*/
 
+	for( auto shot:m_shots )
+		shot->prepareForRendering();
+
 	// load audio ----
 	//if(m_audio)
 	//	m_audio->load(basePathData + "/heart_of_courage.ogg");
@@ -671,9 +686,9 @@ void Demo::render( base::Context::Ptr context, float time, base::Camera::Ptr ove
 //	//std::cout << time << " rendering shot " << newShotIndex << std::endl;
 
 */
-	if( !m_shots.empty() )
+	if( m_currentShotIndex < m_shots.size() )
 	{
-		int newShotIndex = 0;
+		int newShotIndex = m_currentShotIndex;
 		Shot::Ptr shot = m_shots[newShotIndex];
 		shot->render(context, time, overrideCamera);
 	}
