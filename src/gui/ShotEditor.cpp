@@ -40,6 +40,7 @@ ShotEditor::ShotEditor(ShotWrapper::Ptr shotWrapper):
 	m_widget = splitter1;
 
 	connect( m_updateGraphView.get(), SIGNAL(selectionChanged()), this, SLOT(onGraphSelectionChanged()) );
+	connect( m_updateGraphView.get(), SIGNAL(objectCreated(ObjectWrapper::Ptr)), this, SLOT(onObjectCreatedInGraph(ObjectWrapper::Ptr)) );
 	connect( m_propertyView.get(), SIGNAL(propertyChanged()), this, SLOT(onPropertyChanged()) );
 }
 
@@ -77,6 +78,18 @@ void ShotEditor::onGraphSelectionChanged()
 void ShotEditor::onPropertyChanged()
 {
 	Application::getInstance()->getGlViewer()->update();
+}
+
+void ShotEditor::onObjectCreatedInGraph(ObjectWrapper::Ptr objectWrapper)
+{
+	// if an object has been created from within the updategraph, we check
+	// if this is an element. If it is, we will automatically add it to the shot
+	if( ObjectFactory::derivesFrom(objectWrapper->getObject()->getMetaObject(), "Element" ) )
+	{
+		ElementWrapper::Ptr elementWrapper = std::dynamic_pointer_cast<ElementWrapper>(objectWrapper);
+		if( elementWrapper )
+			m_shotWrapper->addElement( elementWrapper );
+	}
 }
 
 }

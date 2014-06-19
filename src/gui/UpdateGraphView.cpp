@@ -105,12 +105,20 @@ bool UpdateGraphView::eventFilter(QObject *object, QEvent *event)
 		{
 			//std::cout << "drop---hasFormat\n";
 			const ObjectWrapperMimeData* md = dynamic_cast<const ObjectWrapperMimeData*>(e->mimeData());
-			if(md && !hasNode(md->getObjectWrapper()))
+			ObjectWrapper::Ptr objectWrapper = md->getObjectWrapper();
+			if(md && !hasNode(objectWrapper))
 			{
 				//std::cout << "drop---hasFormat---!hasNode+md\n";
-				QNEBlock* b = insertNode( md->getObjectWrapper() );
+				QNEBlock* b = insertNode( objectWrapper );
 				b->setPos( e->scenePos() );
 			}
+
+			if( e->mimeData()->hasFormat("application/createobject") )
+			{
+				// emit objectcreated..
+				emit objectCreated(objectWrapper);
+			}
+
 			e->acceptProposedAction();
 		}
 		return true;

@@ -233,11 +233,11 @@ Volume::Volume() : Element()
 				//float t = ((float)k/(float)density->m_resolution.z);
 				//float value = t;
 				//float value = 1.0f-t;
-				float value = 0.5f;
+				float value = 1.0f;
 				math::V3f lsP = m_normalizedDensity->voxelToLocal( math::V3f(float(i)+0.5f, float(j)+0.5f, float(k)+0.5f) );
-				if( (lsP-math::V3f(0.5f)).getLength() > 0.2f )
-					value = 0.0f;
-				//value*=20.0f;
+				//if( (lsP-math::V3f(0.5f)).getLength() > 0.2f )
+				//	value = 0.0f;
+				//value=t;
 				m_normalizedDensity->lvalue(i,j,k) = value;
 				densityMax = std::max(densityMax, value);
 			}
@@ -359,19 +359,62 @@ Volume::Volume() : Element()
 	setPointLightPosition( math::V3f(1.0f, 13.4f, -13.4f) );
 	setPointLightColor(math::V3f(1.0f, 0.32f, 0.1f));
 	setPointLightIntensity( 5000 );
-	volumeShader->setUniform("g_stepSize", 1.17188f);
-	volumeShader->setUniform("g_numSamples", 1);
+	setStepSize(1.17188f);
+	setNumSamples(5);
+	setDensityMultiplier(1.0f);
+
+	{
+		base::Texture2d::Ptr texture = base::Texture2d::createRGBAFloat32( 2, 1 );
+		glTexParameteri( texture->m_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		glTexParameteri( texture->m_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		glTexParameterf( texture->m_target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+		glTexParameterf( texture->m_target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+
+		float color[8];
+		color[0] = color[1] = color[2] = 1.0f;
+		color[3] = 0.0f;
+		color[4] = color[5] = color[6] = 1.0f;
+		color[7] = 1.0f;
+		texture->uploadRGBAFloat32(2, 1, color);
+		m_transferFunction2 = std::make_shared<AnimatedTransferFunction>(
+					texture,
+					0.0f,
+					1.0f,
+					100.0f);
+		this->setTransferFunction(m_transferFunction2);
+	}
 
 	// register properties -----
-	addProperty<float>( "stepSize", [=]{return volumeShader->getUniform("g_stepSize")->get<float>(0);}, std::bind( static_cast<void(base::Shader::*)(const std::string& name, float)>(&base::Shader::setUniform), volumeShader, "g_stepSize", std::placeholders::_1 ) );
+	addProperty<float>( "stepSize", std::bind( &Volume::getStepSize, this ), std::bind( &Volume::setStepSize, this, std::placeholders::_1 ) );
 	addProperty<math::V3f>( "PointLightPosition", std::bind( &Volume::getPointLightPosition, this ), std::bind( &Volume::setPointLightPosition, this, std::placeholders::_1 ) );
 	addProperty<float>( "PointLightIntensity", std::bind( &Volume::getPointLightIntensity, this ), std::bind( &Volume::setPointLightIntensity, this, std::placeholders::_1 ) );
 	addProperty<math::V3f>( "PointLightColor", std::bind( &Volume::getPointLightColor, this ), std::bind( &Volume::setPointLightColor, this, std::placeholders::_1 ) );
 	addProperty<base::Texture3d::Ptr>( "normalizedDensity", PropertyT<base::Texture3d::Ptr>::Getter(), std::bind( static_cast<void(base::Shader::*)(const std::string& name, base::Texture3d::Ptr)>(&base::Shader::setUniform), volumeShader, "normalizedDensity", std::placeholders::_1 ) );
 	addProperty<math::M44f>( "localToWorld", std::bind( &Volume::getLocalToWorld, this ), std::bind( &Volume::setLocalToWorld, this, std::placeholders::_1 ) );
 	addProperty<AnimatedTransferFunction::Ptr>( "transferfunction", std::bind( &Volume::getTransferFunction, this ), std::bind( &Volume::setTransferFunction, this, std::placeholders::_1 ) );
-	addProperty<int>( "samples", [=]{return volumeShader->getUniform("g_numSamples")->get<int>(0);}, std::bind( static_cast<void(base::Shader::*)(const std::string& name, int)>(&base::Shader::setUniform), volumeShader, "g_numSamples", std::placeholders::_1 ) );
+	addProperty<int>( "numSamples", std::bind(&Volume::getNumSamples, this), std::bind( &Volume::setNumSamples, this, std::placeholders::_1 ) );
+	addProperty<float>( "densityMultilpier", std::bind( &Volume::getDensityMultiplier, this ), std::bind( &Volume::setDensityMultiplier, this, std::placeholders::_1 ) );
 
+}
+
+void Volume::serialize(Serializer &out)
+{
+	Element::serialize(out);
+	out.write("stepSize", getStepSize());
+	out.write("numSamples", getNumSamples());
+	out.write("densityMultiplier", getDensityMultiplier());
+	out.write("pointLightIntensity", getPointLightIntensity());
+	out.write("pointLightColor", getPointLightColor());
+}
+
+void Volume::deserialize(Deserializer &in)
+{
+	Element::deserialize(in);
+	setStepSize( in.readFloat("stepSize", 1.17f) );
+	setNumSamples( in.readInt("numSamples", 5) );
+	setDensityMultiplier(in.readFloat("densityMultiplier"));
+	setPointLightIntensity(in.readFloat("pointLightIntensity"));
+	setPointLightColor(in.readV3f("pointLightColor"));
 }
 
 void Volume::setPointLightPosition( math::V3f& pos )
@@ -437,13 +480,45 @@ void Volume::setTransferFunction(AnimatedTransferFunction::Ptr transferFunction)
 	m_transferFunction2 = transferFunction;
 	volumeShader->setUniform( "transferFunction2", m_transferFunction2->getTexture()->getUniform() );
 	//std::cout << "density scale: " << m_transferFunction2->getDensityScale() << std::endl;
-	volumeShader->setUniform( "sigma_t_scale", m_transferFunction2->getDensityScale() );
+	//volumeShader->setUniform( "sigma_t_scale", m_transferFunction2->getDensityScale() );
 }
 
 AnimatedTransferFunction::Ptr Volume::getTransferFunction()
 {
 	return m_transferFunction2;
 }
+
+float Volume::getStepSize() const
+{
+	return volumeShader->getUniform("g_stepSize")->get<float>(0);
+}
+
+void Volume::setStepSize(float stepSize)
+{
+	volumeShader->setUniform("g_stepSize", stepSize);
+}
+
+int Volume::getNumSamples() const
+{
+	return volumeShader->getUniform("g_numSamples")->get<int>(0);
+}
+
+void Volume::setNumSamples(int numSamples)
+{
+	volumeShader->setUniform("g_numSamples", numSamples);
+}
+
+
+float Volume::getDensityMultiplier() const
+{
+	return volumeShader->getUniform("sigma_t_scale")->get<float>(0);
+}
+
+void Volume::setDensityMultiplier(float densityMultiplier)
+{
+	volumeShader->setUniform( "sigma_t_scale", densityMultiplier );
+}
+
 
 void Volume::load( const std::string& filename )
 {
@@ -684,6 +759,8 @@ void Volume::reload()
 	//volumeShader->reload();
 	//dctCompute->reload();
 }
+
+
 
 
 REGISTERCLASS2( Volume, Element )

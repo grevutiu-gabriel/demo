@@ -93,6 +93,16 @@ void TreeViewShotItem::doubleClick(int column)
 	gui::Application::getInstance()->openShotEditor( m_shotWrapper );
 }
 
+QMimeData *TreeViewShotItem::mimeData()
+{
+	return new ObjectWrapperMimeData( m_shotWrapper->getShot()->getMetaObject()->getClassName(),std::bind( &TreeViewShotItem::getObjectWrapper, this ) );
+}
+
+ObjectWrapper::Ptr TreeViewShotItem::getObjectWrapper()
+{
+	return m_shotWrapper;
+}
+
 void TreeViewShotItem::onShotElementAdded(int index)
 {
 	TreeViewShotElementItem* item = new TreeViewShotElementItem(m_shotWrapper->getShotElement(index));

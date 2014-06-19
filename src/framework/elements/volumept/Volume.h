@@ -58,9 +58,22 @@ public:
 	math::M44f getLocalToWorld()const;
 	void setTransferFunction( AnimatedTransferFunction::Ptr transferFunction );
 	AnimatedTransferFunction::Ptr getTransferFunction();
+	float getStepSize()const;
+	void setStepSize( float stepSize );
+	int getNumSamples()const;
+	void setNumSamples( int numSamples );
+	float getDensityMultiplier()const;
+	void setDensityMultiplier( float densityMultiplier );
 
 	Volume();
 
+
+
+
+
+
+	virtual void                         serialize(Serializer &out)override;
+	virtual void                         deserialize(Deserializer &in)override;
 //private:
 	base::GeometryPtr           createProxyGeometry();
 

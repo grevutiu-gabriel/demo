@@ -3,6 +3,7 @@
 
 #include "ObjectWrapper.h"
 #include "../framework/Controller.h"
+#include "../framework/controller/LoadVolume.h"
 
 
 namespace gui
@@ -21,5 +22,21 @@ namespace gui
 	private:
 		Controller::Ptr m_controller;
 	};
+
+	class LoadVolumeWrapper : public ControllerWrapper
+	{
+		Q_OBJECT
+	public:
+		typedef std::shared_ptr<LoadVolumeWrapper> Ptr;
+
+		LoadVolumeWrapper( LoadVolume::Ptr controller );
+		virtual ~LoadVolumeWrapper();
+		static Ptr create( LoadVolume::Ptr controller );
+
+	private:
+		LoadVolume::Ptr m_loadVolume;
+	};
+
+
 
 } // namespace gui

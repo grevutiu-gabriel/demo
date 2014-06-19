@@ -103,38 +103,6 @@ typedef ConstantController<base::Camera::Ptr> ConstantCameraController;
 typedef ConstantController<base::Texture2d::Ptr> ConstantTexture2dController;
 
 
-template<typename T>
-class CurveControllerTOld : public ControllerT<T>
-{
-public:
-	typedef std::shared_ptr<CurveControllerTOld> Ptr;
-	CurveControllerTOld( base::PiecewiseLinearFunction<T>& curve ) : ControllerT<T>(), curve(curve), m_isAnimated(false)
-	{
-		float miny, maxy;
-		curve.getValueRange(miny, maxy);
-		if( abs(miny-maxy)>0.0f )
-			m_isAnimated = true;
-	}
-	static Ptr create( base::PiecewiseLinearFunction<T>& curve )
-	{
-		return std::make_shared<CurveControllerTOld<T>>(curve);
-	}
-	T evaluate(float time)override
-	{
-		return curve.evaluate(time);
-	}
-	virtual bool isAnimated()const override
-	{
-		return m_isAnimated;
-	}
-
-	base::PiecewiseLinearFunction<T> curve;
-
-private:
-	bool m_isAnimated;
-};
-
-typedef CurveControllerTOld<float> CurveFloatControllerOld;
 
 template<typename T>
 class CurveControllerT : public ControllerT<T>
@@ -289,37 +257,6 @@ public:
 
 };
 
-class FloatToV3fControllerOld : public V3fController
-{
-public:
-	typedef std::shared_ptr<FloatToV3fControllerOld> Ptr;
-
-	FloatToV3fControllerOld(FloatController::Ptr x, FloatController::Ptr y, FloatController::Ptr z) : V3fController(), m_x(x), m_y(y), m_z(z)
-	{
-		if(!m_x)
-			m_x = ConstantFloatController::create(0.0f);
-		if(!m_y)
-			m_y = ConstantFloatController::create(0.0f);
-		if(!m_z)
-			m_z = ConstantFloatController::create(0.0f);
-	}
-	static Ptr create( FloatController::Ptr x, FloatController::Ptr y, FloatController::Ptr z )
-	{
-		return std::make_shared<FloatToV3fControllerOld>(x,y,z);
-	}
-
-	math::V3f evaluate(float time)override
-	{
-		return math::V3f(m_x->evaluate(time), m_y->evaluate(time), m_z->evaluate(time));
-	}
-	virtual bool isAnimated()const override
-	{
-		return m_x->isAnimated()||m_y->isAnimated()||m_z->isAnimated();
-	}
-
-	FloatController::Ptr m_x,m_y,m_z;
-};
-
 
 class FloatToV3fController : public V3fController
 {
@@ -350,6 +287,9 @@ public:
 	{
 		return true;
 	}
+
+	virtual void                         serialize(Serializer &out)override;
+	virtual void                         deserialize(Deserializer &in)override;
 
 	void setX( float x ){m_x = x;}
 	float getX()const{return m_x;}

@@ -28,6 +28,10 @@ public:
 public slots:
 	void onGraphSelectionChanged();
 	void onPropertyChanged();
+	// this callback will be called when an object is being created
+	// from within the updategraph. The shoteditor will check if this
+	// is an element and attach it to the shot (for convinience)
+	void onObjectCreatedInGraph( ObjectWrapper::Ptr objectWrapper );
 
 private:
 	ShotWrapper::Ptr       m_shotWrapper;

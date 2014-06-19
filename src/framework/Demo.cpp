@@ -173,6 +173,15 @@ struct DemoSerializer : public Serializer
 		m_jsonObjectStack.top()->appendValue<int>( key, value );
 	}
 
+	virtual void write( const std::string& key, math::V3f value )
+	{
+		houdini::json::ArrayPtr array = houdini::json::Array::create();
+		array->append( houdini::json::Value::create<float>(value.x) );
+		array->append( houdini::json::Value::create<float>(value.y) );
+		array->append( houdini::json::Value::create<float>(value.z) );
+		m_jsonObjectStack.top()->append( key, array );
+	}
+
 	virtual void write( const std::string& key, Object::Ptr object )override
 	{
 		m_jsonObjectStack.top()->append( key, serialize(object) );
@@ -278,6 +287,36 @@ struct DemoDeserializer : public Deserializer
 		return defaultValue;
 	}
 
+	virtual float readFloat( const std::string& key, float defaultValue)
+	{
+		if( m_jsonObjectStack.top()->hasKey(key) )
+			return m_jsonObjectStack.top()->get<float>(key);
+		return defaultValue;
+	}
+
+	virtual float readInt( const std::string& key, int defaultValue )
+	{
+		if( m_jsonObjectStack.top()->hasKey(key) )
+			return m_jsonObjectStack.top()->get<int>(key);
+		return defaultValue;
+	}
+
+	virtual math::V3f readV3f( const std::string& key, math::V3f defaultValue )
+	{
+		math::V3f result = defaultValue;
+		if( m_jsonObjectStack.top()->hasKey(key) )
+		{
+			houdini::json::ArrayPtr array = m_jsonObjectStack.top()->getArray(key);
+			if(array)
+			{
+				result.x = array->get<float>(0);
+				result.y = array->get<float>(1);
+				result.z = array->get<float>(2);
+			}
+		}
+		return result;
+	}
+
 	virtual Object::Ptr deserializeObject( houdini::json::Value value )
 	{
 		int id = value.as<int>();
@@ -317,7 +356,7 @@ private:
 
 
 
-
+base::Texture2d::Ptr Demo::m_nocomp;
 
 
 Demo::Demo( bool doAudio ) :
@@ -691,6 +730,13 @@ void Demo::render( base::Context::Ptr context, float time, base::Camera::Ptr ove
 		int newShotIndex = m_currentShotIndex;
 		Shot::Ptr shot = m_shots[newShotIndex];
 		shot->render(context, time, overrideCamera);
+	}else
+	{
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		if(!m_nocomp)
+			m_nocomp = base::Texture2d::load( base::expand("$DATA/framework/nocomp.png") );
+		context->renderScreen(m_nocomp);
 	}
 }
 

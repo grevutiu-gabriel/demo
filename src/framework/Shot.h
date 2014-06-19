@@ -148,6 +148,10 @@ public:
 	std::vector<ShotElement::Ptr>            m_elements;
 
 	UpdateGraph::Ptr                         m_updateGraph;
+
+private:
+	static base::Texture2d::Ptr m_noelement;
+	static base::Texture2d::Ptr m_nocamera;
 };
 
 

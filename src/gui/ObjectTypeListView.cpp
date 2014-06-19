@@ -61,7 +61,7 @@ QWidget *ObjectTypeListView::getWidget()
 
 QMimeData *ObjectTypeListView::getMimeData(QListWidgetItem *item)
 {
-	return new ObjectWrapperMimeData( item->text().toStdString(), std::bind( &ObjectTypeListView::getObjectWrapper, this, item ) );
+	return new ObjectWrapperMimeData( item->text().toStdString(), std::bind( &ObjectTypeListView::getObjectWrapper, this, item ), true );
 }
 
 ObjectWrapper::Ptr ObjectTypeListView::getObjectWrapper(QListWidgetItem *item)

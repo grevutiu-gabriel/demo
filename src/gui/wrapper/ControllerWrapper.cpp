@@ -33,4 +33,28 @@ ControllerWrapper::Ptr ControllerWrapper::create(Controller::Ptr controller)
 }
 
 
+
+
+//  loadVolume ----------------------
+
+
+
+
+LoadVolumeWrapper::LoadVolumeWrapper(LoadVolume::Ptr loadVolume):
+	ControllerWrapper(loadVolume),
+	m_loadVolume(loadVolume)
+{
+	addExternalProperty( PropertyT<std::string>::create("filename", std::bind(&LoadVolume::getFilename, m_loadVolume.get()), std::bind(&LoadVolume::setFilename, m_loadVolume.get(), std::placeholders::_1)));
+}
+
+LoadVolumeWrapper::~LoadVolumeWrapper()
+{
+
+}
+
+LoadVolumeWrapper::Ptr LoadVolumeWrapper::create(LoadVolume::Ptr loadVolume)
+{
+	return std::make_shared<LoadVolumeWrapper>(loadVolume);
+}
+
 } // namespace gui

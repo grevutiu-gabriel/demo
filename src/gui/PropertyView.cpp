@@ -64,7 +64,12 @@ QtProperty* PropertyView::createQtProperty( Property::Ptr prop )
 		PropertyT<std::string>::Ptr propt = std::dynamic_pointer_cast<PropertyT<std::string>>(prop);
 		qprop = m_variantManager->addProperty(QVariant::String, QString::fromStdString(prop->getName()));
 		wrapper.updateQtProperty = [=]{m_variantManager->setValue(qprop, QString::fromStdString(propt->get()));};
-		wrapper.updateProperty = [=]{propt->set(m_variantManager->value(qprop).toString().toStdString());};
+		wrapper.updateProperty = [=]
+		{
+			std::string v = m_variantManager->value(qprop).toString().toStdString();
+			if(propt->get()!=v)
+				propt->set(v);
+		};
 	}else
 	if(type == "bool")
 	{

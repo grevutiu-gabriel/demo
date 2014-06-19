@@ -8,6 +8,8 @@
 #include <QFileDialog>
 
 
+#include "Application.h"
+
 namespace gui
 {
 
@@ -116,6 +118,7 @@ void TreeView::loadScene()
 void TreeView::newShot()
 {
 	m_demoWrapper->addShot(ShotWrapper::create());
+	Application::getInstance()->getGlViewer()->update();
 }
 
 void TreeView::onCustomContextMenuRequested(const QPoint &pos)

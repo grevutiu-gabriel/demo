@@ -60,8 +60,8 @@ namespace gui
 		ShotElement::Ptr shotElement = m_shot->addElement(elementWrapper->getElement());
 		int index = int(m_shotElementWrapper.size());
 		m_shotElementWrapper.push_back(ShotElementWrapper::create(shotElement));
-		std::cout << "gaga22! \n";
 		emit shotElementAdded(index);
+		Application::getInstance()->getGlViewer()->update();
 	}
 
 } // namespace gui

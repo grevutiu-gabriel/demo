@@ -15,10 +15,11 @@ namespace gui
 	//
 	// constructor - provide info about which process to create
 	//
-	ObjectWrapperMimeData::ObjectWrapperMimeData(const std::string& className, GetObjectWrapperCallback callback ) :
+	ObjectWrapperMimeData::ObjectWrapperMimeData(const std::string& className, GetObjectWrapperCallback callback, bool creatingObject ) :
 		QMimeData(),
 		m_callback(callback),
-		m_className(className)
+		m_className(className),
+		m_creatingObject(creatingObject)
 	{
 	}
 
@@ -52,6 +53,8 @@ namespace gui
 	{
 		if( mimetype == QString("application/objectwrapper") )
 			return true;
+		if( m_creatingObject && (mimetype == QString("application/createobject")) )
+			return true;
 		return false;
 	}
 
@@ -59,6 +62,8 @@ namespace gui
 	{
 		QStringList f;
 		f.push_back("application/objectwrapper");
+		if(m_creatingObject)
+			f.push_back("application/createobject");
 		return f;
 	}
 }

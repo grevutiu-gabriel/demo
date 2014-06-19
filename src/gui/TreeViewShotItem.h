@@ -25,7 +25,8 @@ public:
 
 	virtual void contextMenu( const QPoint& pos )override;
 	void doubleClick( int column );
-
+	virtual QMimeData* mimeData()override;
+	ObjectWrapper::Ptr getObjectWrapper();
 public slots:
 	void onShotElementAdded( int index );
 

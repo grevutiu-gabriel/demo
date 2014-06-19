@@ -41,6 +41,7 @@ public:
 	void updateGuiInfo();
 signals:
 	void selectionChanged();
+	void objectCreated( ObjectWrapper::Ptr objectWrapper );
 public slots:
 
 public:

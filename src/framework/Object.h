@@ -3,6 +3,7 @@
 #include <map>
 #include "Property.h"
 #include "houdini/json.h"
+#include <math/Vec3.h>
 
 
 struct MetaObject;
@@ -85,6 +86,7 @@ struct Serializer
 	virtual void write( const std::string& key, const std::string& value )=0;
 	virtual void write( const std::string& key, float value )=0;
 	virtual void write( const std::string& key, int value )=0;
+	virtual void write( const std::string& key, math::V3f value )=0;
 	virtual void write( const std::string& key, houdini::json::ObjectPtr jsonObject )=0;
 	virtual void write( const std::string& key, houdini::json::ArrayPtr array )=0;
 	virtual void write( const std::string& key, Object::Ptr object )=0;
@@ -100,6 +102,9 @@ struct Deserializer
 
 	//virtual void read( const std::string& key, unsigned char value )=0;
 	virtual std::string readString( const std::string& key, const std::string& defaultValue ="")=0;
+	virtual float readFloat( const std::string& key, float defaultValue =0.0f)=0;
+	virtual float readInt( const std::string& key, int defaultValue =0)=0;
+	virtual math::V3f readV3f( const std::string& key, math::V3f defaultValue =0)=0;
 	virtual houdini::json::Value readValue( const std::string& key )=0;
 	/*
 	virtual void read( const std::string& key, float value )=0;

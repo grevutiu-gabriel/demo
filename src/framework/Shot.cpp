@@ -1,6 +1,7 @@
 #include "Shot.h"
 
-
+base::Texture2d::Ptr Shot::m_noelement;
+base::Texture2d::Ptr Shot::m_nocamera;
 
 Shot::Shot() :
 	Object(),
@@ -17,6 +18,16 @@ void Shot::prepareForRendering()
 
 void Shot::render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera )
 {
+	if( m_elements.empty() )
+	{
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		if( !m_noelement )
+			m_noelement = base::Texture2d::load(base::expand("$DATA/framework/noelement.png"));
+		context->renderScreen(m_noelement);
+		return;
+	}
+
 	// update all properties ---
 	m_updateGraph->update(time);
 
@@ -27,6 +38,15 @@ void Shot::render( base::Context::Ptr context, float time, base::Camera::Ptr ove
 
 	if( camera )
 		context->setView( camera->m_worldToView, camera->m_viewToWorld, camera->m_viewToNDC );
+	else
+	{
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		if( !m_nocamera )
+			m_nocamera = base::Texture2d::load(base::expand("$DATA/framework/nocamera.png"));
+		context->renderScreen(m_nocamera);
+		return;
+	}
 
 	// render elements
 	for( auto it = m_elements.begin(), end=m_elements.end();it!=end;++it )

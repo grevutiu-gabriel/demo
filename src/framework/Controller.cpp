@@ -108,6 +108,24 @@ void PRSController::setSz(float sz)
 
 
 
+void FloatToV3fController::serialize(Serializer &out)
+{
+	Controller::serialize(out);
+	out.write("x", m_x);
+	out.write("y", m_y);
+	out.write("z", m_z);
+}
+
+void FloatToV3fController::deserialize(Deserializer &in)
+{
+	Controller::deserialize(in);
+	m_x = in.readFloat("x");
+	m_y = in.readFloat("y");
+	m_z = in.readFloat("z");
+}
+
+
+
 
 
 REGISTERCLASS2( SinusController, Controller )

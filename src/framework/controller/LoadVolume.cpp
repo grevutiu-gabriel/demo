@@ -3,7 +3,7 @@
 #include <util/Path.h>
 
 #include "../houdini/HouGeoIO.h"
-
+#include <util/fs.h>
 
 
 LoadVolume::LoadVolume() : Controller()
@@ -53,11 +53,17 @@ void LoadVolume::setFilename( const std::string& filename )
 	// load the file immediately
 	m_filename = filename;
 
+	if(!base::fs::exists(base::expand(m_filename)))
+		return;
+
 	// load houdini file ================
 	m_field = houdini::HouGeoIO::importVolume( base::expand(m_filename));
 
 	if(!m_field)
+	{
 		std::cerr << "unable to load " << filename << std::endl;
+		return;
+	}
 
 
 	// find density value range ---

@@ -28,4 +28,5 @@ namespace gui
 		std::vector<Property::Ptr> m_externalProps;
 	};
 
+	Q_DECLARE_METATYPE(std::shared_ptr<ObjectWrapper>)
 } // namespace gui

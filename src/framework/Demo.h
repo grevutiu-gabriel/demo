@@ -134,6 +134,7 @@ public:
 	PiecewiseConstantFunction<int>       m_clipIndex; // tells which shot to render when (should cover the range [0, m_duration])
 	Audio::Ptr                           m_audio;
 
+	static base::Texture2d::Ptr          m_nocomp;
 
 };
 

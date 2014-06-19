@@ -16,7 +16,8 @@ struct TypeName
 		return typeid(T).name();
 	}
 };
-
+#define SET_TYPENAME(A, NAME) template<> struct TypeName<A> { static std::string get() { return NAME; }};
+SET_TYPENAME(std::string, "string")
 
 struct Property
 {
