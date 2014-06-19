@@ -1,5 +1,8 @@
 #include "ControllerWrapper.h"
 
+// LoadVolumeWrapper
+#include <QFile>
+#include "../Application.h"
 
 namespace gui
 {
@@ -44,7 +47,13 @@ LoadVolumeWrapper::LoadVolumeWrapper(LoadVolume::Ptr loadVolume):
 	ControllerWrapper(loadVolume),
 	m_loadVolume(loadVolume)
 {
-	addExternalProperty( PropertyT<std::string>::create("filename", std::bind(&LoadVolume::getFilename, m_loadVolume.get()), std::bind(&LoadVolume::setFilename, m_loadVolume.get(), std::placeholders::_1)));
+	addExternalProperty( PropertyT<std::string>::create("filename",
+						std::bind(&LoadVolumeWrapper::getFilename, this),
+						std::bind(&LoadVolumeWrapper::setFilename, this, std::placeholders::_1)));
+
+	std::string newFilename = base::expand(m_loadVolume->getFilename());
+	if( QFile(QString::fromStdString(newFilename)).exists() )
+		Application::getInstance()->watchFile(newFilename, std::bind( &LoadVolumeWrapper::reload, this ));
 }
 
 LoadVolumeWrapper::~LoadVolumeWrapper()
@@ -55,6 +64,30 @@ LoadVolumeWrapper::~LoadVolumeWrapper()
 LoadVolumeWrapper::Ptr LoadVolumeWrapper::create(LoadVolume::Ptr loadVolume)
 {
 	return std::make_shared<LoadVolumeWrapper>(loadVolume);
+}
+
+void LoadVolumeWrapper::setFilename(const std::string &filename)
+{
+	std::string currentFilename = base::expand(m_loadVolume->getFilename());
+	Application::getInstance()->unwatchFile(currentFilename);
+
+	m_loadVolume->setFilename(filename);
+
+	std::string newFilename = base::expand(m_loadVolume->getFilename());
+	if( QFile(QString::fromStdString(newFilename)).exists() )
+		Application::getInstance()->watchFile(newFilename, std::bind( &LoadVolumeWrapper::reload, this ));
+}
+
+std::string LoadVolumeWrapper::getFilename()
+{
+	return m_loadVolume->getFilename();
+}
+
+void LoadVolumeWrapper::reload()
+{
+	std::cout << "reloading file!\n";
+	m_loadVolume->setFilename(m_loadVolume->getFilename());
+	Application::getInstance()->getGlViewer()->update();
 }
 
 } // namespace gui

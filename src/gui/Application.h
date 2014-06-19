@@ -39,6 +39,7 @@ namespace gui
 		void                            openShotEditor( ShotWrapper::Ptr shotWrapper );
 
 		void watchFile( const std::string& filename, FileChangedCallback callback );
+		void unwatchFile( const std::string& filename );
 
 		void serializeGuiInfo( Serializer& out );
 		void deserializeGuiInfo( Deserializer& in );

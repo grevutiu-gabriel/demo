@@ -91,6 +91,8 @@ namespace houdini
 			if( !in->good() )
 				return false;
 
+			// make sure length is > 0
+
 			// (re)initialize
 			state = STATE_START;
 			binary = false;
@@ -205,6 +207,9 @@ namespace houdini
 		bool Parser::readToken( Token &t )
 		{
 			ubyte c = read<ubyte>();
+
+			if(!stream->good())
+				return false;
 			
 			// binary?
 			if( (Token::Type)c == Token::JID_MAGIC )

@@ -31,6 +31,7 @@ public:
 	void setFilename( const std::string& filename );
 	std::string getFilename();
 
+
 	virtual void serialize(Serializer &out)override;
 	virtual void deserialize(Deserializer &in)override;
 private:
@@ -40,5 +41,6 @@ private:
 
 	base::Texture3d::Ptr   m_texture3d;
 	base::ScalarField::Ptr m_field;
+	math::M44f             m_localToWorld;
 	std::string            m_filename;
 };

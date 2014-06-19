@@ -633,6 +633,7 @@ void SceneController::deserialize(Deserializer &in)
 	Controller::deserialize(in);
 	m_scene = std::dynamic_pointer_cast<Scene>(in.deserializeObject(in.readValue("scene")));
 	m_controllerId = in.readString("controller");
+	m_scene->registerReloadCallback( std::bind( &SceneController::getController, this ) );
 	getController();
 }
 

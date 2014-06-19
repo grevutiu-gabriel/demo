@@ -172,6 +172,11 @@ namespace gui
 		m_fileChangedCallbacks[filename] = callback;
 	}
 
+	void Application::unwatchFile(const std::string &filename)
+	{
+		m_fileWatcher.removePath( QString::fromStdString(filename) );
+	}
+
 	void Application::serializeGuiInfo(Serializer &out)
 	{
 		std::vector<Shot::Ptr>& shots = m_demoWrapper->getDemo()->getShots();
@@ -233,6 +238,7 @@ namespace gui
 		if(it!=m_fileChangedCallbacks.end())
 			it->second();
 	}
+
 
 
 

@@ -24,7 +24,7 @@ base::ScalarField::Ptr LoadVolume::evaluateScalarField(float time)
 
 math::M44f LoadVolume::evaluateLocalToWorld(float time)
 {
-	return m_field->m_localToWorld;
+	return m_localToWorld;
 }
 
 void LoadVolume::update(Property::Ptr prop, float time)
@@ -61,7 +61,7 @@ void LoadVolume::setFilename( const std::string& filename )
 
 	if(!m_field)
 	{
-		std::cerr << "unable to load " << filename << std::endl;
+		std::cout << "unable to load " << filename << std::endl;std::flush(std::cout);
 		return;
 	}
 
@@ -89,6 +89,8 @@ void LoadVolume::setFilename( const std::string& filename )
 
 	std::cout << "Volume::load: densityMax " << densityMax << std::endl;
 	m_texture3d->uploadFloat32( m_field->m_resolution.x, m_field->m_resolution.y, m_field->m_resolution.z, m_field->getRawPointer() );
+
+	m_localToWorld = m_field->m_localToWorld;
 }
 
 
@@ -109,6 +111,10 @@ void LoadVolume::deserialize(Deserializer &in)
 	Controller::deserialize(in);
 	setFilename(in.readString("filename"));
 }
+
+
+
+
 
 
 REGISTERCLASS( LoadVolume )

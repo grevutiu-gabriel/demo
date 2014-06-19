@@ -65,6 +65,9 @@ namespace houdini
 				HouGeo::HouVolume::Ptr houVolume = std::dynamic_pointer_cast<HouGeo::HouVolume>(prim);
 				result = houVolume->field;
 			}
+		}else
+		{
+			std::cout << "HouGeoIO::importVolume: failed to import houGeo\n";
 		}
 		return result;
 	}

@@ -33,6 +33,10 @@ namespace gui
 		virtual ~LoadVolumeWrapper();
 		static Ptr create( LoadVolume::Ptr controller );
 
+		void setFilename( const std::string& filename );
+		std::string getFilename();
+		void reload();
+
 	private:
 		LoadVolume::Ptr m_loadVolume;
 	};
