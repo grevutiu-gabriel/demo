@@ -128,8 +128,8 @@ void TreeView::onCustomContextMenuRequested(const QPoint &pos)
 	if (!item)
 		return;
 
-	if( dynamic_cast<TreeViewShotItem*>(item) )
-		dynamic_cast<TreeViewShotItem*>(item)->contextMenu(m_treeWidget->viewport()->mapToGlobal(pos));
+	if( dynamic_cast<TreeWidgetItem*>(item) )
+		dynamic_cast<TreeWidgetItem*>(item)->contextMenu(m_treeWidget->viewport()->mapToGlobal(pos));
 }
 
 void TreeView::onItemDoubleClicked(QTreeWidgetItem *item, int column)

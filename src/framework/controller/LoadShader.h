@@ -35,7 +35,16 @@ public:
 	void setUniformSampler2D( const std::string& name, base::Texture2d::Ptr texture );
 
 	void serialize(Serializer &out);
+	void deserialize(Deserializer &in);
+
+	void reload();
 private:
-	base::Shader::Ptr  m_shader;
-	std::string        m_filename;
+
+	void updateProperties();
+	void clearProperties();
+
+	base::Shader::Ptr          m_shader;
+	std::string                m_filename;
+	std::vector<std::string>   m_props;
 };
+

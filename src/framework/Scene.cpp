@@ -350,14 +350,11 @@ M44fController::Ptr Scene::loadTransform( houdini::json::ObjectPtr transform, co
 	}
 	{
 		FloatController::Ptr scaleX, scaleY, scaleZ;
-		scaleX = ConstantFloatController::create(1.0f);
-		scaleY = ConstantFloatController::create(1.0f);
-		scaleZ = ConstantFloatController::create(1.0f);
-		m_controller[name + ".sx"] = scaleX;
+		scaleX = loadFloatParameter( transform, "transform.sx", name + ".sx" );
 		m_updateGraph.addConnection( scaleX, transformController, "sx" );
-		m_controller[name + ".sy"] = scaleY;
+		scaleY = loadFloatParameter( transform, "transform.ry", name + ".sy" );
 		m_updateGraph.addConnection( scaleY, transformController, "sy" );
-		m_controller[name + ".sz"] = scaleZ;
+		scaleZ = loadFloatParameter( transform, "transform.rz", name + ".sz" );
 		m_updateGraph.addConnection( scaleZ, transformController, "sz" );
 	}
 	//V3fController::Ptr scale = ConstantV3fController::create(math::V3f(1.0f));

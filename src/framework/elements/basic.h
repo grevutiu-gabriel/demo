@@ -23,7 +23,8 @@ public:
 
 	virtual void render(base::Context::Ptr context, float time)override
 	{
-		context->renderScreen(m_texture);
+		if(m_texture)
+			context->renderScreen(m_texture);
 	}
 
 	base::Texture2d::Ptr getTexture()const

@@ -45,6 +45,11 @@ public:
 		}
 	}
 
+	void removeProperty( const std::string& name )
+	{
+		m_props.erase(name);
+	}
+
 
 	void getPropertyNames( std::vector<std::string>& names );
 

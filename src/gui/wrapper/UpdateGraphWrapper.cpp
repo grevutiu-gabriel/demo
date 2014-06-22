@@ -45,7 +45,11 @@ namespace gui
 	{
 		auto it = m_nodes.find(objectWrapper);
 		if( it==m_nodes.end() )
+		{
 			m_nodes[objectWrapper] = Node();
+			connect( objectWrapper.get(), SIGNAL(propertyAdded(const std::string&)), this, SLOT(onObjectPropertyAdded(std::string)) );
+			connect( objectWrapper.get(), SIGNAL(propertyRemoved(const std::string&)), this, SLOT(onObjectPropertyRemoved(std::string)) );
+		}
 		return m_nodes[objectWrapper];
 	}
 
@@ -112,5 +116,26 @@ namespace gui
 			return it->second.pos;
 		return QPointF(0,0);
 	}
+
+	void UpdateGraphWrapper::onObjectPropertyAdded(const std::string &name)
+	{
+		ObjectWrapper* wrapper = dynamic_cast<ObjectWrapper*>( sender() );
+		std::cout << "test: " << wrapper->getName() << std::endl;
+		ObjectWrapper::Ptr objectWrapper;
+		for( auto it:m_nodes )
+			if( wrapper == it.first.get() )
+			{
+				objectWrapper = it.first;
+				break;
+			}
+		if( objectWrapper )
+			emit propertyAdded( objectWrapper, name );
+	}
+
+	void UpdateGraphWrapper::onObjectPropertyRemoved(const std::string &name)
+	{
+		std::cout << "UpdateGraphWrapper::onObjectPropertyRemoved: " << name << std::endl;
+	}
+
 
 } // namespace gui

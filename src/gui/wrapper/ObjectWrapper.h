@@ -23,8 +23,14 @@ namespace gui
 		Object::Ptr getObject();
 		void getProperties( std::vector<Property::Ptr>& props );
 		void addExternalProperty( Property::Ptr prop );
+		void updatePropertyList();
+
+	signals:
+		void propertyRemoved( const std::string& name );
+		void propertyAdded( const std::string& name );
 	private:
 		Object::Ptr m_object;
+		std::vector<std::string> m_internalProps;
 		std::vector<Property::Ptr> m_externalProps;
 	};
 

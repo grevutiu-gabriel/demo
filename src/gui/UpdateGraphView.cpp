@@ -40,9 +40,9 @@ QNEBlock* UpdateGraphView::insertNode(ObjectWrapper::Ptr objectWrapper)
 	objectWrapper->getObject()->getPropertyNames(propNames);
 	for(auto propName:propNames)
 	{
-		m_inputs[m_nextInput] = propName;
 		QNEPort*p = b->addInputPort(QString::fromStdString(propName));
-		p->setPtr(m_nextInput++);
+		m_inputs[p] = propName;
+		//p->setPtr(m_nextInput++);
 	}
 
 	// outputs (controller)
@@ -53,8 +53,8 @@ QNEBlock* UpdateGraphView::insertNode(ObjectWrapper::Ptr objectWrapper)
 
 	// keep track of added nodes
 	m_nodes[b] = objectWrapper;
-	b->setPtr(m_nextNode);
-	m_nextNode++;
+	//b->setPtr(m_nextNode);
+	//m_nextNode++;
 
 	m_updateGraphWrapper->addNode( objectWrapper );
 
@@ -132,7 +132,7 @@ void UpdateGraphView::onConnectionAdded(QNEPort *src, QNEPort *dst)
 {
 	ObjectWrapper::Ptr controller = m_nodes[src->block()];
 	ObjectWrapper::Ptr object = m_nodes[dst->block()];
-	std::string propName = m_inputs[dst->ptr()];
+	std::string propName = m_inputs[dst];
 	m_updateGraphWrapper->addConnection( controller, object, propName );
 	Application::getInstance()->getGlViewer()->update();
 }
@@ -141,7 +141,7 @@ void UpdateGraphView::onConnectionRemoved(QNEPort *src, QNEPort *dst)
 {
 	ObjectWrapper::Ptr controller = m_nodes[src->block()];
 	ObjectWrapper::Ptr object = m_nodes[dst->block()];
-	std::string propName = m_inputs[dst->ptr()];
+	std::string propName = m_inputs[dst];
 	m_updateGraphWrapper->removeConnection( controller, object, propName );
 	Application::getInstance()->getGlViewer()->update();
 }
@@ -173,11 +173,26 @@ void UpdateGraphView::updateGuiInfo()
 	}
 }
 
+void UpdateGraphView::onObjectPropertyAdded(ObjectWrapper::Ptr objectWrapper, const std::string &propName)
+{
+	QNEBlock* block = getNode(objectWrapper);
+	if( block )
+	{
+		std::cout << "UpdateGraphView::onObjectPropertyAdded: " << propName << std::endl;
+		std::cout << "obj name: " << objectWrapper->getName() << std::endl;
+		QNEPort* port = block->addInputPort( QString::fromStdString(propName) );
+		m_inputs[port] = propName;
+	}
+}
+
+void UpdateGraphView::onObjectPropertyRemoved(ObjectWrapper::Ptr objectWrapper, const std::string &propName)
+{
+	std::cout << "UpdateGraphView::onObjectPropertyRemoved: " << propName << std::endl;
+}
+
 UpdateGraphView::UpdateGraphView(UpdateGraphWrapper::Ptr updateGraphWrapper) :
 	QNodesEditor(),
-	m_updateGraphWrapper(updateGraphWrapper),
-	m_nextInput(0),
-	m_nextNode(0)
+	m_updateGraphWrapper(updateGraphWrapper)
 {
 
 	m_scene = new QGraphicsScene();
@@ -211,7 +226,7 @@ UpdateGraphView::UpdateGraphView(UpdateGraphWrapper::Ptr updateGraphWrapper) :
 				break;
 			}
 		QNEBlock* destBlock = getNode(Application::getInstance()->getWrapper(conn.dest));
-		QNEPort* destPort = destBlock->getPort(conn.propName);
+		QNEPort* destPort = destBlock->getPort(QString::fromStdString(conn.propName));
 		QNEConnection* path = new QNEConnection(0);
 		m_scene->addItem(path);
 		path->setPort1(srcPort);
@@ -222,6 +237,8 @@ UpdateGraphView::UpdateGraphView(UpdateGraphWrapper::Ptr updateGraphWrapper) :
 	}
 
 	connect( m_scene, SIGNAL(selectionChanged()), this, SIGNAL(selectionChanged()) );
+	connect( m_updateGraphWrapper.get(), SIGNAL(propertyAdded(ObjectWrapper::Ptr,const std::string&)), this, SLOT(onObjectPropertyAdded(ObjectWrapper::Ptr,std::string)) );
+	connect( m_updateGraphWrapper.get(), SIGNAL(propertyRemoved(ObjectWrapper::Ptr,const std::string&)), this, SLOT(onObjectPropertyRemoved(ObjectWrapper::Ptr,std::string)) );
 
 }
 

@@ -21,8 +21,12 @@ public:
 	void setGeometry( base::Geometry::Ptr geometry );
 	base::Shader::Ptr getShader()const;
 	void setShader( base::Shader::Ptr shader );
+	math::M44f getTransform() const;
+	void setTransform(const math::M44f &transform);
+
 private:
 	base::Geometry::Ptr m_geometry;
 	base::Shader::Ptr   m_shader;
+	math::M44f          m_transform;
 };
 

@@ -37,6 +37,8 @@ std::string LoadTexture2d::getFilename()
 }
 
 
+
+
 void LoadTexture2d::serialize(Serializer &out)
 {
 	Texture2dController::serialize(out);
@@ -44,6 +46,11 @@ void LoadTexture2d::serialize(Serializer &out)
 	out.write( "filename", m_filename );
 }
 
+void LoadTexture2d::deserialize(Deserializer &in)
+{
+	Texture2dController::deserialize(in);
+	setFilename(in.readString("filename"));
+}
 
 
 

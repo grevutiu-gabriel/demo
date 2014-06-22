@@ -38,6 +38,7 @@ public:
     QNEBlock(QGraphicsItem *parent = 0);
 
 	QNEPort* addPort(const QString &name, bool isOutput, int flags = 0, int ptr = 0);
+	void removePort( const QString &name );
 	QNEPort* addInputPort(const QString &name);
 	QNEPort* addOutputPort(const QString &name);
 	void addInputPorts(const QStringList &names);
@@ -47,7 +48,7 @@ public:
 	void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 	QNEBlock* clone();
 	QVector<QNEPort*> ports();
-	QNEPort* getPort( const std::string& name );
+	QNEPort* getPort(const QString &name );
 
 	int type() const { return Type; }
 
@@ -58,6 +59,7 @@ protected:
 	QVariant itemChange(GraphicsItemChange change, const QVariant &value);
 
 private:
+	void updateGeometry();
 	int horzMargin;
 	int vertMargin;
 	int width;

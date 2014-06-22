@@ -26,18 +26,38 @@ TreeViewShotElementItem::~TreeViewShotElementItem()
 
 void TreeViewShotElementItem::contextMenu(const QPoint &pos)
 {
-//	QMenu* menu = new QMenu();
+	std::cout << "ffffffffffff\n";
+	QMenu* menu = new QMenu();
 
 //	QMenu* createMenu = menu->addMenu("create...");
 //	createMenu->addAction( "clear" );
 //	createMenu->addAction( "render texture" );
 //	createMenu->addAction( "render geometry" );
 //	createMenu->addAction( "post process" );
-//	QAction* action = menu->exec(pos);
-//	if(action)
-//		std::cout<<action->text().toStdString()<< std::endl;
-
-//	delete menu;
+	menu->addAction( "move up" );
+	menu->addAction( "move down" );
+	QAction* action = menu->exec(pos);
+	if(action)
+	{
+		if( action->text() == "move up" )
+		{
+			QTreeWidgetItem* item = this;
+			if (item)
+			{
+				QTreeWidgetItem* parent = item->parent();
+				int index = parent->indexOfChild(item);
+				QTreeWidgetItem* child = parent->takeChild(index);
+				parent->insertChild(index-1, child);
+				parent->setExpanded(true);
+				child->setExpanded(true);
+			}
+		}else
+		if( action->text() == "move down" )
+		{
+		}
+		//std::cout<<action->text().toStdString()<< std::endl;
+	}
+	delete menu;
 
 }
 

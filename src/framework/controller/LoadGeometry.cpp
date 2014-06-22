@@ -35,7 +35,14 @@ void LoadGeometry::serialize(Serializer &out)
 	out.write( "filename", m_filename );
 }
 
-REGISTERCLASS( LoadGeometry )
+void LoadGeometry::deserialize(Deserializer &in)
+{
+	GeometryController::deserialize(in);
+	setFilename( in.readString("filename") );
+}
+
+
+REGISTERCLASS2( LoadGeometry, Controller )
 
 
 

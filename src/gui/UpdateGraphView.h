@@ -43,6 +43,8 @@ signals:
 	void selectionChanged();
 	void objectCreated( ObjectWrapper::Ptr objectWrapper );
 public slots:
+	void onObjectPropertyAdded( ObjectWrapper::Ptr objectWrapper, const std::string& propName  );
+	void onObjectPropertyRemoved( ObjectWrapper::Ptr objectWrapper, const std::string& propName  );
 
 public:
 	UpdateGraphWrapper::Ptr                 m_updateGraphWrapper;
@@ -50,9 +52,9 @@ public:
 	QGraphicsScene*                         m_scene;
 	QGraphicsView*                          m_view;
 	std::map<QNEBlock*, ObjectWrapper::Ptr> m_nodes;
-	std::map<quint64, std::string>          m_inputs; // register for all inputs
-	quint64                                 m_nextInput; // counter
-	quint64                                 m_nextNode; // counter
+	std::map<QNEPort*, std::string>         m_inputs; // register for all inputs
+	//quint64                                 m_nextInput; // counter
+	//quint64                                 m_nextNode; // counter
 
 };
 

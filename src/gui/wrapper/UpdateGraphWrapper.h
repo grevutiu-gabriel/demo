@@ -39,7 +39,11 @@ namespace gui
 		void                                   setPosition( ObjectWrapper::Ptr object, const QPointF& pos );
 		QPointF                                getPosition(ObjectWrapper::Ptr object);
 	signals:
+		void propertyAdded( ObjectWrapper::Ptr objectWrapper, const std::string& prop );
+		void propertyRemoved( ObjectWrapper::Ptr objectWrapper, const std::string& prop );
 	public slots:
+		void onObjectPropertyAdded( const std::string& name );
+		void onObjectPropertyRemoved( const std::string& name );
 	private:
 		UpdateGraph::Ptr                       m_graph;
 		std::map<ObjectWrapper::Ptr, Node>     m_nodes;

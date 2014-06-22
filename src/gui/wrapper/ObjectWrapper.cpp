@@ -1,5 +1,5 @@
 #include "ObjectWrapper.h"
-
+#include <algorithm>
 
 namespace gui
 {
@@ -17,6 +17,8 @@ namespace gui
 
 	ObjectWrapper::ObjectWrapper(Object::Ptr object) : QObject(), m_object(object)
 	{
+		m_object->getPropertyNames(m_internalProps);
+
 		//addExternalProperty( PropertyT<float>::create("test", std::bind(getTest), std::bind(setTest, std::placeholders::_1)));
 	}
 
@@ -63,5 +65,70 @@ namespace gui
 	void ObjectWrapper::addExternalProperty(Property::Ptr prop)
 	{
 		m_externalProps.push_back(prop);
+	}
+
+	void ObjectWrapper::updatePropertyList()
+	{
+		std::vector<std::string> internalProps( m_internalProps.begin(), m_internalProps.end() );
+		// find out which properties have been removed
+		std::vector<std::string> updatedInternalProps;
+		m_object->getPropertyNames(updatedInternalProps);
+
+		std::sort( internalProps.begin(), internalProps.end() );
+		std::sort( updatedInternalProps.begin(), updatedInternalProps.end() );
+
+		std::vector<std::string> addedProps( internalProps.size() + updatedInternalProps.size() );
+		std::vector<std::string> removedProps( internalProps.size() + updatedInternalProps.size() );
+
+		// http://www.cplusplus.com/reference/algorithm/set_difference/
+		removedProps.resize( std::set_difference( internalProps.begin(), internalProps.end(), updatedInternalProps.begin(), updatedInternalProps.end(), removedProps.begin() ) - removedProps.begin() );
+		addedProps.resize( std::set_difference( updatedInternalProps.begin(), updatedInternalProps.end(), internalProps.begin(), internalProps.end(), addedProps.begin() ) - addedProps.begin() );
+
+		for( auto removed:removedProps )
+		{
+			//std::cout << "ObjectWrapper::updatePropertyList: prop removed: " << removed << std::endl;
+			emit propertyRemoved(removed);
+		}
+		for( auto added:addedProps )
+		{
+			//std::cout << "ObjectWrapper::updatePropertyList: prop added: " << added << std::endl;
+			emit propertyAdded(added);
+		}
+
+		m_internalProps = std::vector<std::string>( updatedInternalProps.begin(), updatedInternalProps.end() );
+		/*
+		auto it = m_nodes.find(objectWrapper);
+		if(it!=m_nodes.end())
+		{
+			//return it->second.pos;
+			// TODO: mnanage connections
+			// -remove connections to props which disappeard
+			// - rewire connections to props which are still there by name (but have a different property pointer behind)
+			// -   -> maybe recompiling is enough (should be, actually)
+		}
+		emit objectPropertiesChanged( objectWrapper );
+
+
+		QNEBlock* block = getNode(objectWrapper);
+		if(!block)
+			return;
+
+		// get alle existing inputs (ignoring name and type ports)
+
+		// get all object properties
+		std::vector<std::string> propNames;
+		objectWrapper->getObject()->getPropertyNames(propNames);
+		for(auto propName:propNames)
+		{
+			m_inputs[m_nextInput] = propName;
+			QNEPort*p = block->addInputPort(QString::fromStdString(propName));
+			p->setPtr(m_nextInput++);
+		}
+
+
+		// remove connections
+
+		// find out which ports have been added
+		*/
 	}
 } // namespace gui

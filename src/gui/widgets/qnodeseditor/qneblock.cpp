@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 #include <QPainter>
 
 #include "qneport.h"
+#include "qneconnection.h"
 
 QNEBlock::QNEBlock(QGraphicsItem *parent) :
 	QGraphicsPathItem(parent),
@@ -51,6 +52,7 @@ QNEBlock::QNEBlock(QGraphicsItem *parent) :
 
 QNEPort* QNEBlock::addPort(const QString &name, bool isOutput, int flags, int ptr)
 {
+	// add port as child item...
 	QNEPort *port = new QNEPort(this);
 	port->setName(name);
 	port->setIsOutput(isOutput);
@@ -58,20 +60,54 @@ QNEPort* QNEBlock::addPort(const QString &name, bool isOutput, int flags, int pt
 	port->setPortFlags(flags);
 	port->setPtr(ptr);
 
-	QFontMetrics fm(scene()->font());
-	int w = fm.width(name);
-	int h = fm.height();
-	// port->setPos(0, height + h/2);
-	if (w > width - horzMargin)
-		width = w + horzMargin;
-	height += h;
+	updateGeometry();
 
+	return port;
+}
+
+void QNEBlock::removePort(const QString &name)
+{
+	QNEPort* port = getPort(name);
+	if(port)
+	{
+		// remove connections
+		QVector<QNEConnection*>& connections = port->connections();
+		for( auto connection:connections )
+			this->scene()->removeItem(connection);
+		connections.clear();
+
+		// remove port itsself
+		this->scene()->removeItem(port);
+	}
+	updateGeometry();
+}
+
+void QNEBlock::updateGeometry()
+{
+	// compute width and height of the port name text string
+	// and adjust
+	QFontMetrics fm(scene()->font());
+	int maxWidth = 0;
+	int numPorts = 0;
+	foreach(QGraphicsItem *port_, childItems())
+	{
+		QNEPort* p = dynamic_cast<QNEPort*>(port_);
+		maxWidth = std::max( fm.width(p->portName()), maxWidth );
+		++numPorts;
+	}
+
+	width = maxWidth + horzMargin;
+	height = vertMargin + fm.height()*numPorts;
+
+	// update node box...
 	QPainterPath p;
 	p.addRoundedRect(-width/2, -height/2, width, height, 5, 5);
 	setPath(p);
 
-	int y = -height / 2 + vertMargin + port->radius();
-    foreach(QGraphicsItem *port_, childItems()) {
+	// update port positions...
+	int y = -height / 2 + vertMargin + 5;//port->radius();
+	foreach(QGraphicsItem *port_, childItems())
+	{
 		if (port_->type() != QNEPort::Type)
 			continue;
 
@@ -80,10 +116,8 @@ QNEPort* QNEBlock::addPort(const QString &name, bool isOutput, int flags, int pt
 			port->setPos(width/2 + port->radius(), y);
 		else
 			port->setPos(-width/2 - port->radius(), y);
-		y += h;
+		y += fm.height();
 	}
-
-	return port;
 }
 
 QNEPort* QNEBlock::addInputPort(const QString &name)
@@ -205,12 +239,12 @@ QVector<QNEPort*> QNEBlock::ports()
 	return res;
 }
 
-QNEPort *QNEBlock::getPort(const std::string &name)
+QNEPort *QNEBlock::getPort(const QString &name)
 {
 	foreach(QGraphicsItem *port_, childItems())
 	{
 		QNEPort *port = (QNEPort*) port_;
-		if (port->portName().toStdString() == name)
+		if (port->portName() == name)
 			return port;
 	}
 	return 0;
@@ -223,6 +257,8 @@ QVariant QNEBlock::itemChange(GraphicsItemChange change, const QVariant &value)
 
 	return value;
 }
+
+
 quint64 QNEBlock::ptr() const
 {
 	return m_ptr;

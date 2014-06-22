@@ -80,7 +80,15 @@ namespace gui
 			return it->second;
 
 		ObjectWrapper::Ptr wrapper;
-
+		if( std::dynamic_pointer_cast<LoadGeometry>(object) )
+			wrapper = LoadGeometryWrapper::create(std::dynamic_pointer_cast<LoadGeometry>(object));
+		else
+		if( std::dynamic_pointer_cast<LoadShader>(object) )
+			wrapper = LoadShaderWrapper::create(std::dynamic_pointer_cast<LoadShader>(object));
+		else
+		if( std::dynamic_pointer_cast<LoadTexture2d>(object) )
+			wrapper = LoadTexture2dWrapper::create(std::dynamic_pointer_cast<LoadTexture2d>(object));
+		else
 		if( std::dynamic_pointer_cast<LoadVolume>(object) )
 			wrapper = LoadVolumeWrapper::create(std::dynamic_pointer_cast<LoadVolume>(object));
 		else

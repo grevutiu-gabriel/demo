@@ -208,7 +208,8 @@ houdini::json::Value UpdateGraph::serialize(Serializer &out)
 		for( auto it2 = bindings->begin(), end2=bindings->end();it2!=end2;++it2 )
 		{
 			houdini::json::ObjectPtr obj = houdini::json::Object::create();
-			Property::Ptr prop = object->getProperty(it2->first);
+			std::string propName = it2->first;
+			Property::Ptr prop = object->getProperty(propName);
 			Controller::Ptr controller = it2->second;
 			obj->append( "controller",  out.serialize(controller));
 			obj->appendValue<std::string>( "property",  prop->getName());
