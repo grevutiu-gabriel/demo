@@ -64,4 +64,20 @@ namespace gui
 		Application::getInstance()->getGlViewer()->update();
 	}
 
+	ShotElementWrapper::Ptr ShotWrapper::takeShotElement(int index)
+	{
+		m_shot->takeShotElement(index);
+
+		// reflect this in the wrapper list
+		//TODO: use Application to get wrapper instead of maintaining own list
+		ShotElementWrapper::Ptr sew = getShotElement(index);
+		m_shotElementWrapper.erase(m_shotElementWrapper.begin()+index);
+
+		emit shotElementRemoved(index);
+
+		Application::getInstance()->getGlViewer()->update();
+
+		return sew;
+	}
+
 } // namespace gui

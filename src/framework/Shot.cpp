@@ -76,6 +76,18 @@ ShotElement::Ptr Shot::getShotElement( int index )
 	return m_elements[index];
 }
 
+ShotElement::Ptr Shot::takeShotElement(int index)
+{
+	ShotElement::Ptr se = getShotElement(index);
+	m_elements.erase(m_elements.begin()+index);
+	return se;
+}
+
+void Shot::insertElement(int index, ShotElement::Ptr shotElement )
+{
+	m_elements.insert( m_elements.begin()+index, shotElement );
+}
+
 std::vector<ShotElement::Ptr> &Shot::getShotElements()
 {
 	return m_elements;

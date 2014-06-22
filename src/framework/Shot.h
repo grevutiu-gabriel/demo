@@ -138,6 +138,8 @@ public:
 
 	int getNumShotElements()const;
 	ShotElement::Ptr getShotElement( int index );
+	ShotElement::Ptr takeShotElement( int index );
+	void insertElement( int index, ShotElement::Ptr shotElement);
 	std::vector<ShotElement::Ptr>& getShotElements();
 
 

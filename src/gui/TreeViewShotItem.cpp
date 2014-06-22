@@ -109,6 +109,11 @@ void TreeViewShotItem::onShotElementAdded(int index)
 	this->addChild(item);
 }
 
+void TreeViewShotItem::onShotElementRemoved(int index)
+{
+
+}
+
 
 
 

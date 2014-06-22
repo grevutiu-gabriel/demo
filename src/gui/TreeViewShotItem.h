@@ -29,6 +29,7 @@ public:
 	ObjectWrapper::Ptr getObjectWrapper();
 public slots:
 	void onShotElementAdded( int index );
+	void onShotElementRemoved( int index );
 
 private:
 	ShotWrapper::Ptr m_shotWrapper;
