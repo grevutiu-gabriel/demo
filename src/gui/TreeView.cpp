@@ -34,7 +34,7 @@ TreeView::TreeView(DemoWrapper::Ptr demoWrapper) :
 	tb->addAction("load", this, SLOT(load()));
 	tb->addAction("save", this, SLOT(save()));
 	tb->addAction("load scene", this, SLOT(loadScene()));
-	tb->addAction("new composition", this, SLOT(newComposition()));
+	tb->addAction("new comp", this, SLOT(newComposition()));
 	layout->addWidget( tb );
 
 	// treewidget --

@@ -17,10 +17,15 @@ namespace gui
 		return std::make_shared<CompositionWrapper>(composition);
 	}
 
+	CompositionWrapper::Ptr CompositionWrapper::create(Composition::Ptr composition)
+	{
+		return std::make_shared<CompositionWrapper>(composition);
+	}
+
 	void CompositionWrapper::load()
 	{
 		// for compositionelements
-		std::vector<CompositionElement::Ptr>& compositionElements = m_composition->getCompositionElements();
+		std::vector<CompositionElement::Ptr>& compositionElements = m_composition->getChilds();
 		int index = 0;
 		for( auto compositionElement:compositionElements )
 		{
@@ -57,7 +62,7 @@ namespace gui
 
 	void CompositionWrapper::addElement(ElementWrapper::Ptr elementWrapper)
 	{
-		CompositionElement::Ptr compositionElement = m_composition->addElement(elementWrapper->getElement());
+		CompositionElement::Ptr compositionElement = m_composition->addChild(elementWrapper->getElement());
 		int index = int(m_compositionElementWrapper.size());
 		m_compositionElementWrapper.push_back(CompositionElementWrapper::create(compositionElement));
 		emit compositionElementAdded(index);
@@ -66,7 +71,7 @@ namespace gui
 
 	CompositionElementWrapper::Ptr CompositionWrapper::takeCompositionElement(int index)
 	{
-		m_composition->takeCompositionElement(index);
+		m_composition->takeChild(index);
 
 		// reflect this in the wrapper list
 		//TODO: use Application to get wrapper instead of maintaining own list

@@ -4,10 +4,15 @@ base::Texture2d::Ptr Composition::m_noelement;
 base::Texture2d::Ptr Composition::m_nocamera;
 
 Composition::Composition() :
-	Object(),
+	CompositionElement(),
 	m_updateGraph(std::make_shared<UpdateGraph>())
 {
 	addProperty<base::Camera::Ptr>( "camera", std::bind( &Composition::getCamera, this ), std::bind( &Composition::setCamera, this, std::placeholders::_1 ) );
+}
+
+Composition::Ptr Composition::create()
+{
+	return std::make_shared<Composition>();
 }
 
 
@@ -18,7 +23,7 @@ void Composition::prepareForRendering()
 
 void Composition::render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera )
 {
-	if( m_elements.empty() )
+	if( m_childs.empty() )
 	{
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -49,7 +54,7 @@ void Composition::render( base::Context::Ptr context, float time, base::Camera::
 	}
 
 	// render elements
-	for( auto it = m_elements.begin(), end=m_elements.end();it!=end;++it )
+	for( auto it = m_childs.begin(), end=m_childs.end();it!=end;++it )
 	{
 		CompositionElement::Ptr compositionElement = *it;
 		compositionElement->render(context, time);
@@ -66,22 +71,24 @@ UpdateGraph::Ptr Composition::getUpdateGraph()
 	return m_updateGraph;
 }
 
+base::Camera::Ptr Composition::getCamera() const
+{
+	return m_camera;
+}
+
+void Composition::setCamera(base::Camera::Ptr camera)
+{
+	m_camera = camera;
+}
+/*
 int Composition::getNumCompositionElements() const
 {
 	return int(m_elements.size());
 }
 
-CompositionElement::Ptr Composition::getCompositionElement( int index )
-{
-	return m_elements[index];
-}
 
-CompositionElement::Ptr Composition::takeCompositionElement(int index)
-{
-	CompositionElement::Ptr se = getCompositionElement(index);
-	m_elements.erase(m_elements.begin()+index);
-	return se;
-}
+
+
 
 void Composition::insertElement(int index, CompositionElement::Ptr compositionElement )
 {
@@ -92,23 +99,13 @@ std::vector<CompositionElement::Ptr> &Composition::getCompositionElements()
 {
 	return m_elements;
 }
-
+*/
 
 
 void Composition::serialize(Serializer &out)
 {
-	Object::serialize(out);
+	CompositionElement::serialize(out);
 
-	// compositionelements
-	{
-		houdini::json::ArrayPtr elements = houdini::json::Array::create();
-		for(auto it=m_elements.begin(), end=m_elements.end();it!=end;++it)
-		{
-			CompositionElement::Ptr element = *it;
-			elements->append(element->serialize(out));
-		}
-		out.write("elements", elements);
-	}
 	// updategraph
 	{
 		out.write("updateGraph", m_updateGraph->serialize( out ));
@@ -117,17 +114,8 @@ void Composition::serialize(Serializer &out)
 
 void Composition::deserialize(Deserializer &in)
 {
-	Object::deserialize(in);
-	// compositionelements
-	{
-		houdini::json::ArrayPtr compositionElements = in.readArray("elements");
-		for(int i=0,numElements=compositionElements->size();i<numElements;++i)
-		{
-			CompositionElement::Ptr compositionElement = std::make_shared<CompositionElement>();
-			compositionElement->deserialize(in, compositionElements->getValue(i));
-			addElement(compositionElement);
-		}
-	}
+	CompositionElement::deserialize(in);
+
 	// updategraph
 	{
 		m_updateGraph->deserialize( in, in.readValue("updateGraph") );
@@ -136,46 +124,10 @@ void Composition::deserialize(Deserializer &in)
 
 
 
-houdini::json::Value CompositionElement::serialize(Serializer &out)
-{
-	houdini::json::ObjectPtr obj = houdini::json::Object::create();
-
-	obj->append( "element", out.serialize(m_element) );
-
-	// childs
-	{
-		houdini::json::ArrayPtr childs = houdini::json::Array::create();
-		for( auto it=m_childs.begin(), end=m_childs.end();it!=end;++it )
-		{
-			CompositionElement::Ptr child = *it;
-			childs->append( child->serialize(out) );
-		}
-		obj->append( "childs", childs );
-	}
-
-	return houdini::json::Value::createObject(obj);
-}
-
-void CompositionElement::deserialize(Deserializer &in, houdini::json::Value value)
-{
-	houdini::json::ObjectPtr obj = value.asObject();
-	m_element = std::dynamic_pointer_cast<Element>( in.deserializeObject(obj->getValue("element")) );
-	// childs
-	{
-		houdini::json::ArrayPtr childs = obj->getArray( "childs" );
-		for( int i=0,numElements=childs->size();i<numElements;++i )
-		{
-			CompositionElement::Ptr child = std::make_shared<CompositionElement>();
-			child->deserialize(in, childs->getValue(i));
-			m_childs.push_back(child);
-		}
-	}
-}
 
 
 
-
-REGISTERCLASS( Composition )
+REGISTERCLASS2( Composition, CompositionElement )
 
 
 

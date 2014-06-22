@@ -111,6 +111,7 @@ struct Deserializer
 	virtual float readInt( const std::string& key, int defaultValue =0)=0;
 	virtual math::V3f readV3f( const std::string& key, math::V3f defaultValue =0)=0;
 	virtual houdini::json::Value readValue( const std::string& key )=0;
+	virtual bool hasKey( const std::string& key )=0;
 	/*
 	virtual void read( const std::string& key, float value )=0;
 	virtual void read( const std::string& key, int value )=0;

@@ -10,6 +10,7 @@
 #include <iostream>
 
 #include "wrapper/ControllerWrapper.h"
+#include "wrapper/CompositionElementWrapper.h"
 
 namespace gui
 {
@@ -80,6 +81,12 @@ namespace gui
 			return it->second;
 
 		ObjectWrapper::Ptr wrapper;
+		if( std::dynamic_pointer_cast<Composition>(object) )
+			wrapper = CompositionWrapper::create(std::dynamic_pointer_cast<Composition>(object));
+		else
+		if( std::dynamic_pointer_cast<CompositionElement>(object) )
+			wrapper = CompositionElementWrapper::create(std::dynamic_pointer_cast<CompositionElement>(object));
+		else
 		if( std::dynamic_pointer_cast<LoadGeometry>(object) )
 			wrapper = LoadGeometryWrapper::create(std::dynamic_pointer_cast<LoadGeometry>(object));
 		else

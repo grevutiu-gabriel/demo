@@ -275,6 +275,11 @@ struct DemoDeserializer : public Deserializer
 		m_jsonObjectStack.pop();
 	}
 
+	virtual bool hasKey( const std::string& key )
+	{
+		return m_jsonObjectStack.top()->hasKey(key);
+	}
+
 	houdini::json::ArrayPtr readArray( const std::string& key )override
 	{
 		return m_jsonObjectStack.top()->getArray(key);

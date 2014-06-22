@@ -2,13 +2,13 @@
 
 #include <QObject>
 
-#include "../framework/Composition.h"
+#include "../framework/CompositionElement.h"
 #include "ElementWrapper.h"
 
 namespace gui
 {
 
-	class CompositionElementWrapper : public QObject
+	class CompositionElementWrapper : public ObjectWrapper
 	{
 		Q_OBJECT
 	public:
@@ -29,7 +29,7 @@ namespace gui
 	public:
 		CompositionElement::Ptr                     m_compositionElement;
 		std::vector<CompositionElementWrapper::Ptr> m_childs;
-		ElementWrapper::Ptr                  m_elementWrapper;
+		ElementWrapper::Ptr                         m_elementWrapper;
 	};
 
 } // namespace gui

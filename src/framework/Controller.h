@@ -164,8 +164,8 @@ public:
 		math::M44f rotationX = math::M44f::RotationMatrixX( -math::degToRad(m_rx) );
 		math::M44f rotationY = math::M44f::RotationMatrixY( -math::degToRad(m_ry) );
 		math::M44f rotationZ = math::M44f::RotationMatrixZ( -math::degToRad(m_rz) );
-		//TODO: scale
-		return rotationX*rotationY*rotationZ*t;
+		math::M44f scale = math::M44f::ScaleMatrix( m_sx, m_sy, m_sz );
+		return scale*rotationX*rotationY*rotationZ*t;
 	}
 	virtual bool isAnimated()const override
 	{

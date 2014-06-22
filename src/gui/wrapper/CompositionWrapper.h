@@ -17,6 +17,7 @@ namespace gui
 
 		CompositionWrapper( Composition::Ptr composition );
 		static Ptr create();
+		static Ptr create(Composition::Ptr composition);
 
 		void load();
 

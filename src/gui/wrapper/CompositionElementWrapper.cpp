@@ -4,7 +4,9 @@
 namespace gui
 {
 
-	CompositionElementWrapper::CompositionElementWrapper( CompositionElement::Ptr compositionElement ):m_compositionElement(compositionElement)
+	CompositionElementWrapper::CompositionElementWrapper( CompositionElement::Ptr compositionElement ):
+		ObjectWrapper(compositionElement),
+		m_compositionElement(compositionElement)
 	{
 		m_elementWrapper = std::dynamic_pointer_cast<ElementWrapper>(Application::getInstance()->getWrapper( compositionElement->getElement() ));
 	}
