@@ -31,11 +31,11 @@ public:
 
 public slots:
 	void onSceneAdded( int index );
-	void onShotAdded( int index );
+	void onCompositionAdded( int index );
 	void load();
 	void save();
 	void loadScene();
-	void newShot();
+	void newComposition();
 	void onCustomContextMenuRequested ( const QPoint & pos );
 	void onItemDoubleClicked(QTreeWidgetItem * item, int column);
 public:

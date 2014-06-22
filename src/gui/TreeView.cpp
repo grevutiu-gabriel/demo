@@ -1,7 +1,7 @@
 #include "TreeView.h"
 
 #include "TreeViewSceneItem.h"
-#include "TreeViewShotItem.h"
+#include "TreeViewCompositionItem.h"
 
 #include <QVBoxLayout>
 #include <QToolBar>
@@ -34,7 +34,7 @@ TreeView::TreeView(DemoWrapper::Ptr demoWrapper) :
 	tb->addAction("load", this, SLOT(load()));
 	tb->addAction("save", this, SLOT(save()));
 	tb->addAction("load scene", this, SLOT(loadScene()));
-	tb->addAction("new shot", this, SLOT(newShot()));
+	tb->addAction("new composition", this, SLOT(newComposition()));
 	layout->addWidget( tb );
 
 	// treewidget --
@@ -50,7 +50,7 @@ TreeView::TreeView(DemoWrapper::Ptr demoWrapper) :
 
 
 	connect( m_demoWrapper.get(), SIGNAL(sceneAdded(int)), this, SLOT(onSceneAdded(int)) );
-	connect( m_demoWrapper.get(), SIGNAL(shotAdded(int)), this, SLOT(onShotAdded(int)) );
+	connect( m_demoWrapper.get(), SIGNAL(compositionAdded(int)), this, SLOT(onCompositionAdded(int)) );
 	connect( m_treeWidget, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(onCustomContextMenuRequested(const QPoint&)) );
 }
 
@@ -66,10 +66,10 @@ void TreeView::onSceneAdded(int index)
 	m_treeWidget->addTopLevelItem(item);
 }
 
-void TreeView::onShotAdded(int index)
+void TreeView::onCompositionAdded(int index)
 {
 	// add a new TreeViewScene item representing the scene in the treeview
-	TreeViewShotItem* item = new TreeViewShotItem( m_demoWrapper->getShotWrapper( index ) );
+	TreeViewCompositionItem* item = new TreeViewCompositionItem( m_demoWrapper->getCompositionWrapper( index ) );
 	m_treeWidget->addTopLevelItem(item);
 }
 
@@ -115,9 +115,9 @@ void TreeView::loadScene()
 		std::cout << "no file selected!";
 }
 
-void TreeView::newShot()
+void TreeView::newComposition()
 {
-	m_demoWrapper->addShot(ShotWrapper::create());
+	m_demoWrapper->addComposition(CompositionWrapper::create());
 	Application::getInstance()->getGlViewer()->update();
 }
 
@@ -134,8 +134,8 @@ void TreeView::onCustomContextMenuRequested(const QPoint &pos)
 
 void TreeView::onItemDoubleClicked(QTreeWidgetItem *item, int column)
 {
-	if( dynamic_cast<TreeViewShotItem*>(item) )
-		dynamic_cast<TreeViewShotItem*>(item)->doubleClick(column);
+	if( dynamic_cast<TreeViewCompositionItem*>(item) )
+		dynamic_cast<TreeViewCompositionItem*>(item)->doubleClick(column);
 }
 
 }

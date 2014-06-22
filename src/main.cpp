@@ -119,8 +119,8 @@ void init( base::Context::Ptr context )
 	//demoWrapper->load("filename");
 	g_demo = demoWrapper->getDemo();
 
-	//if( g_demo->getNumShots()>0 )
-	//	gui::Application::getInstance()->openShotEditor( demoWrapper->getShotWrapper(0) );
+	//if( g_demo->getNumCompositions()>0 )
+	//	gui::Application::getInstance()->openCompositionEditor( demoWrapper->getCompositionWrapper(0) );
 #endif
 
 	// test: serialize demo ----
@@ -262,20 +262,20 @@ int main(int argc, char ** argv)
 
 
 	//gui::FlareShopWrapper::Ptr fsw;
-	//Volume::Ptr volume = std::dynamic_pointer_cast<Volume>(g_demo->getShot(0)->getShotElement(0)->getChild(1)->getElement());
+	//Volume::Ptr volume = std::dynamic_pointer_cast<Volume>(g_demo->getComposition(0)->getCompositionElement(0)->getChild(1)->getElement());
 	//gui::VolumeWrapper::Ptr volumeWrapper = std::make_shared<gui::VolumeWrapper>( volume );
 	//gui::TFEWidget tfe(volumeWrapper);
 	//tfe.show();
 	//volumeWrapper->connect( volumeWrapper.get(), SIGNAL(changed()), app.getGlViewer(), SLOT(updateGL()) );
 
-//	if( g_demo->getNumShots()>0 )
+//	if( g_demo->getNumCompositions()>0 )
 //	{
-//		Shot::Ptr shot = g_demo->getShot(0);
-//		int numShotElements = shot->getNumShotElements();
-//		for( int i=0;i<numShotElements;++i )
+//		Composition::Ptr composition = g_demo->getComposition(0);
+//		int numCompositionElements = composition->getNumCompositionElements();
+//		for( int i=0;i<numCompositionElements;++i )
 //		{
-//			ShotElement::Ptr shotElement = shot->getShotElement(i);
-//			FlareShop::Ptr fs = std::dynamic_pointer_cast<FlareShop>(shotElement->getElement());
+//			CompositionElement::Ptr compositionElement = composition->getCompositionElement(i);
+//			FlareShop::Ptr fs = std::dynamic_pointer_cast<FlareShop>(compositionElement->getElement());
 //			if( fs )
 //			{
 //				fsw = gui::FlareShopWrapper::create(fs);

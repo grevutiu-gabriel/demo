@@ -2,7 +2,7 @@
 
 #include <util/StringManip.h>
 
-#include "ShotElementWrapper.h"
+#include "CompositionElementWrapper.h"
 #include "../Application.h"
 
 namespace gui
@@ -38,15 +38,15 @@ namespace gui
 			//TODO: (*it)->load();
 		}
 
-		// for shots ----
-		std::vector<Shot::Ptr>& shots = m_demo->getShots();
+		// for compositions ----
+		std::vector<Composition::Ptr>& compositions = m_demo->getCompositions();
 		index = 0;
-		for( auto it = shots.begin(), end=shots.end();it!=end;++it,++index )
+		for( auto it = compositions.begin(), end=compositions.end();it!=end;++it,++index )
 		{
-			ShotWrapper::Ptr shotWrapper = std::make_shared<ShotWrapper>(*it);
-			m_shotWrapper.push_back( shotWrapper );
-			emit shotAdded(index);
-			shotWrapper->load();
+			CompositionWrapper::Ptr compositionWrapper = std::make_shared<CompositionWrapper>(*it);
+			m_compositionWrapper.push_back( compositionWrapper );
+			emit compositionAdded(index);
+			compositionWrapper->load();
 		}
 
 		Application::getInstance()->getGlViewer()->update();
@@ -63,12 +63,12 @@ namespace gui
 		return m_demo;
 	}
 
-	void DemoWrapper::addShot(ShotWrapper::Ptr shotWrapper)
+	void DemoWrapper::addComposition(CompositionWrapper::Ptr compositionWrapper)
 	{
-		m_demo->addShot( shotWrapper->getShot() );
-		int index = int(m_shotWrapper.size());
-		m_shotWrapper.push_back(shotWrapper);
-		emit shotAdded(index);
+		m_demo->addComposition( compositionWrapper->getComposition() );
+		int index = int(m_compositionWrapper.size());
+		m_compositionWrapper.push_back(compositionWrapper);
+		emit compositionAdded(index);
 	}
 
 	void DemoWrapper::loadScene(const std::string &filename)
@@ -87,9 +87,9 @@ namespace gui
 		emit sceneAdded(index);
 	}
 
-	ShotWrapper::Ptr DemoWrapper::getShotWrapper(int index)
+	CompositionWrapper::Ptr DemoWrapper::getCompositionWrapper(int index)
 	{
-		return m_shotWrapper[index];
+		return m_compositionWrapper[index];
 	}
 
 	SceneWrapper::Ptr DemoWrapper::getSceneWrapper(int index)

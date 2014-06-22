@@ -133,38 +133,38 @@ namespace gui
 
 
 
-	void Application::openShotEditor(ShotWrapper::Ptr shotWrapper)
+	void Application::openCompositionEditor(CompositionWrapper::Ptr compositionWrapper)
 	{
-		ShotEditor::Ptr se;
-		auto it = m_shotEditor.find(shotWrapper);
-		if(it!=m_shotEditor.end())
+		CompositionEditor::Ptr se;
+		auto it = m_compositionEditor.find(compositionWrapper);
+		if(it!=m_compositionEditor.end())
 		{
 			se = it->second;
 		}else
 		{
-			// create shot editor ---
-			se = ShotEditor::create(shotWrapper);
-			m_tabWidget->addTab( se->getWidget(), QString::fromStdString(shotWrapper->getName()) );
+			// create composition editor ---
+			se = CompositionEditor::create(compositionWrapper);
+			m_tabWidget->addTab( se->getWidget(), QString::fromStdString(compositionWrapper->getName()) );
 			// register
-			m_shotEditor[shotWrapper] = se;
+			m_compositionEditor[compositionWrapper] = se;
 		}
 
-		// bring tab to front, change demo rendering shot
+		// bring tab to front, change demo rendering composition
 		bool found = false;
-		int shotIndex = 0;
-		std::vector<Shot::Ptr>& shots = m_demoWrapper->getDemo()->getShots();
-		for( auto shot : shots)
+		int compositionIndex = 0;
+		std::vector<Composition::Ptr>& compositions = m_demoWrapper->getDemo()->getCompositions();
+		for( auto composition : compositions)
 		{
-			if( shotWrapper->getShot() == shot )
+			if( compositionWrapper->getComposition() == composition )
 			{
 				found=true;
 				continue;
 			}
-			++shotIndex;
+			++compositionIndex;
 		}
 
 		if(found)
-			m_demoWrapper->getDemo()->m_currentShotIndex = shotIndex;
+			m_demoWrapper->getDemo()->m_currentCompositionIndex = compositionIndex;
 	}
 
 
@@ -187,13 +187,13 @@ namespace gui
 
 	void Application::serializeGuiInfo(Serializer &out)
 	{
-		std::vector<Shot::Ptr>& shots = m_demoWrapper->getDemo()->getShots();
-		// shot editors
+		std::vector<Composition::Ptr>& compositions = m_demoWrapper->getDemo()->getCompositions();
+		// composition editors
 		{
-			// make all updategraphviews(in open shoteditors) update the node positions in
-			for( auto shotEditor:m_shotEditor )
+			// make all updategraphviews(in open compositioneditors) update the node positions in
+			for( auto compositionEditor:m_compositionEditor )
 			{
-				shotEditor.second->updateGuiInfo();
+				compositionEditor.second->updateGuiInfo();
 			}
 
 
@@ -204,15 +204,15 @@ namespace gui
 				houdini::json::ObjectPtr json = houdini::json::Object::create();
 				UpdateGraphWrapper::Ptr wrapper = it.second;
 
-				// find shot to which this wrapper belongs...
-				Shot::Ptr foundShot;
-				for( auto shot:shots )
-					if( getWrapper(shot->getUpdateGraph()) == wrapper )
-						foundShot = shot;
-				if(!foundShot)
+				// find composition to which this wrapper belongs...
+				Composition::Ptr foundComposition;
+				for( auto composition:compositions )
+					if( getWrapper(composition->getUpdateGraph()) == wrapper )
+						foundComposition = composition;
+				if(!foundComposition)
 					continue;
 
-				json->append( "shot", out.serialize(foundShot) );
+				json->append( "composition", out.serialize(foundComposition) );
 				wrapper->serialize(out, json);
 
 				updateGraphWrappers->append(json);
@@ -228,9 +228,9 @@ namespace gui
 		{
 			houdini::json::ObjectPtr json = updateGraphWrappers->getObject(i);
 
-			Shot::Ptr shot = std::dynamic_pointer_cast<Shot>(in.deserializeObject(json->getValue("shot")));
+			Composition::Ptr composition = std::dynamic_pointer_cast<Composition>(in.deserializeObject(json->getValue("composition")));
 
-			UpdateGraphWrapper::Ptr updateGraphWrapper = getWrapper(shot->getUpdateGraph());
+			UpdateGraphWrapper::Ptr updateGraphWrapper = getWrapper(composition->getUpdateGraph());
 
 			updateGraphWrapper->deserialize( in, json );
 		}

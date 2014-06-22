@@ -361,7 +361,7 @@ base::Texture2d::Ptr Demo::m_nocomp;
 
 Demo::Demo( bool doAudio ) :
 	Object(),
-	m_currentShotIndex(0)
+	m_currentCompositionIndex(0)
 {
 	base::setVariable("$DATA", base::path("data").str());
 	if(doAudio)
@@ -377,14 +377,14 @@ Demo::Demo( bool doAudio ) :
 //	m_elements.push_back(element);
 //}
 
-Shot::Ptr Demo::getShot( int index )
+Composition::Ptr Demo::getComposition( int index )
 {
-	return m_shots[index];
+	return m_compositions[index];
 }
 
-int Demo::getNumShots() const
+int Demo::getNumCompositions() const
 {
-	return int(m_shots.size());
+	return int(m_compositions.size());
 }
 
 float Demo::getDuration() const
@@ -399,9 +399,9 @@ std::vector<Scene::Ptr> &Demo::getScenes()
 	return m_scenes;
 }
 
-std::vector<Shot::Ptr> &Demo::getShots()
+std::vector<Composition::Ptr> &Demo::getCompositions()
 {
-	return m_shots;
+	return m_compositions;
 }
 
 // TODO: remove
@@ -456,25 +456,25 @@ void Demo::load( const std::string& filename, GuiInfoDeserializationCallback cal
 	m_deserializeMap[4] = ObjectFactory::create("Nebulae");
 	m_deserializeMap[5] = ObjectFactory::create("RenderGeometry");
 	m_deserializeMap[6] = ObjectFactory::create("FlareShop");
-	m_deserializeMap[7] = ObjectFactory::create("Shot");
+	m_deserializeMap[7] = ObjectFactory::create("Composition");
 
 	// deserialize all objects in a second pass (allows objects to reference each other in their serialization) ---
 	//...
 
-	// deserialize shots ---
-	addShot( std::dynamic_pointer_cast<Shot>(m_deserializeMap[7]) );
+	// deserialize compositions ---
+	addComposition( std::dynamic_pointer_cast<Composition>(m_deserializeMap[7]) );
 */
 
 	/*
-	Shot::Ptr shot = Shot::create();
-	addShot(shot);
+	Composition::Ptr composition = Composition::create();
+	addComposition(composition);
 
 	Element::Ptr clear = ObjectFactory::create<Element>("Clear");
-	shot->addElement( clear );
+	composition->addElement( clear );
 	Element::Ptr renderGeo = ObjectFactory::create<Element>("RenderGeometry");
-	//shot->addElement( renderGeo );
+	//composition->addElement( renderGeo );
 	Element::Ptr renderTex = ObjectFactory::create<Element>("RenderTexture");
-	//shot->addElement( renderTex );
+	//composition->addElement( renderTex );
 
 	Controller::Ptr toV3f = ObjectFactory::create<Controller>("FloatToV3fController");
 	Controller::Ptr test = ObjectFactory::create<Controller>("SinusController");
@@ -485,82 +485,82 @@ void Demo::load( const std::string& filename, GuiInfoDeserializationCallback cal
 	loadShader->setFilename( "$DATA/matcap" );
 	//loadTexture->setFilename( "$DATA/scary-light.jpg" );
 	loadTexture->setFilename( "$DATA/00ZBrush_RedWax.png" );
-	//shot->setPropertyController( clear, "color", toV3f );
-	shot->setPropertyController( renderGeo, "geometry", loadGeometry );
-	shot->setPropertyController( renderGeo, "shader", loadShader );
-	shot->setPropertyController( loadShader, "tex", loadTexture );
-	//shot->setPropertyController( toV3f, "x", test );
-	//shot->setPropertyController( toV3f, "y", test );
-	//shot->setPropertyController( toV3f, "z", test );
+	//composition->setPropertyController( clear, "color", toV3f );
+	composition->setPropertyController( renderGeo, "geometry", loadGeometry );
+	composition->setPropertyController( renderGeo, "shader", loadShader );
+	composition->setPropertyController( loadShader, "tex", loadTexture );
+	//composition->setPropertyController( toV3f, "x", test );
+	//composition->setPropertyController( toV3f, "y", test );
+	//composition->setPropertyController( toV3f, "z", test );
 
-	//shot->setPropertyController( renderTex, "texture", loadTexture );
-	//shot->setPropertyController( renderTex, "texture", SceneController::create(m_scenes[2],"/obj/geo1/volumeramp1/baked") );
+	//composition->setPropertyController( renderTex, "texture", loadTexture );
+	//composition->setPropertyController( renderTex, "texture", SceneController::create(m_scenes[2],"/obj/geo1/volumeramp1/baked") );
 
 
 	SceneController::Ptr ch1 = SceneController::create(m_scenes[0],"/ch/ch1.x");
 	SceneController::Ptr cam1 = SceneController::create(m_scenes[0],"/obj/cam1");
 	SceneController::Ptr switch1 = SceneController::create(m_scenes[1],"/obj/switcher1");
-	shot->setPropertyController( toV3f, "y", ch1 );
-	shot->setPropertyController( shot, "camera", switch1 );
+	composition->setPropertyController( toV3f, "y", ch1 );
+	composition->setPropertyController( composition, "camera", switch1 );
 
-	shot->prepareForRendering();
+	composition->prepareForRendering();
 	*/
 ///*
 ///
 ///
 	/*
 	// volume -------
-	Shot::Ptr shot = Shot::create();
-	addShot(shot);
+	Composition::Ptr composition = Composition::create();
+	addComposition(composition);
 
 	Element::Ptr clear = ObjectFactory::create<Element>("Clear");
-	shot->addElement( clear );
+	composition->addElement( clear );
 	Volume::Ptr volume = ObjectFactory::create<Volume>("Volume");
 	//FlareShop::Ptr flareshop = ObjectFactory::create<FlareShop>("FlareShop");
-	//shot->addElement( flareshop );
+	//composition->addElement( flareshop );
 
 	LoadVolume::Ptr loadVolume = ObjectFactory::create<LoadVolume>("LoadVolume");
 	loadVolume->setFilename("$DATA/artifix_resized_moved.bgeo");
-	shot->addElement( volume );
+	composition->addElement( volume );
 
-	shot->setPropertyController( shot, "camera", SceneController::create(m_scenes[0],"/obj/switcher1") );
-	shot->setPropertyController( volume, "normalizedDensity", loadVolume);
-	shot->setPropertyController( volume, "transferfunction", SceneController::create(m_scenes[0],"/obj/geo1/volumeramp1/baked"));
-	shot->setPropertyController( volume, "localToWorld", loadVolume);
-	shot->setPropertyController( volume, "PointLightPosition", SceneController::create(m_scenes[0],"/obj/null1/transform.translation"));
-	shot->setPropertyController( volume, "PointLightColor", SceneController::create(m_scenes[0],"/obj/pointlight1/light_color"));
-	shot->setPropertyController( volume, "PointLightIntensity", SceneController::create(m_scenes[0],"/obj/pointlight1/light_intensity"));
+	composition->setPropertyController( composition, "camera", SceneController::create(m_scenes[0],"/obj/switcher1") );
+	composition->setPropertyController( volume, "normalizedDensity", loadVolume);
+	composition->setPropertyController( volume, "transferfunction", SceneController::create(m_scenes[0],"/obj/geo1/volumeramp1/baked"));
+	composition->setPropertyController( volume, "localToWorld", loadVolume);
+	composition->setPropertyController( volume, "PointLightPosition", SceneController::create(m_scenes[0],"/obj/null1/transform.translation"));
+	composition->setPropertyController( volume, "PointLightColor", SceneController::create(m_scenes[0],"/obj/pointlight1/light_color"));
+	composition->setPropertyController( volume, "PointLightIntensity", SceneController::create(m_scenes[0],"/obj/pointlight1/light_intensity"));
 	*/
 
 	/*
 	// neublae
-	Shot::Ptr shot = Shot::create();
-	shot->setName("nebulae");
-	addShot(shot);
+	Composition::Ptr composition = Composition::create();
+	composition->setName("nebulae");
+	addComposition(composition);
 
 	Element::Ptr clear = ObjectFactory::create<Element>("Clear");
 	clear->setName("clear");
-	shot->addElement( clear );
+	composition->addElement( clear );
 	Volume::Ptr volume = ObjectFactory::create<Volume>("Volume");
 	volume->setName("volume");
 
 	LoadVolume::Ptr loadVolume = ObjectFactory::create<LoadVolume>("LoadVolume");
 	loadVolume->setFilename("$DATA/nebulae200.bgeo");
-	shot->addElement( volume );
+	composition->addElement( volume );
 
-	shot->setPropertyController( shot, "camera", SceneController::create(m_scenes[2],"/obj/cam1") );
-	shot->setPropertyController( volume, "normalizedDensity", loadVolume);
-	shot->setPropertyController( volume, "transferfunction", SceneController::create(m_scenes[2],"/obj/geo1/volumeramp1/baked"));
-	shot->setPropertyController( volume, "localToWorld", loadVolume);
-	shot->setPropertyController( volume, "PointLightPosition", SceneController::create(m_scenes[2],"/obj/pointlight1/transform.translation"));
-	shot->setPropertyController( volume, "PointLightColor", SceneController::create(m_scenes[0],"/obj/pointlight1/light_color"));
-	shot->setPropertyController( volume, "PointLightIntensity", SceneController::create(m_scenes[2],"/obj/pointlight1/light_intensity"));
-	shot->setPropertyController( volume, "stepSize", SceneController::create(m_scenes[2],"/ch/stepsize"));
-
-
+	composition->setPropertyController( composition, "camera", SceneController::create(m_scenes[2],"/obj/cam1") );
+	composition->setPropertyController( volume, "normalizedDensity", loadVolume);
+	composition->setPropertyController( volume, "transferfunction", SceneController::create(m_scenes[2],"/obj/geo1/volumeramp1/baked"));
+	composition->setPropertyController( volume, "localToWorld", loadVolume);
+	composition->setPropertyController( volume, "PointLightPosition", SceneController::create(m_scenes[2],"/obj/pointlight1/transform.translation"));
+	composition->setPropertyController( volume, "PointLightColor", SceneController::create(m_scenes[0],"/obj/pointlight1/light_color"));
+	composition->setPropertyController( volume, "PointLightIntensity", SceneController::create(m_scenes[2],"/obj/pointlight1/light_intensity"));
+	composition->setPropertyController( volume, "stepSize", SceneController::create(m_scenes[2],"/ch/stepsize"));
 
 
-	shot->prepareForRendering();
+
+
+	composition->prepareForRendering();
 	*/
 //*/
 //	// load elements ------
@@ -572,7 +572,7 @@ void Demo::load( const std::string& filename, GuiInfoDeserializationCallback cal
 //	addElement( ObjectFactory::create<Element>("RenderGeometry") );
 //	addElement( ObjectFactory::create<Element>("FlareShop") );
 
-	// load shots -----
+	// load compositions -----
 
 
 	/*
@@ -604,30 +604,30 @@ void Demo::load( const std::string& filename, GuiInfoDeserializationCallback cal
 	post->setVignetteSoftness( 1.0f );
 	post->setVignetteScale(0.7f);
 
-	// manix shot ---------
+	// manix composition ---------
 	{
-		// create shot
-		Shot::Ptr shot = Shot::create();
-		shot->m_cameraController = scene->getCamera("switcher1");
+		// create composition
+		Composition::Ptr composition = Composition::create();
+		composition->m_cameraController = scene->getCamera("switcher1");
 
 
-		ShotElement::Ptr se = ShotElement::create(post);
+		CompositionElement::Ptr se = CompositionElement::create(post);
 		se->addChild(black);
 		se->addChild(volume);
-		shot->setController(volume, "PointLightPosition", scene->getLocator("null1")->getProperty("translation"));
-		shot->setController(volume, "PointLightIntensity", scene->getChannel("ch1.x"));
+		composition->setController(volume, "PointLightPosition", scene->getLocator("null1")->getProperty("translation"));
+		composition->setController(volume, "PointLightIntensity", scene->getChannel("ch1.x"));
 		//volumese->setController(volume->m_transferFunction->getNode(1), "density", scene->getChannel("tfnode.density"));
 		//se->addChild(stars);
-		shot->addElement(se);
-		addShot(shot);
+		composition->addElement(se);
+		addComposition(composition);
 	}
 
 	// geometry --------
 	{
-		Shot::Ptr shot = Shot::create();
-		shot->m_cameraController = scene_test->getCamera("switcher1");
+		Composition::Ptr composition = Composition::create();
+		composition->m_cameraController = scene_test->getCamera("switcher1");
 
-		ShotElement::Ptr se = ShotElement::create(post);
+		CompositionElement::Ptr se = CompositionElement::create(post);
 		// ------------
 		base::Geometry::Ptr geo = houdini::HouGeoIO::importGeometry(basePathData + "/test.bgeo");
 		//base::Geometry::Ptr geo = houdini::HouGeoIO::importGeometry(basePathData + "/mountain.bgeo");
@@ -656,21 +656,21 @@ void Demo::load( const std::string& filename, GuiInfoDeserializationCallback cal
 		se->addChild(stars);
 		se->addChild(renderGeo);
 
-		shot->addElement(se);
+		composition->addElement(se);
 
-		//shot->addElement(black);
-		//shot->addElement(renderGeo);
+		//composition->addElement(black);
+		//composition->addElement(renderGeo);
 
-		addShot(shot);
+		addComposition(composition);
 	}
 
 	// Nebulae
 	{
-		Shot::Ptr shot = Shot::create();
-		shot->m_cameraController = scene_test->getCamera("cam1");
+		Composition::Ptr composition = Composition::create();
+		composition->m_cameraController = scene_test->getCamera("cam1");
 
 
-		ShotElement::Ptr se = ShotElement::create(post);
+		CompositionElement::Ptr se = CompositionElement::create(post);
 		Nebulae::Ptr nebulae = Nebulae::create();
 		nebulae->generate();
 
@@ -678,15 +678,15 @@ void Demo::load( const std::string& filename, GuiInfoDeserializationCallback cal
 		se->addChild(stars);
 		se->addChild(nebulae);
 
-		shot->addElement(se);
+		composition->addElement(se);
 
-		addShot(shot);
+		addComposition(composition);
 	}
 
 
 
 	// add clips
-	// clips define when on the global timeline which shot will be rendered
+	// clips define when on the global timeline which composition will be rendered
 	addClip( 0, 0.0f, 24.0f, 24.0f );
 	addClip( 1, 24.0f, 48.0f, 24.0f );
 	//addClip( 2, 36.0f, 72.0f, 24.0f );
@@ -695,16 +695,16 @@ void Demo::load( const std::string& filename, GuiInfoDeserializationCallback cal
 //	{
 //		Element::Ptr black = Clear::create(math::V3f(0.0f, 0.0f, 0.0f));
 //		FlareShop::Ptr fs = FlareShop::create();
-//		Shot::Ptr shot = Shot::create();
-//		shot->addElement(black);
-//		shot->addElement(fs);
-//		this->addShot(shot);
+//		Composition::Ptr composition = Composition::create();
+//		composition->addElement(black);
+//		composition->addElement(fs);
+//		this->addComposition(composition);
 //		addClip( 0, 0.0f, 1.0f, 1.0f );
 //	}
 	*/
 
-	for( auto shot:m_shots )
-		shot->prepareForRendering();
+	for( auto composition:m_compositions )
+		composition->prepareForRendering();
 
 	// load audio ----
 	//if(m_audio)
@@ -721,15 +721,15 @@ void Demo::render( base::Context::Ptr context, float time, base::Camera::Ptr ove
 
 	int newClipIndex = m_clipIndex.evaluate(time);
 	Clip& clip = m_clips[newClipIndex];
-	int newShotIndex = clip.shotIndex;
-//	//std::cout << time << " rendering shot " << newShotIndex << std::endl;
+	int newCompositionIndex = clip.compositionIndex;
+//	//std::cout << time << " rendering composition " << newCompositionIndex << std::endl;
 
 */
-	if( m_currentShotIndex < m_shots.size() )
+	if( m_currentCompositionIndex < m_compositions.size() )
 	{
-		int newShotIndex = m_currentShotIndex;
-		Shot::Ptr shot = m_shots[newShotIndex];
-		shot->render(context, time, overrideCamera);
+		int newCompositionIndex = m_currentCompositionIndex;
+		Composition::Ptr composition = m_compositions[newCompositionIndex];
+		composition->render(context, time, overrideCamera);
 	}else
 	{
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -753,15 +753,15 @@ void Demo::serialize(Serializer &out)
 		out.write( "scenes", scenes );
 	}
 
-	// shots
+	// compositions
 	{
-		houdini::json::ArrayPtr shots = houdini::json::Array::create();
-		for( auto it = m_shots.begin(), end=m_shots.end();it!=end;++it )
+		houdini::json::ArrayPtr compositions = houdini::json::Array::create();
+		for( auto it = m_compositions.begin(), end=m_compositions.end();it!=end;++it )
 		{
-			Shot::Ptr shot = *it;
-			shots->append( out.serialize(shot) );
+			Composition::Ptr composition = *it;
+			compositions->append( out.serialize(composition) );
 		}
-		out.write( "shots", shots );
+		out.write( "compositions", compositions );
 	}
 }
 
@@ -774,12 +774,12 @@ void Demo::deserialize(Deserializer &in)
 		Scene::Ptr scene = std::dynamic_pointer_cast<Scene>(in.deserializeObject( scenes->getValue(i) ));
 		addScene(scene);
 	}
-	// shots ------
-	houdini::json::ArrayPtr shots = in.readArray( "shots" );
-	for( int i=0,numElements=shots->size();i<numElements;++i )
+	// compositions ------
+	houdini::json::ArrayPtr compositions = in.readArray( "compositions" );
+	for( int i=0,numElements=compositions->size();i<numElements;++i )
 	{
-		Shot::Ptr shot = std::dynamic_pointer_cast<Shot>(in.deserializeObject( shots->getValue(i) ));
-		addShot(shot);
+		Composition::Ptr composition = std::dynamic_pointer_cast<Composition>(in.deserializeObject( compositions->getValue(i) ));
+		addComposition(composition);
 	}
 }
 
@@ -797,19 +797,19 @@ void Demo::save(const std::string &filename, GuiInfoSerializationCallback serial
 }
 
 
-int Demo::addShot( Shot::Ptr shot )
+int Demo::addComposition( Composition::Ptr composition )
 {
-	int index = int(m_shots.size());
-	m_shots.push_back(shot);
+	int index = int(m_compositions.size());
+	m_compositions.push_back(composition);
 	return index;
 }
 
-void Demo::addClip(int shotIndex, float shotStart , float shotEnd, float clipDuration)
+void Demo::addClip(int compositionIndex, float compositionStart , float compositionEnd, float clipDuration)
 {
 	Clip clip;
-	clip.shotStart = shotStart;
-	clip.shotEnd = shotEnd;
-	clip.shotIndex = shotIndex;
+	clip.compositionStart = compositionStart;
+	clip.compositionEnd = compositionEnd;
+	clip.compositionIndex = compositionIndex;
 	clip.duration = clipDuration;
 	m_clips.push_back( clip );
 

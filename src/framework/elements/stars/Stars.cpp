@@ -142,7 +142,7 @@ void Stars::render( base::Context::Ptr context, float time )
 
 	if( m_fixedRotation )
 	{
-		// use user specified rotation axis and angle...makes for some nice star trail shots
+		// use user specified rotation axis and angle...makes for some nice star trail compositions
 		axis = m_fixedRotationAxis;
 		angle = m_fixedRotationAngle;
 	}else

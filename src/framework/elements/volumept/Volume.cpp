@@ -330,7 +330,7 @@ Volume::Volume() : Element()
 	volumeShader->setUniform( "transferFunction", m_transferFunction->m_texture->getUniform() );
 	//volumeShader->setUniform( "transferFunction2", m_transferFunction2->getTexture()->getUniform() );
 	volumeShader->setUniform( "sigma_t_scale", 100.0f );
-	//volumeShader->setUniform( "shotLocalTime", 0.5f );
+	//volumeShader->setUniform( "compositionLocalTime", 0.5f );
 	//std::cout << "sigma_t_scale " << m_transferFunction->m_st_max << std::endl;
 
 

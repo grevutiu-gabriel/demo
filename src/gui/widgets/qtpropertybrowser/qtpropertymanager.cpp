@@ -5699,7 +5699,7 @@ void  QtFontPropertyManagerPrivate::slotFontDatabaseChanged()
     if (!m_fontDatabaseChangeTimer) {
         m_fontDatabaseChangeTimer = new QTimer(q_ptr);
         m_fontDatabaseChangeTimer->setInterval(0);
-        m_fontDatabaseChangeTimer->setSingleShot(true);
+		m_fontDatabaseChangeTimer->setSingleShot(true);
         QObject::connect(m_fontDatabaseChangeTimer, SIGNAL(timeout()), q_ptr, SLOT(slotFontDatabaseDelayedChange()));
     }
     if (!m_fontDatabaseChangeTimer->isActive())

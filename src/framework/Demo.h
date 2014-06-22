@@ -3,7 +3,7 @@
 #include <util/shared_ptr.h>
 #include <util/PiecewiseLinearFunction.h>
 #include "Scene.h"
-#include "Shot.h"
+#include "Composition.h"
 #include "elements/Clear.h"
 #include "elements/RenderGeometry.h"
 #include "Audio.h"
@@ -73,16 +73,16 @@ struct PiecewiseConstantFunction
 
 struct Clip
 {
-	int shotIndex;
-	float shotStart;
-	float shotEnd;
+	int compositionIndex;
+	float compositionStart;
+	float compositionEnd;
 	float duration;
 
 
-	float toShotTime( float globalTime )const
+	float toCompositionTime( float globalTime )const
 	{
 		// todo: scale for slowmo stuff?
-		return globalTime - shotStart;
+		return globalTime - compositionStart;
 	}
 };
 
@@ -113,13 +113,13 @@ public:
 
 	void                                 addScene( Scene::Ptr scene );
 	void                                 loadScene(const std::string &filename);
-	void                                 addClip( int shotIndex, float shotStart, float shotEnd, float clipDuration );
-	int                                  addShot( Shot::Ptr shot );
-	Shot::Ptr                            getShot( int index );
-	int                                  getNumShots()const;
+	void                                 addClip( int compositionIndex, float compositionStart, float compositionEnd, float clipDuration );
+	int                                  addComposition( Composition::Ptr composition );
+	Composition::Ptr                            getComposition( int index );
+	int                                  getNumCompositions()const;
 	float                                getDuration()const;
 	std::vector<Scene::Ptr>&             getScenes();
-	std::vector<Shot::Ptr>&              getShots();
+	std::vector<Composition::Ptr>&              getCompositions();
 
 	void                                 render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera = base::Camera::Ptr() );
 
@@ -128,10 +128,10 @@ public:
 
 	std::string                          m_filename;
 	std::vector<Scene::Ptr>              m_scenes;
-	std::vector<Shot::Ptr>               m_shots;
-	int                                  m_currentShotIndex;
+	std::vector<Composition::Ptr>               m_compositions;
+	int                                  m_currentCompositionIndex;
 	std::vector<Clip>                    m_clips;
-	PiecewiseConstantFunction<int>       m_clipIndex; // tells which shot to render when (should cover the range [0, m_duration])
+	PiecewiseConstantFunction<int>       m_clipIndex; // tells which composition to render when (should cover the range [0, m_duration])
 	Audio::Ptr                           m_audio;
 
 	static base::Texture2d::Ptr          m_nocomp;

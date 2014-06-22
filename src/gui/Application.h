@@ -10,11 +10,11 @@
 #include "widgets/GLViewer/GLViewer.h"
 
 #include "wrapper/DemoWrapper.h"
-#include "wrapper/ShotWrapper.h"
+#include "wrapper/CompositionWrapper.h"
 #include "TreeView.h"
 #include "ObjectTypeListView.h"
 #include "UpdateGraphView.h"
-#include "ShotEditor.h"
+#include "CompositionEditor.h"
 
 
 namespace gui
@@ -36,7 +36,7 @@ namespace gui
 		gui::widgets::GLViewer*         getGlViewer();
 
 		DemoWrapper::Ptr                getDemoWrapper();
-		void                            openShotEditor( ShotWrapper::Ptr shotWrapper );
+		void                            openCompositionEditor( CompositionWrapper::Ptr compositionWrapper );
 
 		void watchFile( const std::string& filename, FileChangedCallback callback );
 		void unwatchFile( const std::string& filename );
@@ -55,7 +55,7 @@ namespace gui
 		TreeView::Ptr                                        m_treeView;
 		ObjectTypeListView::Ptr                              m_typeList;
 		QTabWidget*                                          m_tabWidget;
-		std::map<ShotWrapper::Ptr, ShotEditor::Ptr>          m_shotEditor;
+		std::map<CompositionWrapper::Ptr, CompositionEditor::Ptr>          m_compositionEditor;
 		DemoWrapper::Ptr                                     m_demoWrapper;
 		QFileSystemWatcher                                   m_fileWatcher;
 		std::map<std::string, FileChangedCallback>           m_fileChangedCallbacks;
