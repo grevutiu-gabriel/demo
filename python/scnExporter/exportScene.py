@@ -200,7 +200,7 @@ class ExportScene:
 				
 	# exports all cameras of the scene
 	def exportGeometries(self, writer):
-		channelMatch = {'transform.tx':'tx', 'transform.ty':'ty', 'transform.tz':'tz', 'transform.rx':'rx', 'transform.ry':'ry', 'transform.rz':'rz', 'transform.rotateOrder':'rOrd'}
+		channelMatch = {'transform.tx':'tx', 'transform.ty':'ty', 'transform.tz':'tz', 'transform.rx':'rx', 'transform.ry':'ry', 'transform.rz':'rz', 'transform.sx':'sx', 'transform.sy':'sy', 'transform.sz':'sz', 'transform.rotateOrder':'rOrd'}
 
 				
 		writer.jsonKeyToken("geometries")
@@ -296,7 +296,7 @@ class ExportScene:
 
 
 	def exportLocators(self, writer):
-		channelMatch = {'transform.tx':'tx', 'transform.ty':'ty', 'transform.tz':'tz', 'transform.rx':'rx', 'transform.ry':'ry', 'transform.rz':'rz', 'transform.rotateOrder':'rOrd'}
+		channelMatch = {'transform.tx':'tx', 'transform.ty':'ty', 'transform.tz':'tz', 'transform.rx':'rx', 'transform.ry':'ry', 'transform.rz':'rz', 'transform.sx':'sx', 'transform.sy':'sy', 'transform.sz':'sz', 'transform.rotateOrder':'rOrd'}
 
 		writer.jsonKeyToken("locators")
 		writer.jsonBeginMap()
