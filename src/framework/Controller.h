@@ -43,7 +43,10 @@ public:
 	}
 
 	virtual T evaluate(float time)=0;
-	virtual bool isAnimated()const=0;
+	virtual bool isAnimated()const
+	{
+		return true;
+	}
 };
 
 typedef ControllerT<float> FloatController;
