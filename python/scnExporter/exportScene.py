@@ -228,7 +228,7 @@ class ExportScene:
 		
 	# exports all cameras of the scene
 	def exportCameras(self, writer):
-		channelMatch = {'transform.tx':'tx', 'transform.ty':'ty', 'transform.tz':'tz', 'transform.rx':'rx', 'transform.ry':'ry', 'transform.rz':'rz', 'transform.rotateOrder':'rOrd', 'camera.fl':'focal', 'camera.horizontalFilmAperture':'aperture'}
+		channelMatch = {'transform.tx':'tx', 'transform.ty':'ty', 'transform.tz':'tz', 'transform.rx':'rx', 'transform.ry':'ry', 'transform.rz':'rz', 'transform.sx':'sx', 'transform.sy':'sy', 'transform.sz':'sz', 'transform.rotateOrder':'rOrd', 'camera.fl':'focal', 'camera.horizontalFilmAperture':'aperture'}
 
 				
 		writer.jsonKeyToken("cameras")
@@ -247,7 +247,7 @@ class ExportScene:
 
 	# exports all lights of the scene
 	def exportLights(self, writer):
-		channelMatch = {'transform.tx':'tx', 'transform.ty':'ty', 'transform.tz':'tz', 'transform.rx':'rx', 'transform.ry':'ry', 'transform.rz':'rz', 'transform.rotateOrder':'rOrd', 'light_intensity':'light_intensity','light_colorr':'light_colorr', 'light_colorg':'light_colorg', 'light_colorb':'light_colorb' }
+		channelMatch = {'transform.tx':'tx', 'transform.ty':'ty', 'transform.tz':'tz', 'transform.rx':'rx', 'transform.ry':'ry', 'transform.rz':'rz', 'transform.sx':'sx', 'transform.sy':'sy', 'transform.sz':'sz', 'transform.rotateOrder':'rOrd', 'light_intensity':'light_intensity','light_colorr':'light_colorr', 'light_colorg':'light_colorg', 'light_colorb':'light_colorb' }
 
 		writer.jsonKeyToken("lights")
 		writer.jsonBeginMap()
