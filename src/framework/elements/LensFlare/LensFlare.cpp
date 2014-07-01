@@ -1,24 +1,27 @@
-#include "FlareShop.h"
+#include "LensFlare.h"
 
 #include <gfx/Geometry.h>
 #include <util/fs.h>
 
 
-FlareShop::FlareShop() : Element()
+LensFlare::LensFlare() : Element()
 {
 	m_lightpos = base::Attribute::createV3f();
 	m_lightpos->appendElement(1.0f, 0.0f, 0.0f);
 	m_ring = ChromaticRing::create(m_lightpos);
 
+	m_lights.push_back( math::V3f(0.0f, 1.0f, 0.0f) );
+
+	addProperty( "lights", &m_lights );
 }
 
 
-FlareShop::Ptr FlareShop::create()
+LensFlare::Ptr LensFlare::create()
 {
-	return std::make_shared<FlareShop>();
+	return std::make_shared<LensFlare>();
 }
 
-void FlareShop::render(base::Context::Ptr context, float time)
+void LensFlare::render(base::Context::Ptr context, float time)
 {
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -28,11 +31,23 @@ void FlareShop::render(base::Context::Ptr context, float time)
 
 	m_ring->render(context);
 
+	std::cout << "numLights:" << m_lights.size() << std::endl;
+
 }
 
-void FlareShop::setLightPos(const math::V3f &pos)
+void LensFlare::setLightPos(const math::V3f &pos)
 {
 	m_lightpos->set<math::V3f>(0, pos);
+}
+
+void LensFlare::serialize(Serializer &out)
+{
+	Element::serialize(out);
+}
+
+void LensFlare::deserialize(Deserializer &in)
+{
+	Element::deserialize(in);
 }
 
 
@@ -40,8 +55,8 @@ ChromaticRing::ChromaticRing(base::Attribute::Ptr lightpos):
 	m_thickness(0.1f),
 	m_lightpos(lightpos)
 {
-	std::string basePath = base::path("src") + "/framework/elements/FlareShop/";
-	std::string basePathData = base::path("data") + "/framework/elements/FlareShop/";
+	std::string basePath = base::path("src") + "/framework/elements/LensFlare/";
+	std::string basePathData = base::path("data") + "/framework/elements/LensFlare/";
 
 	m_position = base::Attribute::createV2f();
 	m_position->appendElement( 1.0f, 1.0f );
@@ -213,4 +228,11 @@ void ChromaticRing::updateGeometry()
 	}
 }
 
-REGISTERCLASS( FlareShop )
+
+
+LensFlare::~LensFlare()
+{
+
+}
+
+REGISTERCLASS2( LensFlare, Element )

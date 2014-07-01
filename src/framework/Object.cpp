@@ -88,11 +88,90 @@ bool ObjectFactory::derivesFrom(const MetaObject *moc, const std::string &superC
 	return false;
 }
 
+
+
+Object::Object()
+{
+}
+
+Object::~Object()
+{
+}
+
+const MetaObject *Object::getMetaObject() const
+{
+	return 0;
+}
+
+
+
+void Object::addProperty(const std::string &name, Property::Ptr prop)
+{
+	m_props[name] = prop;
+}
+
+void Object::removeProperty(const std::string &name)
+{
+	m_props.erase(name);
+}
+
+
 void Object::getPropertyNames(std::vector<std::string>& names)
 {
 	names.clear();
 	for(auto it:m_props)
 		names.push_back(it.first);
+	// add names of all propGroups
+	for( auto it:m_propGroups )
+		it.second->getPropertyNames( names );
+}
+
+Property::Ptr Object::getProperty(const std::string &name)
+{
+	auto it = m_props.find( name );
+	if( it!=m_props.end() )
+		return it->second;
+
+	// if no prop with given name has been added to the object
+	// look through all propertygroups
+	for( auto it:m_propGroups )
+	{
+		Property::Ptr prop = it.second->getProperty( name );
+		if(prop)
+			return prop;
+	}
+
+	return Property::Ptr();
+}
+
+bool Object::hasProperty(const std::string &name) const
+{
+	if(m_props.find( name ) != m_props.end())
+		return true;
+	// if no prop with given name exists, look through all propertygroups
+	for( auto it:m_propGroups )
+		if(it.second->getProperty( name ))
+			return true;
+	return false;
+}
+
+void Object::addPropertyGroup(PropertyGroup::Ptr group)
+{
+	m_propGroups[group->getName()] = group;
+}
+
+void Object::getPropertyGroups(std::vector<PropertyGroup::Ptr> &groups)
+{
+	groups.clear();
+	for(auto it:m_propGroups)
+		groups.push_back(it.second);
+
+}
+
+void Object::print(std::ostream &out) const
+{
+	for(auto it = m_props.begin(), end=m_props.end();it!=end;++it)
+		it->second->print( out );
 }
 
 void Object::serialize(Serializer &out)

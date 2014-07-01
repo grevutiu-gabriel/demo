@@ -14,7 +14,7 @@
 #include <ui/Application.h>
 #include "gui/Application.h"
 #include "gui/widgets/TFEditor/TFEWidget.h"
-#include "gui/wrapper/elements/FlareShopWrapper.h"
+#include "gui/wrapper/elements/LensFlareWrapper.h"
 #endif
 
 #include <QApplication>

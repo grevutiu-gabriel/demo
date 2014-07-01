@@ -1,4 +1,4 @@
-#include "FlareShopWrapper.h"
+#include "LensFlareWrapper.h"
 
 #include <QMouseEvent>
 
@@ -12,14 +12,14 @@ namespace gui
 {
 
 
-FlareShopWrapper::FlareShopWrapper( FlareShop::Ptr fshop ):m_fshop(fshop)
+LensFlareWrapper::LensFlareWrapper( LensFlare::Ptr fshop ):m_fshop(fshop)
 {
 	//connect( &m_transferFunction, SIGNAL(Changed()), this, SLOT(transferFunctionChanged()) );
 
 	Application::getInstance()->getGlViewer()->installEventFilter(this);
 }
 
-bool FlareShopWrapper::eventFilter(QObject *obj, QEvent *event)
+bool LensFlareWrapper::eventFilter(QObject *obj, QEvent *event)
 {
 	if( event->type() == QEvent::MouseMove )
 	{
@@ -39,9 +39,9 @@ bool FlareShopWrapper::eventFilter(QObject *obj, QEvent *event)
 	return false;
 }
 
-gui::FlareShopWrapper::Ptr gui::FlareShopWrapper::create(FlareShop::Ptr fs)
+LensFlareWrapper::Ptr LensFlareWrapper::create(LensFlare::Ptr fs)
 {
-	return std::make_shared<FlareShopWrapper>( fs );
+	return std::make_shared<LensFlareWrapper>( fs );
 }
 
 }//namespace gui

@@ -39,13 +39,14 @@ private:
 
 
 
-class FlareShop : public Element
+class LensFlare : public Element
 {
 	OBJECT
 public:
-	typedef std::shared_ptr<FlareShop> Ptr;
+	typedef std::shared_ptr<LensFlare> Ptr;
 
-	FlareShop();
+	LensFlare();
+	virtual ~LensFlare();
 
 	static Ptr create();
 
@@ -54,8 +55,11 @@ public:
 	void setLightPos( const math::V3f& pos );
 
 
+	virtual void                 serialize(Serializer &out);
+	virtual void                 deserialize(Deserializer &in);
 private:
 	ChromaticRing::Ptr m_ring;
 	base::Attribute::Ptr m_lightpos;
+	std::vector<math::V3f> m_lights;
 };
 

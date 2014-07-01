@@ -2,7 +2,7 @@
 #include "elements/volumept/Volume.h"
 #include "elements/postprocess/PostProcess.h"
 #include "elements/stars/Stars.h"
-#include "elements/FlareShop/FlareShop.h"
+#include "elements/LensFlare/LensFlare.h"
 #include "elements/Nebulae/Nebulae.h"
 #include "elements/basic.h"
 
@@ -264,6 +264,17 @@ struct DemoDeserializer : public Deserializer
 		// finally deserialize demo object
 		m_jsonObjectStack.push(root);
 		demo->deserialize( *this );
+
+		// update property groups
+		// see ListPropertyT for details
+		for( auto it : m_deserializeMap )
+		{
+			std::vector<PropertyGroup::Ptr> propGroups;
+			it.second->getPropertyGroups( propGroups );
+			for(auto propGroup:propGroups)
+				propGroup->synchronize();
+		}
+
 		//gui
 		if(deserializeGuiInfo)
 		{

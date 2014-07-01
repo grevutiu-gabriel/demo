@@ -1,7 +1,7 @@
 #pragma once
 
-#include <map>
-#include "Property.h"
+#include "PropertyGroup.h"
+#include "ListProperty.h"
 #include "houdini/json.h"
 #include <math/Vec3.h>
 
@@ -17,72 +17,62 @@ public:
 	typedef std::shared_ptr<Object> Ptr;
 	typedef std::vector<Ptr> ChildList;
 
-	Object()
-	{
-	}
-	virtual ~Object()
-	{
-	}
+	Object();
+	virtual ~Object();
 
-	virtual const MetaObject* getMetaObject()const
-	{
-		return 0;
-	}
+	virtual const MetaObject*    getMetaObject()const;
 
 
+	virtual void                 serialize(Serializer &out);
+	virtual void                 deserialize(Deserializer &in);
+
+	std::string                  getName() const;
+	void                         setName(const std::string &name);
+
+	virtual void                 print( std::ostream& out )const;
 
 	template<typename T>
-	void addProperty( const std::string& name, typename PropertyT<T>::Getter get, typename PropertyT<T>::Setter set)
-	{
-		PropertyT<T>::Ptr prop = PropertyT<T>::create(name, get, set);
+	void                         addProperty( const std::string& name, typename PropertyT<T>::Getter get, typename PropertyT<T>::Setter set);
+	template<typename T>
+	void                         addProperty( const std::string& name, std::vector<T>* list );
 
-		if( !hasProperty(name) )
-		{
-			m_props[name] = prop;
-		}else
-		{
-			// if property exists already, we do what?
-		}
-	}
-
-	void removeProperty( const std::string& name )
-	{
-		m_props.erase(name);
-	}
-
-
-	void getPropertyNames( std::vector<std::string>& names );
-
-	Property::Ptr getProperty( const std::string& name )
-	{
-		auto it = m_props.find( name );
-		if( it!=m_props.end() )
-			return it->second;
-		return Property::Ptr();
-	}
-
-	bool hasProperty( const std::string& name )const
-	{
-		return m_props.find( name ) != m_props.end();
-	}
-
-
-	void print( std::ostream& out )const
-	{
-		for(auto it = m_props.begin(), end=m_props.end();it!=end;++it)
-			it->second->print( out );
-	}
-
-	virtual void serialize(Serializer &out);
-	virtual void deserialize(Deserializer &in);
-
-	std::string getName() const;
-	void setName(const std::string &name);
+	//property management
+	virtual void                 addProperty( const std::string& name, Property::Ptr prop );
+	virtual void                 removeProperty( const std::string& name );
+	virtual void                 getPropertyNames( std::vector<std::string>& names );
+	virtual Property::Ptr        getProperty( const std::string& name );
+	virtual bool                 hasProperty( const std::string& name )const;
+	virtual void                 addPropertyGroup( PropertyGroup::Ptr group );
+	virtual void                 getPropertyGroups( std::vector<PropertyGroup::Ptr>& groups );
 
 private:
-	std::map<std::string, Property::Ptr> m_props;
-	std::string                          m_name;
+	std::map<std::string, Property::Ptr>      m_props;
+	std::map<std::string, PropertyGroup::Ptr> m_propGroups;
+	std::string                               m_name;
 };
+
+
+
+template<typename T>
+void Object::addProperty( const std::string& name, typename PropertyT<T>::Getter get, typename PropertyT<T>::Setter set)
+{
+	PropertyT<T>::Ptr prop = PropertyT<T>::create(name, get, set);
+
+	if( !hasProperty(name) )
+	{
+		addProperty( name, prop );
+	}else
+	{
+		// if property exists already, we do what?
+	}
+}
+
+template<typename T>
+void Object::addProperty( const std::string& name, std::vector<T>* list )
+{
+	ListPropertyT<T>::Ptr listProp = std::make_shared<ListPropertyT<T>>( name, list );
+	addPropertyGroup( listProp );
+}
 
 struct Serializer
 {
