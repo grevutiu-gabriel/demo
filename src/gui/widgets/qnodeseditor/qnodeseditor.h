@@ -44,7 +44,7 @@ public:
 	void install(QGraphicsScene *scene);
 
 	virtual bool eventFilter(QObject *, QEvent *)override;
-	virtual void onConnectionAdded( QNEPort* src, QNEPort* dst );
+	virtual void onConnectionAdded( QNEPort* src, QNEPort* dst, QNEConnection* conn );
 	virtual void onConnectionRemoved( QNEPort* src, QNEPort* dst );
 
 	void save(QDataStream &ds);

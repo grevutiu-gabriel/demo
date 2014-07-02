@@ -1022,6 +1022,14 @@ namespace houdini
 			append(v);
 		}
 
+		void Array::append(ArrayPtr &array)
+		{
+			Value v;
+			v.m_type = Value::TYPE_ARRAY;
+			v.m_array = array;
+			append(v);
+		}
+
 		sint64 Array::size()const
 		{
 			if( m_isUniform )

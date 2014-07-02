@@ -131,4 +131,17 @@ namespace gui
 		// find out which ports have been added
 		*/
 	}
+
+	Property::Ptr ObjectWrapper::addProperty(const std::string listName)
+	{
+		Property::Ptr prop;
+		PropertyGroup::Ptr propGroup = m_object->getPropertyGroup( listName );
+		ListProperty::Ptr list = std::dynamic_pointer_cast<ListProperty>(propGroup);
+		if(list)
+		{
+			prop = list->addProperty();
+			emit propertyAdded( prop->getName() );
+		}
+		return prop;
+	}
 } // namespace gui

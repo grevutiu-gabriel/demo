@@ -11,6 +11,8 @@
 
 #include "Application.h"
 
+#include "../framework/ListProperty.h"
+
 namespace gui
 {
 
@@ -44,6 +46,23 @@ QNEBlock* UpdateGraphView::insertNode(ObjectWrapper::Ptr objectWrapper)
 		m_inputs[p] = propName;
 		//p->setPtr(m_nextInput++);
 	}
+
+	// inputs (propertygroups - especially lists)
+	std::vector<PropertyGroup::Ptr> propGroups;
+	objectWrapper->getObject()->getPropertyGroups(propGroups);
+	for( auto propGroup:propGroups )
+	{
+		if( std::dynamic_pointer_cast<ListProperty>(propGroup) )
+		{
+			std::string groupName = propGroup->getName();
+			// we have a list ... add special port for adding new items
+			QString name = QString::fromStdString("new item (" + propGroup->getName() + ")");
+			//QNEPort*p = b->addPort(name, false, QNEPort::ActionPort);
+			QNEPort*p = b->addInputPort(name);
+			m_groups[p] = groupName;
+		}
+	}
+
 
 	// outputs (controller)
 	if( std::dynamic_pointer_cast<Controller>(objectWrapper->getObject()) )
@@ -128,13 +147,59 @@ bool UpdateGraphView::eventFilter(QObject *object, QEvent *event)
 	return QNodesEditor::eventFilter(object, event);
 }
 
-void UpdateGraphView::onConnectionAdded(QNEPort *src, QNEPort *dst)
+void UpdateGraphView::onConnectionAdded(QNEPort *src, QNEPort *dst, QNEConnection* conn)
 {
 	ObjectWrapper::Ptr controller = m_nodes[src->block()];
 	ObjectWrapper::Ptr object = m_nodes[dst->block()];
-	std::string propName = m_inputs[dst];
-	m_updateGraphWrapper->addConnection( controller, object, propName );
+
+
+	auto it = m_inputs.find(dst);
+	auto git = m_groups.find(dst);
+	// if port is associated with a property...
+	if( it!=m_inputs.end() )
+	{
+		// get the property and add connection
+		std::string propName = it->second;
+		m_updateGraphWrapper->addConnection( controller, object, propName );
+	}else
+	// see if port is associated with a group
+	if( git != m_groups.end() )
+	{
+		// remove connection
+		delete conn;
+
+		// remove the port
+		QNEBlock* block = dst->block();
+		block->removePort( dst->portName() );
+
+		// get the propertygroup
+		std::string propGroupName = git->second;
+		PropertyGroup::Ptr propGroup = object->getObject()->getPropertyGroup( propGroupName );
+		// see if propGroup is a list
+		ListProperty::Ptr list = std::dynamic_pointer_cast<ListProperty>( propGroup );
+		if(list)
+		{
+			// then this means adding a new item...
+			Property::Ptr prop = object->addProperty( list->getName() );
+			std::string propName = prop->getName();
+
+			// add connection
+			QNEConnection* conn2 = new QNEConnection(0);
+			m_scene->addItem(conn2);
+			conn2->setPort1(src);
+			conn2->setPort2(block->getPort(QString::fromStdString(propName)));
+			conn2->updatePath();
+			m_updateGraphWrapper->addConnection( controller, object, propName );
+
+			// add new item port again
+			block->addPort(dst);
+		}
+
+	}
+
+
 	Application::getInstance()->getGlViewer()->update();
+
 }
 
 void UpdateGraphView::onConnectionRemoved(QNEPort *src, QNEPort *dst)

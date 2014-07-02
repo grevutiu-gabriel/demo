@@ -50,6 +50,13 @@ QNEBlock::QNEBlock(QGraphicsItem *parent) :
 	height = vertMargin;
 }
 
+void QNEBlock::addPort(QNEPort *port)
+{
+	port->setParentItem(this);
+	port->setNEBlock(this);
+	updateGeometry();
+}
+
 QNEPort* QNEBlock::addPort(const QString &name, bool isOutput, int flags, int ptr)
 {
 	// add port as child item...

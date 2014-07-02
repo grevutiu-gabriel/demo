@@ -14,6 +14,7 @@
 class ListProperty : public PropertyGroup
 {
 public:
+	typedef std::shared_ptr<ListProperty> Ptr;
 	ListProperty(const std::string& name);
 	virtual ~ListProperty();
 
@@ -118,7 +119,7 @@ Property::Ptr ListPropertyT<T>::createPropertyForIndex(int index)
 {
 	PropertyT<T>::Getter get = [=]{return (*m_vector)[index];};
 	PropertyT<T>::Setter set = [=](T& arg){(*m_vector)[index] = arg;};
-	std::string name = getName() + base::toString<int>(index);
+	std::string name = getName() + "[" + base::toString<int>(index) + "]";
 	PropertyT<T>::Ptr prop = PropertyT<T>::create(name, get, set);
 	return prop;
 }

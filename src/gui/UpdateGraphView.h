@@ -33,7 +33,7 @@ public:
 	bool hasNode( ObjectWrapper::Ptr objectWrapper );
 
 	virtual bool eventFilter(QObject *object, QEvent *event)override;
-	virtual void onConnectionAdded( QNEPort* src, QNEPort* dst )override;
+	virtual void onConnectionAdded( QNEPort* src, QNEPort* dst, QNEConnection* conn )override;
 	virtual void onConnectionRemoved( QNEPort* src, QNEPort* dst )override;
 
 	void getSelectedObjects( std::vector<ObjectWrapper::Ptr>& selected );
@@ -53,6 +53,7 @@ public:
 	QGraphicsView*                          m_view;
 	std::map<QNEBlock*, ObjectWrapper::Ptr> m_nodes;
 	std::map<QNEPort*, std::string>         m_inputs; // register for all inputs
+	std::map<QNEPort*, std::string>         m_groups; // register for all groups
 	//quint64                                 m_nextInput; // counter
 	//quint64                                 m_nextNode; // counter
 

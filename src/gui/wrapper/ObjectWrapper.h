@@ -25,6 +25,8 @@ namespace gui
 		void addExternalProperty( Property::Ptr prop );
 		void updatePropertyList();
 
+		Property::Ptr addProperty( const std::string listName ); // calls addProperty on name-specified ListProperty
+
 	signals:
 		void propertyRemoved( const std::string& name );
 		void propertyAdded( const std::string& name );

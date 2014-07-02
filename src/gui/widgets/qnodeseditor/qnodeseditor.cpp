@@ -99,10 +99,10 @@ bool QNodesEditor::eventFilter(QObject *o, QEvent *e)
 					QNEPort *port1 = connection->port1();
 					QNEPort *port2 = connection->port2();
 					if(port1->isOutput())
-						onConnectionAdded( port1, port2 );
+						onConnectionRemoved(port1, port2);
 					else
-						onConnectionAdded( port2, port1 );
-					onConnectionRemoved(port1, port2);
+						onConnectionRemoved(port2, port1);
+
 				}
 				delete item;
 
@@ -138,11 +138,11 @@ bool QNodesEditor::eventFilter(QObject *o, QEvent *e)
 					conn->setPos2(port2->scenePos());
 					conn->setPort2(port2);
 					conn->updatePath();
-					conn = 0;
 					if(port1->isOutput())
-						onConnectionAdded( port1, port2 );
+						onConnectionAdded( port1, port2, conn );
 					else
-						onConnectionAdded( port2, port1 );
+						onConnectionAdded( port2, port1, conn );
+					conn = 0;
 					return true;
 				}
 			}
@@ -157,7 +157,7 @@ bool QNodesEditor::eventFilter(QObject *o, QEvent *e)
 	return QObject::eventFilter(o, e);
 }
 
-void QNodesEditor::onConnectionAdded(QNEPort *src, QNEPort *dst)
+void QNodesEditor::onConnectionAdded(QNEPort *src, QNEPort *dst, QNEConnection* conn)
 {
 
 }

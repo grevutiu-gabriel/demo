@@ -794,9 +794,11 @@ namespace houdini
 
 
 
-
+			template<typename T>
+			void                     appendValue( T value );
 			void                     append( Value &value );
-			void                 append(ObjectPtr &object );
+			void                     append(ObjectPtr &object );
+			void                     append(ArrayPtr &array );
 
 		//private:
 			std::vector<Value>                     m_values;
@@ -811,6 +813,12 @@ namespace houdini
 		const T Array::get( const int index )
 		{
 			return getValue(index).as<T>();
+		}
+
+		template<typename T>
+		void Array::appendValue( T value )
+		{
+			append(Value::create<T>(value));
 		}
 
 		// Object -------------

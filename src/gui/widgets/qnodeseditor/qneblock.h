@@ -37,6 +37,7 @@ public:
 
     QNEBlock(QGraphicsItem *parent = 0);
 
+	void addPort( QNEPort* port );
 	QNEPort* addPort(const QString &name, bool isOutput, int flags = 0, int ptr = 0);
 	void removePort( const QString &name );
 	QNEPort* addInputPort(const QString &name);

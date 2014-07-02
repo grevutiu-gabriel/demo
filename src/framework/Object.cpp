@@ -160,6 +160,14 @@ void Object::addPropertyGroup(PropertyGroup::Ptr group)
 	m_propGroups[group->getName()] = group;
 }
 
+PropertyGroup::Ptr Object::getPropertyGroup(const std::string &name)
+{
+	auto it = m_propGroups.find(name);
+	if(it!=m_propGroups.end())
+		return it->second;
+	return PropertyGroup::Ptr();
+}
+
 void Object::getPropertyGroups(std::vector<PropertyGroup::Ptr> &groups)
 {
 	groups.clear();

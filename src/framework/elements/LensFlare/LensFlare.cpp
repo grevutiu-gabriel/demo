@@ -32,6 +32,10 @@ void LensFlare::render(base::Context::Ptr context, float time)
 	m_ring->render(context);
 
 	std::cout << "numLights:" << m_lights.size() << std::endl;
+	for( auto vec:m_lights )
+	{
+		std::cout << "\t" << vec.x << " " << vec.y << " " << vec.z << std::endl;
+	}
 
 }
 
@@ -43,11 +47,40 @@ void LensFlare::setLightPos(const math::V3f &pos)
 void LensFlare::serialize(Serializer &out)
 {
 	Element::serialize(out);
+
+	// lights
+	{
+		houdini::json::ArrayPtr jsonLights = houdini::json::Array::create();
+		for(auto light:m_lights)
+		{
+			houdini::json::ArrayPtr jsonLight = houdini::json::Array::create();
+			jsonLight->appendValue<float>(light.x);
+			jsonLight->appendValue<float>(light.y);
+			jsonLight->appendValue<float>(light.z);
+			jsonLights->append(jsonLight);
+		}
+		out.write("lights", jsonLights);
+	}
 }
 
 void LensFlare::deserialize(Deserializer &in)
 {
 	Element::deserialize(in);
+
+	// lights
+	{
+		m_lights.clear();
+		houdini::json::ArrayPtr jsonLights = in.readArray("lights");
+		for( int i=0, numElements=int(jsonLights->size());i<numElements;++i )
+		{
+			houdini::json::ArrayPtr jsonLight = jsonLights->getArray(i);
+			math::V3f light;
+			light.x = jsonLight->get<float>(0);
+			light.y = jsonLight->get<float>(1);
+			light.z = jsonLight->get<float>(2);
+			m_lights.push_back(light);
+		}
+	}
 }
 
 

@@ -43,6 +43,7 @@ public:
 	virtual Property::Ptr        getProperty( const std::string& name );
 	virtual bool                 hasProperty( const std::string& name )const;
 	virtual void                 addPropertyGroup( PropertyGroup::Ptr group );
+	virtual PropertyGroup::Ptr   getPropertyGroup( const std::string& name );
 	virtual void                 getPropertyGroups( std::vector<PropertyGroup::Ptr>& groups );
 
 private:
