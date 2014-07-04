@@ -117,7 +117,10 @@ void TreeView::loadScene()
 
 void TreeView::newComposition()
 {
-	m_demoWrapper->addComposition(CompositionWrapper::create());
+	CompositionWrapper::Ptr newCompositionWrapper = CompositionWrapper::create();
+	m_demoWrapper->addComposition(newCompositionWrapper);
+	newCompositionWrapper->getUpdateGraph()->addNode( newCompositionWrapper );
+	gui::Application::getInstance()->openCompositionEditor( newCompositionWrapper );
 	Application::getInstance()->getGlViewer()->update();
 }
 
