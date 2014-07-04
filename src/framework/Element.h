@@ -2,11 +2,11 @@
 
 #include <util/shared_ptr.h>
 #include <gfx/Context.h>
-#include "Object.h"
+#include "Controller.h"
 
 
-
-class Element : public Object
+typedef std::function<void(base::Context::Ptr, float)> RenderFunction;
+class Element : public ControllerT<RenderFunction>
 {
 	OBJECT
 public:
@@ -22,4 +22,7 @@ public:
 	virtual void render(base::Context::Ptr context, float time)
 	{
 	}
+
+	// overrides from ControllerT
+	virtual RenderFunction evaluate(float time);
 };

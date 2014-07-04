@@ -99,11 +99,11 @@ namespace gui
 		if( std::dynamic_pointer_cast<LoadVolume>(object) )
 			wrapper = LoadVolumeWrapper::create(std::dynamic_pointer_cast<LoadVolume>(object));
 		else
-		if( std::dynamic_pointer_cast<Controller>(object) )
-			wrapper = ControllerWrapper::create(std::dynamic_pointer_cast<Controller>(object));
-		else
 		if(std::dynamic_pointer_cast<Element>(object))
 			wrapper = ElementWrapper::create(std::dynamic_pointer_cast<Element>(object));
+		else
+		if( std::dynamic_pointer_cast<Controller>(object) )
+			wrapper = ControllerWrapper::create(std::dynamic_pointer_cast<Controller>(object));
 		else
 			wrapper = ObjectWrapper::create( object );
 

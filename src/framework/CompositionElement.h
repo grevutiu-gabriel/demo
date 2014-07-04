@@ -11,9 +11,9 @@
 
 #include <iostream>
 
+typedef std::function<void(base::Context::Ptr, float)> RenderFunction;
 
-
-class CompositionElement : public Object
+class CompositionElement : public ControllerT<RenderFunction>
 {
 	OBJECT
 public:
@@ -23,6 +23,8 @@ public:
 	CompositionElement(Element::Ptr element);
 
 	static Ptr create( Element::Ptr element );
+
+	virtual RenderFunction evaluate(float time);
 
 	Ptr                                   addChild( Element::Ptr element );
 	std::vector<CompositionElement::Ptr>& getChilds();

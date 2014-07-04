@@ -8,6 +8,7 @@ Composition::Composition() :
 	m_updateGraph(std::make_shared<UpdateGraph>())
 {
 	addProperty<base::Camera::Ptr>( "camera", std::bind( &Composition::getCamera, this ), std::bind( &Composition::setCamera, this, std::placeholders::_1 ) );
+	addProperty("render", &m_renderElements);
 }
 
 Composition::Ptr Composition::create()
@@ -23,7 +24,7 @@ void Composition::prepareForRendering()
 
 void Composition::render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera )
 {
-	if( m_childs.empty() )
+	if( m_renderElements.empty() )
 	{
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -58,6 +59,13 @@ void Composition::render( base::Context::Ptr context, float time, base::Camera::
 	{
 		CompositionElement::Ptr compositionElement = *it;
 		compositionElement->render(context, time);
+	}
+
+	// render elements
+	for( auto renderElement:m_renderElements )
+	{
+		if(renderElement)
+			renderElement( context, time );
 	}
 }
 
@@ -110,6 +118,8 @@ void Composition::serialize(Serializer &out)
 	{
 		out.write("updateGraph", m_updateGraph->serialize( out ));
 	}
+	// render elements
+	out.write("numRenderElements", int(m_renderElements.size()));
 }
 
 void Composition::deserialize(Deserializer &in)
@@ -120,6 +130,8 @@ void Composition::deserialize(Deserializer &in)
 	{
 		m_updateGraph->deserialize( in, in.readValue("updateGraph") );
 	}
+	// render elements
+	m_renderElements.resize( in.readInt("numRenderElements") );
 }
 
 

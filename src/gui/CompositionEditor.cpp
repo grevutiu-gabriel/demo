@@ -40,7 +40,7 @@ CompositionEditor::CompositionEditor(CompositionWrapper::Ptr compositionWrapper)
 	m_widget = splitter1;
 
 	connect( m_updateGraphView.get(), SIGNAL(selectionChanged()), this, SLOT(onGraphSelectionChanged()) );
-	connect( m_updateGraphView.get(), SIGNAL(objectCreated(ObjectWrapper::Ptr)), this, SLOT(onObjectCreatedInGraph(ObjectWrapper::Ptr)) );
+	//connect( m_updateGraphView.get(), SIGNAL(objectCreated(ObjectWrapper::Ptr)), this, SLOT(onObjectCreatedInGraph(ObjectWrapper::Ptr)) );
 	connect( m_propertyView.get(), SIGNAL(propertyChanged()), this, SLOT(onPropertyChanged()) );
 }
 

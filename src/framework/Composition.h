@@ -54,6 +54,7 @@ public:
 private:
 	base::Camera::Ptr                     m_camera;
 	UpdateGraph::Ptr                      m_updateGraph;
+	std::vector<RenderFunction>           m_renderElements;
 
 	static base::Texture2d::Ptr           m_noelement;
 	static base::Texture2d::Ptr           m_nocamera;

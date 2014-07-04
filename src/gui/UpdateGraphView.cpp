@@ -44,6 +44,7 @@ QNEBlock* UpdateGraphView::insertNode(ObjectWrapper::Ptr objectWrapper)
 	{
 		QNEPort*p = b->addInputPort(QString::fromStdString(propName));
 		m_inputs[p] = propName;
+		std::cout << "adding port: " << propName << std::endl;
 		//p->setPtr(m_nextInput++);
 	}
 
@@ -57,7 +58,7 @@ QNEBlock* UpdateGraphView::insertNode(ObjectWrapper::Ptr objectWrapper)
 			std::string groupName = propGroup->getName();
 			// we have a list ... add special port for adding new items
 			QString name = QString::fromStdString("new item (" + propGroup->getName() + ")");
-			//QNEPort*p = b->addPort(name, false, QNEPort::ActionPort);
+			std::cout << "adding propertygroup port " << name.toStdString() << std::endl;
 			QNEPort*p = b->addInputPort(name);
 			m_groups[p] = groupName;
 		}

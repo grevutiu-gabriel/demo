@@ -23,4 +23,11 @@ ElementMetaObject g_elementMetaObject;
 
 */
 
-REGISTERCLASS2( Element, Object )
+
+
+RenderFunction Element::evaluate(float time)
+{
+	return std::bind( &Element::render, this, std::placeholders::_1, std::placeholders::_2 );
+}
+
+REGISTERCLASS2( Element, Controller )

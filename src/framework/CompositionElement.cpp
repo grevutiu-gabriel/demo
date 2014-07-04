@@ -3,7 +3,7 @@
 
 
 CompositionElement::CompositionElement():
-	Object()
+	ControllerT<RenderFunction>()
 {
 
 }
@@ -17,6 +17,14 @@ CompositionElement::Ptr CompositionElement::create(Element::Ptr element)
 {
 	return std::make_shared<CompositionElement>(element);
 }
+
+
+RenderFunction CompositionElement::evaluate(float time)
+{
+	return std::bind( &CompositionElement::render, this, std::placeholders::_1, std::placeholders::_2 );
+}
+
+
 
 CompositionElement::Ptr CompositionElement::addChild(Element::Ptr element)
 {
@@ -111,7 +119,7 @@ void CompositionElement::deserialize(Deserializer &in)
 
 
 
-REGISTERCLASS2( CompositionElement, Object )
+REGISTERCLASS2( CompositionElement, Controller )
 
 
 
