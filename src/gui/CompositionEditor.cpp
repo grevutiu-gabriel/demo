@@ -82,14 +82,14 @@ void CompositionEditor::onPropertyChanged()
 
 void CompositionEditor::onObjectCreatedInGraph(ObjectWrapper::Ptr objectWrapper)
 {
-	// if an object has been created from within the updategraph, we check
-	// if this is an element. If it is, we will automatically add it to the composition
-	if( ObjectFactory::derivesFrom(objectWrapper->getObject()->getMetaObject(), "Element" ) )
-	{
-		ElementWrapper::Ptr elementWrapper = std::dynamic_pointer_cast<ElementWrapper>(objectWrapper);
-		if( elementWrapper )
-			m_compositionWrapper->addElement( elementWrapper );
-	}
+//	// if an object has been created from within the updategraph, we check
+//	// if this is an element. If it is, we will automatically add it to the composition
+//	if( ObjectFactory::derivesFrom(objectWrapper->getObject()->getMetaObject(), "Element" ) )
+//	{
+//		ElementWrapper::Ptr elementWrapper = std::dynamic_pointer_cast<ElementWrapper>(objectWrapper);
+//		if( elementWrapper )
+//			m_compositionWrapper->addElement( elementWrapper );
+//	}
 }
 
 }

@@ -4,7 +4,7 @@ base::Texture2d::Ptr Composition::m_noelement;
 base::Texture2d::Ptr Composition::m_nocamera;
 
 Composition::Composition() :
-	CompositionElement(),
+	ControllerT<RenderFunction>(),
 	m_updateGraph(std::make_shared<UpdateGraph>())
 {
 	addProperty<base::Camera::Ptr>( "camera", std::bind( &Composition::getCamera, this ), std::bind( &Composition::setCamera, this, std::placeholders::_1 ) );
@@ -55,18 +55,9 @@ void Composition::render( base::Context::Ptr context, float time, base::Camera::
 	}
 
 	// render elements
-	for( auto it = m_childs.begin(), end=m_childs.end();it!=end;++it )
-	{
-		CompositionElement::Ptr compositionElement = *it;
-		compositionElement->render(context, time);
-	}
-
-	// render elements
 	for( auto renderElement:m_renderElements )
-	{
 		if(renderElement)
 			renderElement( context, time );
-	}
 }
 
 void Composition::setPropertyController(Object::Ptr object, const std::string &name, Controller::Ptr controller)
@@ -88,31 +79,11 @@ void Composition::setCamera(base::Camera::Ptr camera)
 {
 	m_camera = camera;
 }
-/*
-int Composition::getNumCompositionElements() const
-{
-	return int(m_elements.size());
-}
-
-
-
-
-
-void Composition::insertElement(int index, CompositionElement::Ptr compositionElement )
-{
-	m_elements.insert( m_elements.begin()+index, compositionElement );
-}
-
-std::vector<CompositionElement::Ptr> &Composition::getCompositionElements()
-{
-	return m_elements;
-}
-*/
 
 
 void Composition::serialize(Serializer &out)
 {
-	CompositionElement::serialize(out);
+	ControllerT<RenderFunction>::serialize(out);
 
 	// updategraph
 	{
@@ -124,7 +95,7 @@ void Composition::serialize(Serializer &out)
 
 void Composition::deserialize(Deserializer &in)
 {
-	CompositionElement::deserialize(in);
+	ControllerT<RenderFunction>::deserialize(in);
 
 	// updategraph
 	{
@@ -139,7 +110,15 @@ void Composition::deserialize(Deserializer &in)
 
 
 
-REGISTERCLASS2( Composition, CompositionElement )
+
+
+RenderFunction Composition::evaluate(float time)
+{
+	//return std::bind( &Composition::render, this, std::placeholders::_1, std::placeholders::_2 );
+	return RenderFunction();
+}
+
+REGISTERCLASS2( Composition, Controller )
 
 
 

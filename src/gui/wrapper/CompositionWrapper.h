@@ -3,7 +3,6 @@
 #include <QObject>
 
 #include "../framework/Composition.h"
-#include "CompositionElementWrapper.h"
 #include "UpdateGraphWrapper.h"
 
 namespace gui
@@ -25,17 +24,11 @@ namespace gui
 		std::string getName()const;
 		UpdateGraphWrapper::Ptr getUpdateGraph();
 
-		CompositionElementWrapper::Ptr getCompositionElement( int index );
-		CompositionElementWrapper::Ptr takeCompositionElement( int index );
-		void addElement( ElementWrapper::Ptr elementWrapper );
 
 	signals:
-		void compositionElementAdded( int indexAdded );
-		void compositionElementRemoved( int indexRemoved );
 	public slots:
 	public:
 		Composition::Ptr m_composition;
-		std::vector<CompositionElementWrapper::Ptr> m_compositionElementWrapper;
 	};
 
 } // namespace gui

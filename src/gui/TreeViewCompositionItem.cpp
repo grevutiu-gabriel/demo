@@ -1,6 +1,5 @@
 #include "TreeViewCompositionItem.h"
 
-#include "TreeViewCompositionElementItem.h"
 #include <QMenu>
 
 
@@ -38,31 +37,31 @@ void TreeViewCompositionItem::dragMoveEvent(QDragMoveEvent *event)
 
 void TreeViewCompositionItem::dropEvent(QDropEvent *e)
 {
-	//std::cout << "TreeViewCompositionItemdrop event!\n";
-	if (e->mimeData()->hasFormat("application/objectwrapper"))
-	{
-		const ObjectWrapperMimeData* md = dynamic_cast<const ObjectWrapperMimeData*>(e->mimeData());
-		if(md)
-		{
-			const MetaObject* moc = ObjectFactory::getMetaObject(md->getClassName());
-			if(moc)
-			{
-				if(ObjectFactory::derivesFrom( moc, "Element" ))
-				{
-					ObjectWrapper::Ptr objectWrapper = md->getObjectWrapper();
-					ElementWrapper::Ptr elementWrapper = std::dynamic_pointer_cast<ElementWrapper>(objectWrapper);
-					if(elementWrapper)
-					{
-						std::cout << "gaga! \n";
-						// yay! add element to composition
-						m_compositionWrapper->addElement(elementWrapper);
-						e->acceptProposedAction();
-					}
-				}
-			}
-		}
+//	//std::cout << "TreeViewCompositionItemdrop event!\n";
+//	if (e->mimeData()->hasFormat("application/objectwrapper"))
+//	{
+//		const ObjectWrapperMimeData* md = dynamic_cast<const ObjectWrapperMimeData*>(e->mimeData());
+//		if(md)
+//		{
+//			const MetaObject* moc = ObjectFactory::getMetaObject(md->getClassName());
+//			if(moc)
+//			{
+//				if(ObjectFactory::derivesFrom( moc, "Element" ))
+//				{
+//					ObjectWrapper::Ptr objectWrapper = md->getObjectWrapper();
+//					ElementWrapper::Ptr elementWrapper = std::dynamic_pointer_cast<ElementWrapper>(objectWrapper);
+//					if(elementWrapper)
+//					{
+//						std::cout << "gaga! \n";
+//						// yay! add element to composition
+//						m_compositionWrapper->addElement(elementWrapper);
+//						e->acceptProposedAction();
+//					}
+//				}
+//			}
+//		}
 
-	}
+//	}
 }
 
 void TreeViewCompositionItem::contextMenu(const QPoint &pos)
@@ -105,8 +104,6 @@ ObjectWrapper::Ptr TreeViewCompositionItem::getObjectWrapper()
 
 void TreeViewCompositionItem::onCompositionElementAdded(int index)
 {
-	TreeViewCompositionElementItem* item = new TreeViewCompositionElementItem(m_compositionWrapper->getCompositionElement(index));
-	this->addChild(item);
 }
 
 void TreeViewCompositionItem::onCompositionElementRemoved(int index)

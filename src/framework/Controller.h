@@ -9,10 +9,11 @@
 #include <gfx/Geometry.h>
 #include <gfx/Shader.h>
 #include <gfx/Texture.h>
+#include <gfx/Context.h>
 
 
 
-
+typedef std::function<void(base::Context::Ptr, float)> RenderFunction;
 
 class Controller : public Object
 {

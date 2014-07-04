@@ -8,7 +8,6 @@
 #include "Element.h"
 #include "Controller.h"
 #include "UpdateGraph.h"
-#include "CompositionElement.h"
 
 #include <iostream>
 
@@ -16,7 +15,7 @@
 
 
 
-class Composition : public CompositionElement
+class Composition : public ControllerT<RenderFunction>
 {
 	OBJECT
 public:
@@ -31,21 +30,13 @@ public:
 	virtual void                          prepareForRendering();
 
 	virtual void                          render( base::Context::Ptr context, float time, base::Camera::Ptr overrideCamera );
+	virtual RenderFunction                evaluate(float time);
 
 	void                                  setPropertyController(Object::Ptr object, const std::string& name, Controller::Ptr controller);
 	UpdateGraph::Ptr                      getUpdateGraph();
 
 	base::Camera::Ptr                     getCamera()const;
 	void                                  setCamera( base::Camera::Ptr camera );
-
-	/*
-	int                                   getNumCompositionElements()const;
-	CompositionElement::Ptr               getCompositionElement( int index );
-	CompositionElement::Ptr               takeCompositionElement( int index );
-	void                                  insertCompositionElement( int index, CompositionElement::Ptr compositionElement);
-	std::vector<CompositionElement::Ptr>& getCompositionElements();
-	*/
-
 
 	virtual void                          serialize(Serializer &out)override;
 	virtual void                          deserialize(Deserializer &in)override;

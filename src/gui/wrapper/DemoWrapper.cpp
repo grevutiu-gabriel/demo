@@ -2,7 +2,6 @@
 
 #include <util/StringManip.h>
 
-#include "CompositionElementWrapper.h"
 #include "../Application.h"
 
 namespace gui
