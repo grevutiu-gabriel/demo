@@ -1,6 +1,7 @@
 #include "LoadGeometry.h"
 
 #include <util/Path.h>
+#include <util/fs.h>
 
 #include "../houdini/HouGeoIO.h"
 
@@ -17,9 +18,19 @@ bool LoadGeometry::isAnimated()const
 
 void LoadGeometry::setFilename( const std::string& filename )
 {
-	// load the file immediately
 	m_filename = filename;
-	m_geometry = houdini::HouGeoIO::importGeometry(base::expand(filename));
+
+	if(!base::fs::exists(base::expand(m_filename)))
+		return;
+
+	// load houdini file ================
+	m_geometry = houdini::HouGeoIO::importGeometry(base::expand(m_filename));
+
+	if(!m_geometry)
+	{
+		std::cout << "unable to load " << m_filename << std::endl;std::flush(std::cout);
+		return;
+	}
 }
 
 

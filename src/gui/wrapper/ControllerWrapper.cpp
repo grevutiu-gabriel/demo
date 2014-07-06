@@ -52,9 +52,9 @@ LoadGeometryWrapper::LoadGeometryWrapper(LoadGeometry::Ptr loadGeometry):
 						std::bind(&LoadGeometryWrapper::getFilename, this),
 						std::bind(&LoadGeometryWrapper::setFilename, this, std::placeholders::_1)));
 
-	//std::string newFilename = base::expand(m_loadVolume->getFilename());
-	//if( QFile(QString::fromStdString(newFilename)).exists() )
-	//	Application::getInstance()->watchFile(newFilename, std::bind( &LoadVolumeWrapper::reload, this ));
+	std::string newFilename = base::expand(m_loadGeometry->getFilename());
+	if( QFile(QString::fromStdString(newFilename)).exists() )
+		Application::getInstance()->watchFile(newFilename, std::bind( &LoadGeometryWrapper::reload, this ));
 }
 
 LoadGeometryWrapper::~LoadGeometryWrapper()
@@ -70,15 +70,15 @@ LoadGeometryWrapper::Ptr LoadGeometryWrapper::create(LoadGeometry::Ptr loadGeome
 void LoadGeometryWrapper::setFilename(const std::string &filename)
 {
 	std::string currentFilename = base::expand(m_loadGeometry->getFilename());
-	//Application::getInstance()->unwatchFile(currentFilename);
+	Application::getInstance()->unwatchFile(currentFilename);
 
 	m_loadGeometry->setFilename(filename);
 
 	//updatePropertyList();
 
-	//std::string newFilename = base::expand(m_loadVolume->getFilename());
-	//if( QFile(QString::fromStdString(newFilename)).exists() )
-	//	Application::getInstance()->watchFile(newFilename, std::bind( &LoadVolumeWrapper::reload, this ));
+	std::string newFilename = base::expand(m_loadGeometry->getFilename());
+	if( QFile(QString::fromStdString(newFilename)).exists() )
+		Application::getInstance()->watchFile(newFilename, std::bind( &LoadGeometryWrapper::reload, this ));
 }
 
 std::string LoadGeometryWrapper::getFilename()

@@ -45,6 +45,9 @@ namespace houdini
 			//geo
 			if(std::dynamic_pointer_cast<HouGeo::HouPoly>(prim) )
 				result = convertToGeometry(hgeo, primIndex);
+		}else
+		{
+			std::cout << "HouGeoIO::importGeometry: failed to import houGeo\n";
 		}
 		return result;
 	}
