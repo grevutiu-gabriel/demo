@@ -185,6 +185,16 @@ namespace base
 		}
 	}
 
+	void Shader::ShaderSource::getFiles(std::vector<std::string> &files)
+	{
+		for( auto it:m_inputs )
+		{
+			if( it.first )
+				// this input is a file---string is a filename
+				files.push_back(it.second);
+		}
+	}
+
 
 	// ShaderObject ===========================================================================
 
@@ -311,6 +321,17 @@ namespace base
 		};
 
 		return EUNKNOWN;
+	}
+
+	void Shader::getFiles(std::vector<std::string> &filenames)
+	{
+		filenames.clear();
+
+		if(!m_isOk)
+			return;
+
+		for( auto so:m_objects )
+			so->m_src->getFiles(filenames);
 	}
 
 	void Shader::finalize()

@@ -30,6 +30,7 @@ namespace gui
 	signals:
 		void propertyRemoved( const std::string& name );
 		void propertyAdded( const std::string& name );
+		void propertyReferenceChanged();
 	private:
 		Object::Ptr m_object;
 		std::vector<std::string> m_internalProps;

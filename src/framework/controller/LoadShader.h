@@ -38,6 +38,8 @@ public:
 	void deserialize(Deserializer &in);
 
 	void reload();
+
+	base::Shader::Ptr getShader();
 private:
 
 	void updateProperties();

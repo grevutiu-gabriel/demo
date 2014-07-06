@@ -132,8 +132,17 @@ void LoadShader::reload()
 	updateProperties();
 }
 
+base::Shader::Ptr LoadShader::getShader()
+{
+	return m_shader;
+}
+
 void LoadShader::updateProperties()
 {
+	std::map<std::string, Property::Ptr> oldProps;
+	for( auto prop:m_props )
+		oldProps[prop] = getProperty(prop);
+
 	clearProperties();
 
 	if(!m_shader->isOk())
@@ -145,7 +154,16 @@ void LoadShader::updateProperties()
 
 	for( auto name:uniformNames )
 	{
+		Property::Ptr oldProp;
+		auto it = oldProps.find(name);
+		if( it != oldProps.end() )
+		{
+			std::cout << "got oldProp: " << name << std::endl;
+			oldProp = it->second;
+		}
+
 		std::cout << "got uniform: " << name << " (" << base::Shader::uniformTypeAsString(m_shader->getUniformType(name)) << ")" << std::endl;
+
 		switch( m_shader->getUniformType(name) )
 		{
 			case base::Shader::EUNKNOWN:
@@ -153,17 +171,31 @@ void LoadShader::updateProperties()
 			}break;
 			case base::Shader::EFLOAT:
 			{
-				// create a float property
-				m_shader->setUniform(name, 0.0f);
-				addProperty<float>( name, [=]{return m_shader->getUniform(name)->get<float>(0);}, std::bind( static_cast<void(base::Shader::*)(const std::string& name, float)>(&base::Shader::setUniform), m_shader, name, std::placeholders::_1 ) );
+				FloatProperty::Ptr oldPropT = std::dynamic_pointer_cast<FloatProperty>(oldProp);
+				if( oldPropT )
+				{
+					std::cout << "got oldPropT: " << name << std::endl;
+					addProperty(name, oldProp);
+				}
+				else
+				{
+					// create a float property
+					m_shader->setUniform(name, 0.0f);
+					addProperty<float>( name, [=]{return m_shader->getUniform(name)->get<float>(0);}, std::bind( static_cast<void(base::Shader::*)(const std::string& name, float)>(&base::Shader::setUniform), m_shader, name, std::placeholders::_1 ) );
+				}
 			}break;
 			case base::Shader::ESAMPLER1D:
 			{
 			}break;
 			case base::Shader::ESAMPLER2D:
 			{
-				// create a texture2d property
-				addProperty<base::Texture2d::Ptr>( name, PropertyT<base::Texture2d::Ptr>::Getter(), std::bind( static_cast<void(base::Shader::*)(const std::string& name, base::Texture2d::Ptr)>(&base::Shader::setUniform), m_shader, name, std::placeholders::_1 ) );
+				if( std::dynamic_pointer_cast<PropertyT<base::Texture2d::Ptr>>(oldProp) )
+					addProperty(name, oldProp);
+				else
+				{
+					// create a texture2d property
+					addProperty<base::Texture2d::Ptr>( name, PropertyT<base::Texture2d::Ptr>::Getter(), std::bind( static_cast<void(base::Shader::*)(const std::string& name, base::Texture2d::Ptr)>(&base::Shader::setUniform), m_shader, name, std::placeholders::_1 ) );
+				}
 			}break;
 			case base::Shader::ESAMPLER3D:
 			{

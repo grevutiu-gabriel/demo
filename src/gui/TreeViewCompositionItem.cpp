@@ -15,7 +15,6 @@ TreeViewCompositionItem::TreeViewCompositionItem(CompositionWrapper::Ptr composi
 {
 	setText(0, QString::fromStdString(m_compositionWrapper->getName()));
 
-	connect( m_compositionWrapper.get(), SIGNAL(compositionElementAdded(int)), this, SLOT(onCompositionElementAdded(int)) );
 }
 
 TreeViewCompositionItem::~TreeViewCompositionItem()
@@ -102,14 +101,7 @@ ObjectWrapper::Ptr TreeViewCompositionItem::getObjectWrapper()
 	return m_compositionWrapper;
 }
 
-void TreeViewCompositionItem::onCompositionElementAdded(int index)
-{
-}
 
-void TreeViewCompositionItem::onCompositionElementRemoved(int index)
-{
-
-}
 
 
 

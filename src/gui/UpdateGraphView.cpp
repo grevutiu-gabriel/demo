@@ -253,7 +253,20 @@ void UpdateGraphView::onObjectPropertyAdded(ObjectWrapper::Ptr objectWrapper, co
 
 void UpdateGraphView::onObjectPropertyRemoved(ObjectWrapper::Ptr objectWrapper, const std::string &propName)
 {
-	std::cout << "UpdateGraphView::onObjectPropertyRemoved: " << propName << std::endl;
+	QNEBlock* block = getNode(objectWrapper);
+	if( block )
+	{
+		QString name = QString::fromStdString(propName);
+		std::cout << "UpdateGraphView::onObjectPropertyRemoved: " << propName << std::endl;
+		std::cout << "obj name: " << objectWrapper->getName() << std::endl;
+		QNEPort* port = block->getPort(name);
+		if(port)
+		{
+			m_inputs.erase(port);
+			block->removePort(name);
+			delete port;
+		}
+	}
 }
 
 UpdateGraphView::UpdateGraphView(UpdateGraphWrapper::Ptr updateGraphWrapper) :

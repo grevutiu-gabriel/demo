@@ -56,6 +56,7 @@ namespace base
 			static ShaderSourcePtr                       create( const std::string &v );
 			static ShaderSourcePtr                       createFromFile( const std::string &f );
 			void                                         getStringList( std::vector<std::string> &src)const;
+			void                                         getFiles( std::vector<std::string>& files ); // fills the list with all involved filenames
 
 			// input methods, order of calls matters
 			void                                         file( const std::string &srcFile );
@@ -87,7 +88,7 @@ namespace base
 		void                                             getAttributeNames( std::vector<std::string> &names );
 		void                                             getUniformNames( std::vector<std::string> &names );
 		EUniformType                                     getUniformType( const std::string& name );
-
+		void                                             getFiles( std::vector<std::string>& filenames ); // returns a list of all files which belong to that shader
 
 
 		std::map<std::string, int>                       m_activeAttributes;// list of active attributes (which are required by this shader) (name mapped to index)

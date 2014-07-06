@@ -49,6 +49,7 @@ namespace gui
 			m_nodes[objectWrapper] = Node();
 			connect( objectWrapper.get(), SIGNAL(propertyAdded(const std::string&)), this, SLOT(onObjectPropertyAdded(std::string)) );
 			connect( objectWrapper.get(), SIGNAL(propertyRemoved(const std::string&)), this, SLOT(onObjectPropertyRemoved(std::string)) );
+			connect( objectWrapper.get(), SIGNAL(propertyReferenceChanged()), this, SLOT(onObjectPropertyReferenceChanged()) );
 		}
 		return m_nodes[objectWrapper];
 	}
@@ -134,7 +135,36 @@ namespace gui
 
 	void UpdateGraphWrapper::onObjectPropertyRemoved(const std::string &name)
 	{
-		std::cout << "UpdateGraphWrapper::onObjectPropertyRemoved: " << name << std::endl;
+		ObjectWrapper* wrapper = dynamic_cast<ObjectWrapper*>( sender() );
+		ObjectWrapper::Ptr objectWrapper;
+		for( auto it:m_nodes )
+			if( wrapper == it.first.get() )
+			{
+				objectWrapper = it.first;
+				break;
+			}
+		if( objectWrapper )
+			emit propertyRemoved( objectWrapper, name );
+	}
+
+	void UpdateGraphWrapper::onObjectPropertyReferenceChanged()
+	{
+		std::cout << "UpdateGraphWrapper::onObjectPropertyReferenceChanged\n";
+		ObjectWrapper* wrapper = dynamic_cast<ObjectWrapper*>( sender() );
+		ObjectWrapper::Ptr objectWrapper;
+		for( auto it:m_nodes )
+			if( wrapper == it.first.get() )
+			{
+				objectWrapper = it.first;
+				break;
+			}
+		if( objectWrapper )
+		{
+			// recompile the graph
+			//TODO: recompile only for given object
+			std::cout << "recompiling graph\n";
+			this->m_graph->compile();
+		}
 	}
 
 

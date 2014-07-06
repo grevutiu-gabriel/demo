@@ -217,9 +217,18 @@ LoadShaderWrapper::LoadShaderWrapper(LoadShader::Ptr loadShader):
 						std::bind(&LoadShaderWrapper::getFilename, this),
 						std::bind(&LoadShaderWrapper::setFilename, this, std::placeholders::_1)));
 
-	//std::string newFilename = base::expand(m_loadVolume->getFilename());
-	//if( QFile(QString::fromStdString(newFilename)).exists() )
-	//	Application::getInstance()->watchFile(newFilename, std::bind( &LoadVolumeWrapper::reload, this ));
+	if( m_loadShader->getShader() )
+	{
+		std::vector<std::string> shaderFiles;
+		m_loadShader->getShader()->getFiles(shaderFiles);
+		for( auto file:shaderFiles )
+		{
+			if( QFile(QString::fromStdString(file)).exists() )
+				Application::getInstance()->watchFile(file, std::bind( &LoadShaderWrapper::reload, this ));
+		}
+	}
+
+
 }
 
 LoadShaderWrapper::~LoadShaderWrapper()
@@ -234,16 +243,31 @@ LoadShaderWrapper::Ptr LoadShaderWrapper::create(LoadShader::Ptr loadShader)
 
 void LoadShaderWrapper::setFilename(const std::string &filename)
 {
-	std::string currentFilename = base::expand(m_loadShader->getFilename());
-	//Application::getInstance()->unwatchFile(currentFilename);
+	if( m_loadShader->getShader() )
+	{
+		std::vector<std::string> shaderFiles;
+		m_loadShader->getShader()->getFiles(shaderFiles);
+		for( auto file:shaderFiles )
+		{
+			if( QFile(QString::fromStdString(file)).exists() )
+				Application::getInstance()->unwatchFile(file);
+		}
+	}
 
 	m_loadShader->setFilename(filename);
 
 	updatePropertyList();
 
-	//std::string newFilename = base::expand(m_loadVolume->getFilename());
-	//if( QFile(QString::fromStdString(newFilename)).exists() )
-	//	Application::getInstance()->watchFile(newFilename, std::bind( &LoadVolumeWrapper::reload, this ));
+	if( m_loadShader->getShader() )
+	{
+		std::vector<std::string> shaderFiles;
+		m_loadShader->getShader()->getFiles(shaderFiles);
+		for( auto file:shaderFiles )
+		{
+			if( QFile(QString::fromStdString(file)).exists() )
+				Application::getInstance()->watchFile(file, std::bind( &LoadShaderWrapper::reload, this ));
+		}
+	}
 }
 
 std::string LoadShaderWrapper::getFilename()
@@ -253,8 +277,10 @@ std::string LoadShaderWrapper::getFilename()
 
 void LoadShaderWrapper::reload()
 {
-	std::cout << "LoadTexture2dWrapper::reloading file\n";
-	m_loadShader->setFilename(m_loadShader->getFilename());
+	std::cout << "LoadShaderWrapper::reloading\n";
+	m_loadShader->reload();//setFilename(m_loadShader->getFilename());
+	updatePropertyList();
+	emit propertyReferenceChanged();
 	Application::getInstance()->getGlViewer()->update();
 }
 } // namespace gui

@@ -44,6 +44,7 @@ namespace gui
 	public slots:
 		void onObjectPropertyAdded( const std::string& name );
 		void onObjectPropertyRemoved( const std::string& name );
+		void onObjectPropertyReferenceChanged(); // property reference has changed
 	private:
 		UpdateGraph::Ptr                       m_graph;
 		std::map<ObjectWrapper::Ptr, Node>     m_nodes;
