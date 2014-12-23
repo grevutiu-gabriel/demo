@@ -5,13 +5,51 @@
 #include <iostream>
 #include <memory>
 #include <util/fs.h>
-#include <portaudio/portaudio.h>
+//#include <portaudio/portaudio.h>
 #include <stblib/stb_vorbis.h>
 
 
 
 
+class Audio
+{
+public:
+	typedef std::shared_ptr<Audio> Ptr;
 
+	struct StreamData
+	{
+		short *data;
+		int len;
+		int current;
+	};
+
+
+	Audio()
+	{
+	}
+	~Audio()
+	{
+	}
+
+	void load(  const base::Path &streamPath  )
+	{
+	}
+
+
+	void startPlayback()
+	{
+	}
+
+	void stopPlayback()
+	{
+	}
+
+
+private:
+
+};
+
+/*
 class Audio
 {
 public:
@@ -152,7 +190,7 @@ private:
 		short *out = (short*)outputBuffer;
 		unsigned long i;
 
-		(void) timeInfo; /* Prevent unused variable warnings. */
+		(void) timeInfo; // Prevent unused variable warnings.
 		(void) statusFlags;
 		(void) inputBuffer;
 
@@ -186,3 +224,4 @@ private:
 };
 
 
+*/

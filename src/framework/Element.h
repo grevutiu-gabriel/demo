@@ -25,4 +25,8 @@ public:
 
 	// overrides from ControllerT
 	virtual RenderFunction evaluate(float time);
+
+
+private:
+	base::State m_state; // opengl state for rendering this element
 };

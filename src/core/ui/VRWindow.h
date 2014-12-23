@@ -7,7 +7,7 @@
 #include <gfx/Camera.h>
 
 
-#include <OVR.h>
+//#include <OVR.h>
 
 #ifdef _WINDOWS
 

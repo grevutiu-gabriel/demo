@@ -11,7 +11,7 @@
 #include "Camera.h"
 #include "Texture.h"
 #include "FBO.h"
-
+#include "State.h"
 
 
 namespace base
@@ -99,7 +99,10 @@ namespace base
 		*/
 		Texture2d::Ptr                          getTexture2d( const std::string& name );
 		void                                    addTexture2d( const std::string& name, Texture2d::Ptr texture );
+
+		void                                    apply( const State& state );
 	private:
+		State                                   m_currentState;
 		TransformState                          m_currentTransformState;
 
 

@@ -64,6 +64,7 @@ void CompositionEditor::updateGuiInfo()
 	m_updateGraphView->updateGuiInfo();
 }
 
+
 void CompositionEditor::onGraphSelectionChanged()
 {
 	std::vector<ObjectWrapper::Ptr> selected;

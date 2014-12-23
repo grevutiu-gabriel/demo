@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8.8)
 project("demo")
 
+set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+include(cotire)
+
 #generates qt moc and ui sources from the list of source files which have been given as parameter
 MACRO (generateQtOutputs sources )
         #
@@ -58,8 +61,8 @@ find_package(Qt5Widgets REQUIRED)
 find_package(Qt5OpenGL REQUIRED)
 
 # Oculus Rift ----------------------------------
-add_subdirectory( 3rdparty/LibOVR )
-include_directories( ${LIBOVR_INC_DIR} )
+#add_subdirectory( 3rdparty/LibOVR )
+#include_directories( ${LIBOVR_INC_DIR} )
 
 # PortAudio ------------------------------------
 add_definitions(-DPA_USE_DS) # portaudio to use directx sound on windows
@@ -73,8 +76,8 @@ file(GLOB_RECURSE app_sources ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 							${CMAKE_CURRENT_SOURCE_DIR}/core/*
 							${CMAKE_CURRENT_SOURCE_DIR}/framework/*
 							${CMAKE_CURRENT_SOURCE_DIR}/gui/*
-							${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/stblib/*
-							${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/portaudio/* )
+							${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/stblib/* )
+							#${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/portaudio/* )
 file(GLOB_RECURSE app_sources_glsl ${CMAKE_CURRENT_SOURCE_DIR}/*.glsl )
 
 # add qt intermediate source files
@@ -83,6 +86,7 @@ generateQtOutputs( app_sources )
 
 # executeable =====================================
 add_executable(${APP_NAME} ${app_sources} ${app_sources_glsl})
+#cotire(${APP_NAME})
 
 
 # additional include directories ---
@@ -93,7 +97,7 @@ include_directories( ${BASE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty )
 qt5_use_modules(${APP_NAME} Widgets OpenGL)
 
 # Oculus Rift ------
-target_link_libraries( ${APP_NAME} LibOVR )
+#target_link_libraries( ${APP_NAME} LibOVR )
 
 # OpenGL ---
 INCLUDE(FindOpenGL)

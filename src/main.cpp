@@ -101,9 +101,7 @@ void init( base::Context::Ptr context )
 	std::cout << "init...\n";
 	//ObjectFactory::print(std::cout);
 
-
 	// intialize and load demo --------
-
 #ifdef STANDALONE
 
 //#ifdef DOAUDIO
@@ -116,9 +114,7 @@ void init( base::Context::Ptr context )
 #else
 	// gui
 	gui::DemoWrapper::Ptr demoWrapper = gui::Application::getInstance()->getDemoWrapper();
-	//demoWrapper->load("filename");
 	g_demo = demoWrapper->getDemo();
-
 	//if( g_demo->getNumCompositions()>0 )
 	//	gui::Application::getInstance()->openCompositionEditor( demoWrapper->getCompositionWrapper(0) );
 #endif
@@ -209,13 +205,10 @@ int main(int argc, char ** argv)
 	base::pathRegister( "src", base::Path( SRC_PATH ) );
 	base::pathRegister( "data", base::Path( DATA_PATH ) );
 
-	///*
 	int xres = 800;
 	int yres = 600;
 
 #ifdef STANDALONE
-
-	///*
 	base::Application app;
 	glviewer = new base::GLViewer( xres, yres, "app", init, render, shutdown );
 	glviewer->getOrbitNavigator().m_distance = 20.0f;
@@ -226,64 +219,13 @@ int main(int argc, char ** argv)
 	glviewer->show();
 	//glviewer->setFullscreen(true);
 	return app.exec();
-	//*/
-
-/*
-	base::Application app;
-//	glviewer = new base::GLViewer( xres, yres, "app", init, render, shutdown );
-//	glviewer->getOrbitNavigator().m_distance = 20.0f;
-//	glviewer->getOrbitNavigator().m_elevation = 45.0f;
-//	glviewer->getOrbitNavigator().update();
-//	//glviewer->setMouseMoveCallback( onMouseMove );
-//	glviewer->show();
-	base::VRWindow window;
-	window.show();
-	return app.exec();
-*/
 #else
-	//Q_INIT_RESOURCE(application);
 	gui::Application app(argc, argv, init, shutdown, render);
 	app.setOrganizationName("app");
 	app.setApplicationName("app");
 
 	app.getGlViewer()->setKeyPressCallback( onKeyPress );
 	app.getGlViewer()->setMouseMoveCallback(onMouseMove);
-
-	/*
-	glviewer->getCamera()->m_znear = .1f;
-	glviewer->getCamera()->m_zfar = 1000.0f;
-	glviewer->getOrbitNavigator().m_distance = 1.0f;
-	glviewer->getOrbitNavigator().m_elevation = 45.0f;
-	glviewer->getOrbitNavigator().update();
-
-	*/
-//	mainWin.setCentralWidget( glviewer );
-//	mainWin.show();
-
-
-	//gui::FlareShopWrapper::Ptr fsw;
-	//Volume::Ptr volume = std::dynamic_pointer_cast<Volume>(g_demo->getComposition(0)->getCompositionElement(0)->getChild(1)->getElement());
-	//gui::VolumeWrapper::Ptr volumeWrapper = std::make_shared<gui::VolumeWrapper>( volume );
-	//gui::TFEWidget tfe(volumeWrapper);
-	//tfe.show();
-	//volumeWrapper->connect( volumeWrapper.get(), SIGNAL(changed()), app.getGlViewer(), SLOT(updateGL()) );
-
-//	if( g_demo->getNumCompositions()>0 )
-//	{
-//		Composition::Ptr composition = g_demo->getComposition(0);
-//		int numCompositionElements = composition->getNumCompositionElements();
-//		for( int i=0;i<numCompositionElements;++i )
-//		{
-//			CompositionElement::Ptr compositionElement = composition->getCompositionElement(i);
-//			FlareShop::Ptr fs = std::dynamic_pointer_cast<FlareShop>(compositionElement->getElement());
-//			if( fs )
-//			{
-//				fsw = gui::FlareShopWrapper::create(fs);
-//				fsw->connect( fsw.get(), SIGNAL(changed()), app.getGlViewer(), SLOT(updateGL()) );
-//			}
-//		}
-//	}
-
 
 	return app.exec();
 #endif

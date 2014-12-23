@@ -189,6 +189,7 @@ namespace gui
 		m_fileWatcher.removePath( QString::fromStdString(filename) );
 	}
 
+
 	void Application::serializeGuiInfo(Serializer &out)
 	{
 		std::vector<Composition::Ptr>& compositions = m_demoWrapper->getDemo()->getCompositions();
@@ -199,7 +200,6 @@ namespace gui
 			{
 				compositionEditor.second->updateGuiInfo();
 			}
-
 
 			// serialize updategraphwrappers
 			houdini::json::ArrayPtr updateGraphWrappers = houdini::json::Array::create();

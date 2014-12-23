@@ -555,4 +555,17 @@ namespace base
 		m_2dtextures[name] = texture;
 	}
 
+	void Context::apply(const State &state)
+	{
+//		if( state.blend > 0 )
+//			if( (state.blend == State::EEnabled)&&(m_currentState == State::EDisabled)  )
+//				glEnable( GL_BLEND );
+//			else
+//			if( (state.blend == State::EDisabled)&&(m_currentState == State::EEnabled)  )
+//				glDisable( GL_BLEND );
+
+//		if( state.blendFunc > 0)
+//			glBlendFunc( state.blendFuncSrcFactor, state.blendFuncDstFactor );
+	}
+
 }
